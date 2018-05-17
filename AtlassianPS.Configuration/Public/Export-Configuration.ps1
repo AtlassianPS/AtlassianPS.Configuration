@@ -26,7 +26,7 @@ function Export-Configuration {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        Import-MqcnAlias -Alias "ExportConfiguration" -Command "Configuration\Export-Configuration"
+        Import-MqcnAlias -Alias "ExportConfiguration" -Command "PSFramework\Export-PSFConfig"
     }
 
     process {
@@ -36,7 +36,7 @@ function Export-Configuration {
         $export = $script:Configuration
         $export.Server = $export.Server | Select-Object -Exclude Session
 
-        ExportConfiguration -InputObject $export
+        ExportConfiguration -Module AtlassianPS.Configuration -SkipUnchanged
     }
 
     end {

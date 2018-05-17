@@ -1,25 +1,24 @@
-function Remove-ServerConfiguration {
+function Remove-Configuration {
     <#
     .SYNOPSIS
-        Remove a Stores Bitbucket Server from memory.
+        Remove a configuration entry.
 
-    .DESCRIPTION
-        This function allows for several Bitbucket Server object to be removed in memory.
+        .DESCRIPTION
+        Remove a configuration entry.
 
     .EXAMPLE
-        Remove-BitbucketConfiguration -Name "Server Prod"
+        Remove-AtlassianConfiguration -Name "Headers"
         -----------
         Description
-        This command will remove the server identified as "Server Prod" from memory.
+        This command will remove "Headers" configuration.
 
     .LINK
         Export-Configuration
     #>
     [CmdletBinding( SupportsShouldProcess = $false )]
-    [OutputType( [AtlassianPS.ServerData] )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage( 'PSUseShouldProcessForStateChangingFunctions', '' )]
     param(
-        # Name with which this server is stored.
+        # Name under which the value is stored
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ArgumentCompleter(
@@ -33,38 +32,24 @@ function Remove-ServerConfiguration {
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Name, $_.Name, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Name ) }
             }
         )]
-        [Alias('ServerName', 'Alias')]
         [String[]]
-        $Name,
-
-        #
-        [Switch]
-        $Passthru
+        $Name
     )
 
     begin {
         Write-PSFMessage -Message "Function started" -Level Debug
 
-        $serverList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
+        $moduleName = $MyInvocation.MyCommand.ModuleName
     }
 
     process {
         Write-PSFMessage -Message "ParameterSetName: $($PsCmdlet.ParameterSetName)" -Level Debug
         Write-PSFMessage -Message "PSBoundParameters: $($PSBoundParameters | Out-String)" -Level Debug
 
-        foreach ($server in ((Get-Configuration -Name Server).Value)) {
-            if ($server.Name.ToLower() -notin $Name.ToLower()) {
-                $null = $serverList.Add($server)
-            }
-            else {
-                Write-PSFMessage -Message "Removing server [name = $($server.Name)]" -Level Verbose
-            }
-        }
-
-        Set-Configuration -Name Server -Value $serverList
-
-        if ($Passthru) {
-            Write-Output $serverList
+        foreach ($_name in $Name) {
+            Write-PSFMessage -Message "Removing [name = $_name]" -Level Verbose
+            Unregister-PSFConfig -Module $MyInvocation.MyCommand.ModuleName -Name $_name
+            $null = [PSFramework.Configuration.ConfigurationHost]::Configurations.Remove("$($moduleName.ToLower()).$_name")
         }
     }
 

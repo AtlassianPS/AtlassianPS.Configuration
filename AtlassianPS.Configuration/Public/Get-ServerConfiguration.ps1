@@ -13,10 +13,10 @@ function Get-ServerConfiguration {
         Get all stored servers
 
     .EXAMPLE
-        Get-Configuration -ServerName "prod"
+        Get-Configuration -name $Name "prod"
         --------
         Description
-        Get the data of the server with ServerName "prod"
+        Get the data of the server with name $Name "prod"
 
     .EXAMPLE
         Get-BitbucketConfiguration -Uri "https://myserver.com"
@@ -24,19 +24,22 @@ function Get-ServerConfiguration {
         Description
         Get the data of the server with address "https://myserver.com"
     #>
-    [CmdletBinding( DefaultParameterSetName = 'ServerData' )]
-    [OutputType([AtlassianPS.ServerData])]
+    [CmdletBinding( DefaultParameterSetName = '_All' )]
+    [OutputType( [AtlassianPS.ServerData[]] )]
     param(
         # Address of the stored server.
-        # This all wildchards.
+        #
+        # This parameter allows wildchards
         [Parameter( Mandatory, ParameterSetName = 'ServerDataByUri' )]
         [ArgumentCompleter(
             {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-                $commandName = (Get-Command -Module "AtlassianPS.Configuration" -Name "Get-*ServerConfiguration").Name
+                $command = "Get-ServerConfiguration"
+                $module = (Get-command -Name $commandName).Module
+                $commandName = $module.ExportedCommands.Keys | Where-Object {$_ -like ($command -replace "-", "-$($module.Prefix)")}
                 & $commandName |
-                    Where-Object { $_.Uri -like "$wordToComplete*" } |
-                    ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Uri, $_.Uri, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Uri ) }
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Name, $_.Name, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Name ) }
             }
         )]
         [Alias('Url', 'Address')]
@@ -44,44 +47,55 @@ function Get-ServerConfiguration {
         $Uri,
 
         # Name of the server that was defined when stored.
-        # This all wildchards.
-        [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'ServerDataByName' )]
+        #
+        # This parameter allows wildchards
+        # This parameter is not case sensitive
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'ServerDataByName' )]
         [ArgumentCompleter(
             {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-                $commandName = (Get-Command -Module "AtlassianPS.Configuration" -Name "Get-*ServerConfiguration").Name
+                $command = "Get-ServerConfiguration"
+                $module = (Get-command -Name $commandName).Module
+                $commandName = $module.ExportedCommands.Keys | Where-Object {$_ -like ($command -replace "-", "-$($module.Prefix)")}
                 & $commandName |
-                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    Where-Object { $_.Uri -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Name, $_.Name, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Name ) }
             }
         )]
-        [Alias('Name', 'Alias')]
-        [String]
-        $ServerName
+        [Alias('ServerName', 'Alias')]
+        [String[]]
+        $Name
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-PSFMessage -Message "Function started" -Level Debug
+
+        Write-PSFMessage -Message "Fetching all" -Level Verbose
+        $allServer = [AtlassianPS.ServerData[]]((Get-Configuration -Name "Server").Value)
     }
 
     process {
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-PSFMessage -Message "ParameterSetName: $($PsCmdlet.ParameterSetName)" -Level Debug
+        Write-PSFMessage -Message "PSBoundParameters: $($PSBoundParameters | Out-String)" -Level Debug
 
         switch ($PsCmdlet.ParameterSetName) {
             'ServerDataByName' {
-                ($script:Configuration.Server | Where-Object { $_.Name -eq $ServerName })
+                foreach ($_name in $Name) {
+                    Write-PSFMessage -Message "Filtering for [Name = $_name]" -Level Verbose
+                    $allServer | Where-Object { $_.Name -like $_name }
+                }
             }
             'ServerDataByUri' {
-                ($script:Configuration.Server | Where-Object { $_.Uri -eq $Uri })
+                Write-PSFMessage -Message "Filtering for [Uri = $Uri]" -Level Verbose
+                $allServer | Where-Object { $_.Uri -eq $Uri }
             }
-            'ServerData' {
-                ($script:Configuration.Server)
+            '_All' {
+                $allServer
             }
         }
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
+        Write-PSFMessage -Message "Function ended" -Level Debug
     }
 }

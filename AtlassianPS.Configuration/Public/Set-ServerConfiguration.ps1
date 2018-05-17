@@ -11,7 +11,7 @@ function Set-ServerConfiguration {
         _Exported servers will be imported automatically when the module is loaded._
 
     .EXAMPLE
-        Set-BitbucketConfiguration -Uri "https://server.com/" -ServerName "Server Prod"
+        Set-BitbucketConfiguration -Uri "https://server.com/" -Name "Server Prod"
         -----------
         Description
         This command will store the server address and name in memory and allow other commands
@@ -21,7 +21,7 @@ function Set-ServerConfiguration {
         Export-Configuration
     #>
     [CmdletBinding( SupportsShouldProcess = $false )]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage( 'PSUseShouldProcessForStateChangingFunctions', '' )]
     param(
         # Address of the Bitbucket Server.
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
@@ -31,66 +31,74 @@ function Set-ServerConfiguration {
 
         # Name with which this server will be stored.
         # If no name is provided, the "Authority" of the addess will be used.
-        # This value must be unique. In case the ServerName was already saved,
+        # This value must be unique. In case the Name was already saved,
         # it will be overwritten.
         #
         # Example for "Authority":
         #   https://www.google.com/maps?hl=en --> "www.google.com"
+        #
+        # This property is not case sensitive
         [Parameter( ValueFromPipelineByPropertyName )]
-        [Alias('Name', 'Alias')]
+        [ValidateScript(
+            {
+                if ("*" -in [char[]]$_) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Value of Parameter"),
+                        'ParameterType.ContainsWildcard',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Name is not allowed to contain wildcards"
+                    ThrowError $errorItem
+                }
+                else {
+                    $true
+                }
+            }
+        )]
+        [Alias('ServerName', 'Alias')]
         [String]
-        $ServerName = $Uri.Authority,
+        $Name = $Uri.Authority,
 
-        [Parameter( Mandatory )]
+        [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
         [AtlassianPS.ServerType]
         $Type,
 
         # Stores a WebSession to the server object.
+        [Parameter( ValueFromPipelineByPropertyName )]
         [Microsoft.PowerShell.Commands.WebRequestSession]
         $Session,
 
-        [hashtable]
+        [Parameter( ValueFromPipelineByPropertyName )]
+        [Hashtable]
         $Headers
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        if (-not ($script:Configuration.Server)) {
-            $script:Configuration.Server = @()
-        }
+        Write-PSFMessage -Message "Function started" -Level Debug
     }
 
     process {
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-PSFMessage -Message "ParameterSetName: $($PsCmdlet.ParameterSetName)" -Level Debug
+        Write-PSFMessage -Message "PSBoundParameters: $($PSBoundParameters | Out-String)" -Level Debug
 
-        Write-Debug "halt" -Breakpoint
-        $config = [AtlassianPS.ServerData]@{
-            Name    = $ServerName
+        $serverList = Remove-ServerConfiguration -Name $Name -Passthru
+
+        Write-PSFMessage -Message "Adding new entry [name = $Name]" -Level Verbose
+        $serverList = @($serverList) + @([AtlassianPS.ServerData]@{
+            Name    = $Name
             Uri     = $Uri
             Type    = $Type
             # IsCloudServer = (Test-ServerIsCloud -Type $Type -Uri $Uri -Headers $Headers -ErrorAction Stop -verbose)
             Session = $Session
             Headers = $Headers
-        }
+        }) -as [AtlassianPS.ServerData[]]
 
-        $newConfiguration = @()
-        foreach ($server in $script:Configuration.Server) {
-            if ($server.Name -ne $config.Name) {
-                $newConfiguration += $server
-            }
-            else {
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Removing server `$server: $($server.Name)"
-            }
-        }
-        $script:Configuration.Server = $newConfiguration
-
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Adding server `$config: $($config.Name)" -Breakpoint
-        $script:Configuration.Server += $config
+        Write-PSFMessage -Message "Storing list with $($serverList.Count) entries" -Level Verbose
+        Set-Configuration -Name Server -Value $serverList
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
+        Write-PSFMessage -Message "Function ended" -Level Debug
     }
 }
