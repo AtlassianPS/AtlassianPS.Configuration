@@ -10,15 +10,17 @@ function Export-Configuration {
         _Stored sessions will not be stored when exported._
 
     .EXAMPLE
-        Set-BitbucketConfiguration -Uri "https://server.com"
-        Export-BitbucketConfiguration
+        Set-AtlassianServerConfiguration -Uri "https://server.com"
+        Export-AtlassianConfiguration
         --------
         Description
         Stores the server to disk.
 
     .LINK
         Set-Configuration
-        New-Session
+
+    .LINK
+        JiraPS\New-Session
     #>
     [CmdletBinding()]
     param()
@@ -37,7 +39,7 @@ function Export-Configuration {
         Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $export = $script:Configuration
-        $export.Server = $export.Server | Select-Object -Exclude Session
+        $export.ServerList = $export.ServerList | Select-Object -Exclude Session
 
         ExportConfiguration -InputObject $export
     }

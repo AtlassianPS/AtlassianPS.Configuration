@@ -1,21 +1,24 @@
 function Remove-ServerConfiguration {
     <#
     .SYNOPSIS
-        Remove a Stores Bitbucket Server from memory.
+        Remove a Stores Server from memory.
 
     .DESCRIPTION
-        This function allows for several Bitbucket Server object to be removed in memory.
+        This function allows for several Server object to be removed in memory.
 
     .EXAMPLE
-        Remove-BitbucketConfiguration -ServerName "Server Prod"
+        Remove-AtlassianServerConfiguration -ServerName "Server Prod"
         -----------
         Description
         This command will remove the server identified as "Server Prod" from memory.
 
     .LINK
-        Export-Configuration
+        Get-ServerConfiguration
+
+    .LINK
+        Set-ServerConfiguration
     #>
-    [CmdletBinding( SupportsShouldProcess = $false )]
+    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # Name with which this server is stored.
@@ -35,34 +38,38 @@ function Remove-ServerConfiguration {
     )
 
     begin {
-<<<<<<< Updated upstream
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-=======
         Write-Verbose "[$(Get-BreadCrumbs)]:"
         Write-Verbose "    Function started"
 
         $serverList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
->>>>>>> Stashed changes
     }
 
     process {
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $trackRemoval = $false
-        $newConfiguration = @()
+        $trackRemoval = 0
         foreach ($server in $script:Configuration.Server) {
             if ($server.Name -ne $ServerName) {
-                $newConfiguration += $server
+                $newConfiguration.Add($server)
             }
             else {
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Removing server `$server: $($server.Name)" -Breakpoint
-                $trackRemoval = $true
+                Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+                Write-Debug "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
+
+                $trackRemoval++
             }
         }
+    }
 
-        if ($trackRemoval) {
-            $script:Configuration.Server = $newConfiguration
+    end {
+        if ($trackRemoval.Count) {
+            Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+            Write-DebugMessage "    Persisting ServerList"
+
+            $script:Configuration.ServerList = $serverList
         }
         else {
             $errorItem = [System.Management.Automation.ErrorRecord]::new(
@@ -72,16 +79,10 @@ function Remove-ServerConfiguration {
                 $ServerName
             )
             $errorItem.ErrorDetails = "No server '$ServerName' could be found."
-            $PSCmdlet.WriteError($errorItem)
+            WriteError $errorItem
         }
-    }
 
-    end {
-<<<<<<< Updated upstream
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
-=======
         Write-Verbose "[$(Get-BreadCrumbs)]:"
         Write-Verbose "    Function ended"
->>>>>>> Stashed changes
     }
 }

@@ -3,7 +3,7 @@ function Remove-Configuration {
     .SYNOPSIS
         Remove a configuration entry.
 
-        .DESCRIPTION
+    .DESCRIPTION
         Remove a configuration entry.
 
     .EXAMPLE
@@ -13,9 +13,9 @@ function Remove-Configuration {
         This command will remove "Headers" configuration.
 
     .LINK
-        Export-Configuration
+        Set-Configuration
     #>
-    [CmdletBinding( SupportsShouldProcess = $false )]
+    [CmdletBinding( ConfirmImpact = 'Low' ,SupportsShouldProcess = $false )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage( 'PSUseShouldProcessForStateChangingFunctions', '' )]
     param(
         # Name under which the value is stored
@@ -39,18 +39,19 @@ function Remove-Configuration {
     begin {
         Write-Verbose "[$(Get-BreadCrumbs)]:"
         Write-Verbose "    Function started"
-
-        $moduleName = $MyInvocation.MyCommand.ModuleName
     }
 
     process {
-        Write-PSFMessage -Message "ParameterSetName: $($PsCmdlet.ParameterSetName)" -Level Debug
-        Write-PSFMessage -Message "PSBoundParameters: $($PSBoundParameters | Out-String)" -Level Debug
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         foreach ($_name in $Name) {
-            Write-PSFMessage -Message "Removing [name = $_name]" -Level Verbose
-            Unregister-PSFConfig -Module $MyInvocation.MyCommand.ModuleName -Name $_name
-            $null = [PSFramework.Configuration.ConfigurationHost]::Configurations.Remove("$($moduleName.ToLower()).$_name")
+            Write-Verbose "[$(Get-BreadCrumbs)]:"
+            Write-Verbose "    Filtering for [name = $_name]"
+
+            $script:Configuration.Remove($_name)
         }
     }
 

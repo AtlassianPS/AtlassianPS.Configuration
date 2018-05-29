@@ -7,36 +7,43 @@ function Get-ServerConfiguration {
         Retrive the stored servers.
 
     .EXAMPLE
-        Get-Configuration
+        Get-AtlassianServerConfiguration
         --------
         Description
         Get all stored servers
 
     .EXAMPLE
-        Get-Configuration -ServerName "prod"
+        Get-AtlassianServerConfiguration -name $Name "prod"
         --------
         Description
-        Get the data of the server with ServerName "prod"
+        Get the data of the server with name $Name "prod"
 
     .EXAMPLE
-        Get-BitbucketConfiguration -Uri "https://myserver.com"
+        Get-AtlassianServerConfiguration -Uri "https://myserver.com"
         --------
         Description
         Get the data of the server with address "https://myserver.com"
+
+    .LINK
+        Set-ServerConfiguration
+
+    .LINK
+        Remove-ServerConfiguration
     #>
-    [CmdletBinding( DefaultParameterSetName = 'ServerData' )]
-    [OutputType([AtlassianPS.ServerData])]
+    [CmdletBinding( DefaultParameterSetName = '_All' )]
+    [OutputType( [AtlassianPS.ServerData] )]
     param(
         # Address of the stored server.
-        # This all wildchards.
         [Parameter( Mandatory, ParameterSetName = 'ServerDataByUri' )]
         [ArgumentCompleter(
             {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-                $commandName = (Get-Command -Module "AtlassianPS.Configuration" -Name "Get-*ServerConfiguration").Name
+                $command = "Get-ServerConfiguration"
+                $module = (Get-command -Name $commandName).Module
+                $commandName = $module.ExportedCommands.Keys | Where-Object {$_ -like ($command -replace "-", "-$($module.Prefix)")}
                 & $commandName |
-                    Where-Object { $_.Uri -like "$wordToComplete*" } |
-                    ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Uri, $_.Uri, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Uri ) }
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Name, $_.Name, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Name ) }
             }
         )]
         [Alias('Url', 'Address')]
@@ -44,31 +51,24 @@ function Get-ServerConfiguration {
         $Uri,
 
         # Name of the server that was defined when stored.
-        # This all wildchards.
-        [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'ServerDataByName' )]
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'ServerDataByName' )]
         [ArgumentCompleter(
             {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-                $commandName = (Get-Command -Module "AtlassianPS.Configuration" -Name "Get-*ServerConfiguration").Name
+                $command = "Get-ServerConfiguration"
+                $module = (Get-command -Name $commandName).Module
+                $commandName = $module.ExportedCommands.Keys | Where-Object {$_ -like ($command -replace "-", "-$($module.Prefix)")}
                 & $commandName |
-                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    Where-Object { $_.Uri -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Name, $_.Name, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Name ) }
             }
         )]
-        [Alias('Name', 'Alias')]
-        [String]
-        $ServerName
+        [Alias('ServerName', 'Alias')]
+        [String[]]
+        $Name
     )
 
     begin {
-<<<<<<< Updated upstream
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-    }
-
-    process {
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-=======
         Write-Verbose "[$(Get-BreadCrumbs)]:"
         Write-Verbose "    Function started"
     }
@@ -78,22 +78,27 @@ function Get-ServerConfiguration {
         Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$(Get-BreadCrumbs)]:"
         Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
->>>>>>> Stashed changes
 
         switch ($PsCmdlet.ParameterSetName) {
             'ServerDataByName' {
-                ($script:Configuration.Server | Where-Object { $_.Name -eq $ServerName })
+                Write-Verbose "[$(Get-BreadCrumbs)]:"
+                Write-Verbose "    Filtering for [Name = $ServerName]"
+
+                Write-Ouput ($script:Configuration.ServerList | Where-Object { $_.Name -eq $ServerName })
             }
             'ServerDataByUri' {
-                ($script:Configuration.Server | Where-Object { $_.Uri -eq $Uri })
+                Write-Verbose "[$(Get-BreadCrumbs)]:"
+                Write-Verbose "    Filtering for [URI = $Uri]"
+
+                Write-Ouput ($script:Configuration.ServerList | Where-Object { $_.Uri -eq $Uri })
             }
             'ServerData' {
-                ($script:Configuration.Server)
+                Write-Ouput ($script:Configuration.ServerList)
             }
         }
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
+        Write-PSFMessage -Message "Function ended" -Level Debug
     }
 }

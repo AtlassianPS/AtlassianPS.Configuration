@@ -3,7 +3,7 @@ function Get-Configuration {
     .SYNOPSIS
         Retireve a stored configuration
 
-        .DESCRIPTION
+    .DESCRIPTION
         Retireve a stored configuration
 
     .EXAMPLE
@@ -17,9 +17,15 @@ function Get-Configuration {
         --------
         Description
         Get configuration data in key "Headers"
+
+    .LINK
+        Set-Configuration
+
+    .LINK
+        Remove-Configuration
     #>
     [CmdletBinding()]
-    [OutputType()]
+    [OutputType( [PSCustomObject] )]
     param(
         # Name of the configuration to be retireved
         #
@@ -38,14 +44,12 @@ function Get-Configuration {
             }
         )]
         [String[]]
-        $Name = "*"
+        $Name = '*'
     )
 
     begin {
         Write-Verbose "[$(Get-BreadCrumbs)]:"
         Write-Verbose "    Function started"
-
-        $moduleName = $MyInvocation.MyCommand.ModuleName
     }
 
     process {
@@ -55,9 +59,17 @@ function Get-Configuration {
         Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         foreach ($_name in $Name) {
-            Write-Verbose "[$(Get-BreadCrumbs)]:"
-            Write-Verbose "    Filtering for [name = $_name]"
-            $script:Configuration | Where-Object { $_.Name -like $_name }
+            foreach ($key in ($script:Configuration.Keys | Where-Object { $_ -like $_name })) {
+                Write-Verbose "[$(Get-BreadCrumbs)]:"
+                Write-Verbose "    Filtering for [name = $key]"
+
+                Write-Output (
+                    [PSCustomObject]@{
+                        Name = $key
+                        Value = $script:Configuration[$key]
+                    }
+                )
+            }
         }
     }
 

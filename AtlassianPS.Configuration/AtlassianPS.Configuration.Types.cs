@@ -22,7 +22,7 @@ namespace AtlassianPS
     [Serializable]
     public class ServerData
     {
-        // public ServerData().
+        // public ServerData()
         // {
         //     IsCloudServer = false;
         // }

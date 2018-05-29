@@ -27,8 +27,8 @@ if (Get-Command Add-MetadataConverter -Module Configuration -ErrorAction Silentl
 # Load configuration using
 # https://github.com/PoshCode/Configuration
 $script:Configuration = Configuration\Import-Configuration -CompanyName "AtlassianPS" -Name "AtlassianPS.Configuration"
-if (-not $script:Configuration.Server) {
-    $script:Configuration.Server = @()
+if (-not $script:Configuration.ServerList) {
+    $script:Configuration.ServerList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
 }
 #endregion ModuleConfig
 

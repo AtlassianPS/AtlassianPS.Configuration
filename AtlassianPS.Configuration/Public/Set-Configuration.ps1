@@ -16,13 +16,11 @@ function Set-Configuration {
     .LINK
         Export-Configuration
     #>
-    [CmdletBinding( SupportsShouldProcess = $false )]
+    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage( 'PSUseShouldProcessForStateChangingFunctions', '' )]
     param(
         # Name under which to store the value
-        #
-        # This property is not case sensitive
-        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ArgumentCompleter(
             {
@@ -63,36 +61,43 @@ function Set-Configuration {
     begin {
         Write-Verbose "[$(Get-BreadCrumbs)]:"
         Write-Verbose "    Function started"
-
-        $moduleName = $MyInvocation.MyCommand.ModuleName
     }
 
     process {
-        Write-PSFMessage -Message "ParameterSetName: $($PsCmdlet.ParameterSetName)" -Level Debug
-        Write-PSFMessage -Message "PSBoundParameters: $($PSBoundParameters | Out-String)" -Level Debug
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         If ($Append) {
-            Write-PSFMessage -Message "Appending to existing value" -Level Verbose
+            Write-Verbose "[$(Get-BreadCrumbs)]:"
+            Write-Verbose "    Appending to existing value"
             $oldValue = (Get-Configuration -Name $Name).Value
             try {
                 $Value = @(@($oldValue) + @($Value)) -as ($oldValue.GetType())
             }
             catch {
-                Write-PSFMessage -Message "Failed to use Type of previous value" -Level Debug
+                Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+                Write-DebugMessage "    Failed to use Type of previous value"
+
                 $Value = @(@($oldValue) + @($Value))
             }
         }
 
-        Write-PSFMessage -Message "Storing value [$($Value.GetType().Name)] to [name = $Name]" -Level Verbose
-        Set-PSFConfig -Module AtlassianPS.Configuration -Name $Name -Value $Value -Description $Description
-        Register-PSFConfig -FullName "$($moduleName.ToLower()).$Name"
-
-        if ($Passthru) {
-            Write-Output $Value
-        }
+        Write-Verbose "[$(Get-BreadCrumbs)]:"
+        Write-Verbose "    Storing value [$($Value.GetType().Name)] to [name = $Name]"
+        $script:Configuration.Remove($Name)
+        $script:Configuration.Add($Name, $Value)
     }
 
     end {
+        if ($Passthru) {
+            Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+            Write-DebugMessage "    Persisting Configuration"
+
+            Write-Output $script:Configuration
+        }
+
         Write-Verbose "[$(Get-BreadCrumbs)]:"
         Write-Verbose "    Function ended"
     }

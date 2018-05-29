@@ -1,17 +1,17 @@
 function Set-ServerConfiguration {
     <#
     .SYNOPSIS
-        Stores Bitbucket Server object for the module to known with what server it should talk to.
+        Stores Server object for the module to known with what server it should talk to.
 
     .DESCRIPTION
-        This function allows for several Bitbucket Server object to be stored in memory.
-        Stored servers are used by the commands in order to know with what Bitbucket server to communicate.
+        This function allows for several Server object to be stored in memory.
+        Stored servers are used by the commands in order to know with what server to communicate.
 
-        The stored servers can be exported to file with `Export-BitbucketConfiguration`.
+        The stored servers can be exported to file with `Export-AtlassianConfiguration`.
         _Exported servers will be imported automatically when the module is loaded._
 
     .EXAMPLE
-        Set-BitbucketConfiguration -Uri "https://server.com/" -ServerName "Server Prod"
+        Set-AtlassianServerConfiguration -Uri "https://server.com/" -ServerName "Server Prod"
         -----------
         Description
         This command will store the server address and name in memory and allow other commands
@@ -20,10 +20,10 @@ function Set-ServerConfiguration {
     .LINK
         Export-Configuration
     #>
-    [CmdletBinding( SupportsShouldProcess = $false )]
+    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
-        # Address of the Bitbucket Server.
+        # Address of the Server.
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [Alias('Url', 'Address')]
         [Uri]
@@ -54,23 +54,22 @@ function Set-ServerConfiguration {
     )
 
     begin {
-<<<<<<< Updated upstream
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        if (-not ($script:Configuration.Server)) {
-            $script:Configuration.Server = @()
-        }
-=======
         Write-Verbose "[$(Get-BreadCrumbs)]:"
         Write-Verbose "    Function started"
->>>>>>> Stashed changes
+
+        if (-not ($script:Configuration.ServerList)) {
+            $script:Configuration.ServerList = $null
+        }
+
+        $serverList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
     }
 
     process {
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        Write-Debug "halt" -Breakpoint
         $config = [AtlassianPS.ServerData]@{
             Name    = $ServerName
             Uri     = $Uri
@@ -80,27 +79,27 @@ function Set-ServerConfiguration {
             Headers = $Headers
         }
 
-        $newConfiguration = @()
-        foreach ($server in $script:Configuration.Server) {
+        foreach ($server in $script:Configuration.ServerList) {
             if ($server.Name -ne $config.Name) {
-                $newConfiguration += $server
+                $serverList.Add($server)
             }
             else {
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Removing server `$server: $($server.Name)"
+                Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+                Write-DebugMessage "    Removing server `$server: $($server.Name)"
             }
         }
-        $script:Configuration.Server = $newConfiguration
 
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Adding server `$config: $($config.Name)" -Breakpoint
-        $script:Configuration.Server += $config
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-Debug "    Adding server `$config: $($config.Name)"
+        $serverList.Add($config)
     }
 
     end {
-<<<<<<< Updated upstream
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
-=======
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    Persisting ServerList"
+        $script:Configuration.ServerList = $serverList
+
         Write-Verbose "[$(Get-BreadCrumbs)]:"
         Write-Verbose "    Function ended"
->>>>>>> Stashed changes
     }
 }
