@@ -30,7 +30,7 @@ function Invoke-WebRequest {
 
         [pscredential]
         [System.Management.Automation.CredentialAttribute()]
-        ${Credential},
+        ${Credential} = [System.Management.Automation.PSCredential]::Empty,
 
         [switch]
         ${UseDefaultCredentials},
@@ -68,7 +68,7 @@ function Invoke-WebRequest {
 
         [pscredential]
         [System.Management.Automation.CredentialAttribute()]
-        ${ProxyCredential},
+        ${ProxyCredential} = [System.Management.Automation.PSCredential]::Empty,
 
         [switch]
         ${ProxyUseDefaultCredentials},

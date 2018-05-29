@@ -61,12 +61,24 @@ function Get-ServerConfiguration {
     )
 
     begin {
+<<<<<<< Updated upstream
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
     process {
         Write-Debug "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-Debug "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+=======
+        Write-Verbose "[$(Get-BreadCrumbs)]:"
+        Write-Verbose "    Function started"
+    }
+
+    process {
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
+>>>>>>> Stashed changes
 
         switch ($PsCmdlet.ParameterSetName) {
             'ServerDataByName' {

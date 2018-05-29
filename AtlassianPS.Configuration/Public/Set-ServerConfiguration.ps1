@@ -54,11 +54,16 @@ function Set-ServerConfiguration {
     )
 
     begin {
+<<<<<<< Updated upstream
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         if (-not ($script:Configuration.Server)) {
             $script:Configuration.Server = @()
         }
+=======
+        Write-Verbose "[$(Get-BreadCrumbs)]:"
+        Write-Verbose "    Function started"
+>>>>>>> Stashed changes
     }
 
     process {
@@ -91,6 +96,11 @@ function Set-ServerConfiguration {
     }
 
     end {
+<<<<<<< Updated upstream
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
+=======
+        Write-Verbose "[$(Get-BreadCrumbs)]:"
+        Write-Verbose "    Function ended"
+>>>>>>> Stashed changes
     }
 }

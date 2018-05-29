@@ -35,7 +35,14 @@ function Remove-ServerConfiguration {
     )
 
     begin {
+<<<<<<< Updated upstream
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+=======
+        Write-Verbose "[$(Get-BreadCrumbs)]:"
+        Write-Verbose "    Function started"
+
+        $serverList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
+>>>>>>> Stashed changes
     }
 
     process {
@@ -70,6 +77,11 @@ function Remove-ServerConfiguration {
     }
 
     end {
+<<<<<<< Updated upstream
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
+=======
+        Write-Verbose "[$(Get-BreadCrumbs)]:"
+        Write-Verbose "    Function ended"
+>>>>>>> Stashed changes
     }
 }

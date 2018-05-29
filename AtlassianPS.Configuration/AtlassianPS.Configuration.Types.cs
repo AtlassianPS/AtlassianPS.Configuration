@@ -13,10 +13,16 @@ namespace AtlassianPS
         JIRA
     }
 
+    public class Configuration
+    {
+        public String Name { get; set; }
+        public Object Value { get; set; }
+    }
+
     [Serializable]
     public class ServerData
     {
-        // public ServerData()
+        // public ServerData().
         // {
         //     IsCloudServer = false;
         // }

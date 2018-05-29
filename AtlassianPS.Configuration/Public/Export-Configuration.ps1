@@ -24,14 +24,17 @@ function Export-Configuration {
     param()
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-Verbose "[$(Get-BreadCrumbs)]:"
+        Write-Verbose "    Function started"
 
         Import-MqcnAlias -Alias "ExportConfiguration" -Command "Configuration\Export-Configuration"
     }
 
     process {
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
+        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $export = $script:Configuration
         $export.Server = $export.Server | Select-Object -Exclude Session
@@ -40,6 +43,7 @@ function Export-Configuration {
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
+        Write-Verbose "[$(Get-BreadCrumbs)]:"
+        Write-Verbose "    Function ended"
     }
 }
