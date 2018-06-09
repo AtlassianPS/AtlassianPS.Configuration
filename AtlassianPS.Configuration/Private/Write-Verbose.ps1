@@ -1,12 +1,12 @@
-function Write-DebugMessage {
+function Write-Verbose {
     <#
     .SYNOPSIS
-        Write a message to the debug stream without creating a breakpoint
+        Write a verbose message
 
     .DESCRIPTION
-        Write a message to the debug stream without creating a breakpoint
+        Write a verbose message
 
-        This function allows the user to decide how the Debug Message
+        This function allows the user to decide how the Verbose Message
         should be formatted. The configuration is inside `$scrpit:Configuration`
         and supports the following structure (json representation):
 
@@ -42,9 +42,6 @@ function Write-DebugMessage {
         [String]
         $Message,
 
-        [Switch]
-        $BreakPoint,
-
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
@@ -54,24 +51,17 @@ function Write-DebugMessage {
     begin {
         $indent, $functionName, $timeStamp = ""
 
-        Import-MqcnAlias -Alias "WriteDebug" -Command "Microsoft.PowerShell.Utility\Write-DebugMessage"
-
-        if (-not $BreakPoint) {
-            $oldDebugPreference = $DebugPreference
-            if (-not ($DebugPreference -eq "SilentlyContinue")) {
-                $DebugPreference = 'Continue'
-            }
-        }
+        Import-MqcnAlias -Alias "WriteVerbose" -Command "Microsoft.PowerShell.Utility\Write-Verbose"
     }
 
     process {
 
-        if ((Get-PSCallstack | Select-Object -Last 1 -Skip 1).Arguments.Contains("Debug")) {
-            $DebugPreference = 'Continue'
+        if ((Get-PSCallstack | Select-Object -Last 1 -Skip 1).Arguments.Contains("Verbose")) {
+            $VerbosePreference = 'Continue'
         }
 
         if ($script:Configuration["message"]["style"]["breadcrumbs"]) {
-            WriteDebug "[$(Get-BreadCrumb)]:"
+            WriteVerbose "[$(Get-BreadCrumb)]:"
 
             if ($script:Configuration["message"]["style"]["indent"]) {
                 $indent = " " * $script:Configuration.message.style.indent
@@ -90,10 +80,6 @@ function Write-DebugMessage {
             $timeStamp = "[$(Get-Date -f "HH:mm:ss")] "
         }
 
-        WriteDebug ("{0}{1}{2}{3}" -f $timeStamp, $functionName, $indent, $Message)
-    }
-
-    end {
-        $DebugPreference = $oldDebugPreference
+        WriteVerbose ("{0}{1}{2}{3}" -f $timeStamp, $functionName, $indent, $Message)
     }
 }
