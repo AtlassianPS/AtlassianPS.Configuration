@@ -13,19 +13,19 @@ namespace AtlassianPS
         JIRA
     }
 
-    public class Configuration
-    {
-        public String Name { get; set; }
-        public Object Value { get; set; }
-    }
-
     [Serializable]
     public class ServerData
     {
-        // public ServerData()
-        // {
-        //     IsCloudServer = false;
-        // }
+        public ServerData(String _Name, String _Uri, ServerType _Type)
+        {
+            Uri tempUri;
+            Uri.TryCreate(_Uri, UriKind.RelativeOrAbsolute, out tempUri);
+
+            Name = _Name;
+            Uri = tempUri;
+            Type = _Type;
+        }
+
         public ServerData(Hashtable Table)
         {
             bool foundName = false;
@@ -37,7 +37,7 @@ namespace AtlassianPS
                 switch (key.ToString().ToLower())
                 {
                     case "name":
-                        Name = (string)Table[key];
+                        Name = (String)Table[key];
                         foundName = true;
                         break;
                     case "uri":
@@ -50,6 +50,12 @@ namespace AtlassianPS
                         Type = (ServerType)Enum.Parse(typeof(ServerType), (Table[key].ToString()), true);
                         foundType = true;
                         break;
+                    case "session":
+                        Session = Table[key];
+                        break;
+                    case "headers":
+                        Headers = (Hashtable)Table[key];
+                        break;
                     default:
                         break;
                 }
@@ -57,12 +63,14 @@ namespace AtlassianPS
             if (!(foundName && foundUri && foundType))
                 throw new ArgumentException("Must contain Name, Uri and Type.");
         }
+
         public String Name { get; set; }
         public Uri Uri { get; set; }
         public ServerType Type { get; set; }
         // public Boolean IsCloudServer { get; set; }
-        public object Session { get; set; }
+        public Object Session { get; set; }
         public Hashtable Headers { get; set; }
+
         public override String ToString()
         {
             return String.Format("{0} ({1})", Name, Uri);

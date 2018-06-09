@@ -34,7 +34,9 @@ function Get-ServerConfiguration {
     [OutputType( [AtlassianPS.ServerData] )]
     param(
         # Address of the stored server.
-        [Parameter( Mandatory, ParameterSetName = 'ServerDataByUri' )]
+        #
+        # Is not case sensitive
+        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ServerDataByUri' )]
         [ArgumentCompleter(
             {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
@@ -51,7 +53,9 @@ function Get-ServerConfiguration {
         $Uri,
 
         # Name of the server that was defined when stored.
-        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'ServerDataByName' )]
+        #
+        # Is not case sensitive
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'ServerDataByName' )]
         [ArgumentCompleter(
             {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
@@ -63,42 +67,39 @@ function Get-ServerConfiguration {
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Name, $_.Name, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Name ) }
             }
         )]
-        [Alias('ServerName', 'Alias')]
+        [Alias('Name', 'Alias')]
         [String[]]
-        $Name
+        $ServerName
     )
 
     begin {
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function started"
+        Write-Verbose "Function started"
+
+        $serverList = Get-Configuration -Name ServerList -ValueOnly
     }
 
     process {
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         switch ($PsCmdlet.ParameterSetName) {
             'ServerDataByName' {
-                Write-Verbose "[$(Get-BreadCrumbs)]:"
-                Write-Verbose "    Filtering for [Name = $ServerName]"
+                Write-Verbose "Filtering for [ServerName = $ServerName]"
 
-                Write-Ouput ($script:Configuration.ServerList | Where-Object { $_.Name -eq $ServerName })
+                $serverList | Where-Object { $_.Name -in $ServerName }
             }
             'ServerDataByUri' {
-                Write-Verbose "[$(Get-BreadCrumbs)]:"
-                Write-Verbose "    Filtering for [URI = $Uri]"
+                Write-Verbose "Filtering for [URI = $Uri]"
 
-                Write-Ouput ($script:Configuration.ServerList | Where-Object { $_.Uri -eq $Uri })
+                $serverList | Where-Object { $_.Uri -like $Uri }
             }
-            'ServerData' {
-                Write-Ouput ($script:Configuration.ServerList)
+            '_All' {
+                $serverList
             }
         }
     }
 
     end {
-        Write-PSFMessage -Message "Function ended" -Level Debug
+        Write-Verbose "Function ended"
     }
 }

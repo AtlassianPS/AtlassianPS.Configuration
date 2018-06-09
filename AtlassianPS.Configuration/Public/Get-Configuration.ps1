@@ -29,9 +29,10 @@ function Get-Configuration {
     param(
         # Name of the configuration to be retireved
         #
-        # Allows wildcards
+        # Is not case sensitive
         [Parameter( ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
+        [SupportsWildcards()]
         [ArgumentCompleter(
             {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
@@ -44,37 +45,39 @@ function Get-Configuration {
             }
         )]
         [String[]]
-        $Name = '*'
+        $Name = '*',
+
+        # Indicates that this cmdlet gets only the value of the variable.
+        [Switch]
+        $ValueOnly
     )
 
     begin {
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function started"
+        Write-Verbose "Function started"
     }
 
     process {
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         foreach ($_name in $Name) {
             foreach ($key in ($script:Configuration.Keys | Where-Object { $_ -like $_name })) {
-                Write-Verbose "[$(Get-BreadCrumbs)]:"
-                Write-Verbose "    Filtering for [name = $key]"
+                Write-Verbose "Filtering for [name = $key]"
 
-                Write-Output (
+                if ($ValueOnly) {
+                    $script:Configuration[$key]
+                }
+                else {
                     [PSCustomObject]@{
-                        Name = $key
+                        Name  = $key
                         Value = $script:Configuration[$key]
                     }
-                )
+                }
             }
         }
     }
 
     end {
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function ended"
+        Write-Verbose "Function ended"
     }
 }

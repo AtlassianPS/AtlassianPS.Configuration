@@ -36,26 +36,30 @@ function Set-ServerConfiguration {
         #
         # Example for "Authority":
         #   https://www.google.com/maps?hl=en --> "www.google.com"
+        #
+        # Is not case sensitive
         [Parameter( ValueFromPipelineByPropertyName )]
         [Alias('Name', 'Alias')]
         [String]
         $ServerName = $Uri.Authority,
 
-        [Parameter( Mandatory )]
+        [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
         [AtlassianPS.ServerType]
         $Type,
 
         # Stores a WebSession to the server object.
+        [Parameter( ValueFromPipelineByPropertyName )]
         [Microsoft.PowerShell.Commands.WebRequestSession]
         $Session,
 
-        [hashtable]
+        # Stores the Headers that should be used for this server
+        [Parameter( ValueFromPipelineByPropertyName )]
+        [Hashtable]
         $Headers
     )
 
     begin {
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function started"
+        Write-Verbose "Function started"
 
         if (-not ($script:Configuration.ServerList)) {
             $script:Configuration.ServerList = $null
@@ -65,10 +69,8 @@ function Set-ServerConfiguration {
     }
 
     process {
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $config = [AtlassianPS.ServerData]@{
             Name    = $ServerName
@@ -84,22 +86,18 @@ function Set-ServerConfiguration {
                 $serverList.Add($server)
             }
             else {
-                Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-                Write-DebugMessage "    Removing server `$server: $($server.Name)"
+                Write-DebugMessage "Removing server `$server: $($server.Name)"
             }
         }
 
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-Debug "    Adding server `$config: $($config.Name)"
+        Write-DebugMessage "Adding server `$config: $($config.Name)" -BreakPoint
         $serverList.Add($config)
     }
 
     end {
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    Persisting ServerList"
+        Write-DebugMessage "Persisting ServerList"
         $script:Configuration.ServerList = $serverList
 
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function ended"
+        Write-Verbose "Function ended"
     }
 }

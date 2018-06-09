@@ -19,6 +19,8 @@ function Remove-Configuration {
     [System.Diagnostics.CodeAnalysis.SuppressMessage( 'PSUseShouldProcessForStateChangingFunctions', '' )]
     param(
         # Name under which the value is stored
+        #
+        # Is not case sensitive
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ArgumentCompleter(
@@ -37,26 +39,21 @@ function Remove-Configuration {
     )
 
     begin {
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function started"
+        Write-Verbose "Function started"
     }
 
     process {
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         foreach ($_name in $Name) {
-            Write-Verbose "[$(Get-BreadCrumbs)]:"
-            Write-Verbose "    Filtering for [name = $_name]"
+            Write-Verbose "Filtering for [name = $_name]"
 
             $script:Configuration.Remove($_name)
         }
     }
 
     end {
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function ended"
+        Write-Verbose "Function ended"
     }
 }

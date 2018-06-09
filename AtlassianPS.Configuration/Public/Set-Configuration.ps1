@@ -20,6 +20,8 @@ function Set-Configuration {
     [System.Diagnostics.CodeAnalysis.SuppressMessage( 'PSUseShouldProcessForStateChangingFunctions', '' )]
     param(
         # Name under which to store the value
+        #
+        # Is not case sensitive
         [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ArgumentCompleter(
@@ -44,11 +46,6 @@ function Set-Configuration {
         [Object]
         $Value,
 
-        [Parameter( ValueFromPipelineByPropertyName )]
-        [AllowEmptyString()]
-        [String]
-        $Description,
-
         # Append Value to exisitng data
         [Switch]
         $Append,
@@ -59,46 +56,43 @@ function Set-Configuration {
     )
 
     begin {
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function started"
+        Write-Verbose "Function started"
     }
 
     process {
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         If ($Append) {
-            Write-Verbose "[$(Get-BreadCrumbs)]:"
-            Write-Verbose "    Appending to existing value"
-            $oldValue = (Get-Configuration -Name $Name).Value
+            Write-Verbose "Appending to existing value"
+            $oldValue = (Get-Configuration -Name $Name -ValueOnly)
             try {
-                $Value = @(@($oldValue) + @($Value)) -as ($oldValue.GetType())
+                $newValue = @(@($oldValue) + @($Value)) -as ($oldValue.GetType())
+                if (-not $newValue) {
+                    throw "failed to case to $oldValue.GetType().Name"
+                }
             }
             catch {
-                Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-                Write-DebugMessage "    Failed to use Type of previous value"
+                Write-DebugMessage "Failed to use Type of previous value"
 
-                $Value = @(@($oldValue) + @($Value))
+                $newValue = @(@($oldValue) + @($Value))
             }
+            $Value = $newValue
         }
 
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Storing value [$($Value.GetType().Name)] to [name = $Name]"
+        if ($Value) { $dataType = $Value.GetType().Name }
+        else { $dataType = "null" }
+        Write-Verbose "Storing value [$dataType] to [name = $Name]"
+
         $script:Configuration.Remove($Name)
         $script:Configuration.Add($Name, $Value)
     }
 
     end {
         if ($Passthru) {
-            Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-            Write-DebugMessage "    Persisting Configuration"
-
-            Write-Output $script:Configuration
+            Get-Configuration
         }
 
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function ended"
+        Write-Verbose "Function ended"
     }
 }

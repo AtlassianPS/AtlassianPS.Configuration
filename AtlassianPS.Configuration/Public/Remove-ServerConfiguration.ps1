@@ -22,6 +22,8 @@ function Remove-ServerConfiguration {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # Name with which this server is stored.
+        #
+        # Is case sensitive
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ArgumentCompleter(
             {
@@ -33,56 +35,45 @@ function Remove-ServerConfiguration {
             }
         )]
         [Alias('Name', 'Alias')]
-        [String]
+        [String[]]
         $ServerName
     )
 
     begin {
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function started"
+        Write-Verbose "Function started"
 
-        $serverList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
+        $serverList = Get-ServerConfiguration
     }
 
     process {
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $trackRemoval = 0
-        foreach ($server in $script:Configuration.Server) {
-            if ($server.Name -ne $ServerName) {
-                $newConfiguration.Add($server)
-            }
-            else {
-                Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-                Write-Debug "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        foreach ($serverToRemove in $ServerName) {
+            if ($serverToRemove -notin $serverList.Name) {
+                $exception = "Object Not Found"
+                $errorId = "ServerType.ServerNotFound"
+                $errorCategory = "ObjectNotFound"
 
-                $trackRemoval++
+                $writeErrorSplat = @{
+                    Exception    = $exception
+                    ErrorId      = $errorId
+                    Category     = $errorCategory
+                    Message      = "No server '$serverToRemove' could be found."
+                    TargetObject = $serverToRemove
+                    Cmdlet       = $PSCmdlet
+                }
+                WriteError @writeErrorSplat
             }
+
         }
+
+        $serverList = $serverList | Where-Object { $_.Name -notin $ServerName }
     }
 
     end {
-        if ($trackRemoval.Count) {
-            Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-            Write-DebugMessage "    Persisting ServerList"
+        $script:Configuration.ServerList = $serverList
 
-            $script:Configuration.ServerList = $serverList
-        }
-        else {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"Object Not Found"),
-                "ServerType.UnknownType",
-                [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                $ServerName
-            )
-            $errorItem.ErrorDetails = "No server '$ServerName' could be found."
-            WriteError $errorItem
-        }
-
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function ended"
+        Write-Verbose "Function ended"
     }
 }

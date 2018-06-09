@@ -26,26 +26,22 @@ function Export-Configuration {
     param()
 
     begin {
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function started"
+        Write-Verbose "Function started"
 
         Import-MqcnAlias -Alias "ExportConfiguration" -Command "Configuration\Export-Configuration"
     }
 
     process {
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$(Get-BreadCrumbs)]:"
-        Write-DebugMessage "    PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $export = $script:Configuration
-        $export.ServerList = $export.ServerList | Select-Object -Exclude Session
+        $export = Get-Configuration
+        $export.ServerList | Foreach-Object { $_.Session = $null }
 
         ExportConfiguration -InputObject $export
     }
 
     end {
-        Write-Verbose "[$(Get-BreadCrumbs)]:"
-        Write-Verbose "    Function ended"
+        Write-Verbose "Function ended"
     }
 }
