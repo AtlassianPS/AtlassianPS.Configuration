@@ -1,9 +1,9 @@
-{
+﻿{
     "version": "2.0.0",
     "windows": {
         "options": {
             "shell": {
-                "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                "executable": "${env:windir}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
                 "args": [
                     "-NoProfile",
                     "-ExecutionPolicy",
@@ -37,34 +37,36 @@
     },
     "tasks": [
         {
-            "taskName": "Test",
-            "suppressTaskName": true,
-            "isTestCommand": true,
-            "showOutput": "always",
-            "args": [
-                "Write-Host 'Invoking Pester'; Invoke-Pester -PesterOption @{IncludeVSCodeMarker=$true};",
-                "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
-            ],
-            "problemMatcher": [
-                {
-                    "owner": "powershell",
-                    "fileLocation": [
-                        "absolute"
-                    ],
-                    "severity": "error",
-                    "pattern": [
-                        {
-                            "regexp": "^\\s*(\\[-\\]\\s*.*?)(\\d+)ms\\s*$",
-                            "message": 1
-                        },
-                        {
-                            "regexp": "^\\s+at\\s+[^,]+,\\s*(.*?):\\s+line\\s+(\\d+)$",
-                            "file": 1,
-                            "line": 2
-                        }
-                    ]
-                }
-            ]
+            "label": "SetUp",
+            "type": "shell",
+            "command": "Invoke-Build -Task SetUp",
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean",
+            "type": "shell",
+            "command": "Invoke-Build -Task Clean",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "Invoke-Build -Task Build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "Invoke-Build -Task Test",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": []
         }
     ]
 }
