@@ -1,26 +1,7 @@
 function Remove-Configuration {
-    <#
-    .SYNOPSIS
-        Remove a configuration entry.
-
-    .DESCRIPTION
-        Remove a configuration entry.
-
-    .EXAMPLE
-        Remove-AtlassianConfiguration -Name "Headers"
-        -----------
-        Description
-        This command will remove "Headers" configuration.
-
-    .LINK
-        Set-Configuration
-    #>
     [CmdletBinding( ConfirmImpact = 'Low' ,SupportsShouldProcess = $false )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage( 'PSUseShouldProcessForStateChangingFunctions', '' )]
     param(
-        # Name under which the value is stored
-        #
-        # Is not case sensitive
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ArgumentCompleter(

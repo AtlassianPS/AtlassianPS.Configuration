@@ -1,5 +1,6 @@
 ---
 layout: documentation
+Module Name: AtlassianPS.Configuration
 permalink: /docs/AtlassianPS.Configuration/enumerations/AtlassianPS.ServerType/
 ---
 # AtlassianPS.ServerType

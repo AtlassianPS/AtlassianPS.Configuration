@@ -1,41 +1,7 @@
 function Get-ServerConfiguration {
-    <#
-    .SYNOPSIS
-        Get the data of a stored server.
-
-    .DESCRIPTION
-        Retrive the stored servers.
-
-    .EXAMPLE
-        Get-AtlassianServerConfiguration
-        --------
-        Description
-        Get all stored servers
-
-    .EXAMPLE
-        Get-AtlassianServerConfiguration -name $Name "prod"
-        --------
-        Description
-        Get the data of the server with name $Name "prod"
-
-    .EXAMPLE
-        Get-AtlassianServerConfiguration -Uri "https://myserver.com"
-        --------
-        Description
-        Get the data of the server with address "https://myserver.com"
-
-    .LINK
-        Set-ServerConfiguration
-
-    .LINK
-        Remove-ServerConfiguration
-    #>
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     [OutputType( [AtlassianPS.ServerData] )]
     param(
-        # Address of the stored server.
-        #
-        # Is not case sensitive
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ServerDataByUri' )]
         [ArgumentCompleter(
             {
@@ -52,9 +18,6 @@ function Get-ServerConfiguration {
         [Uri]
         $Uri,
 
-        # Name of the server that was defined when stored.
-        #
-        # Is not case sensitive
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'ServerDataByName' )]
         [ArgumentCompleter(
             {

@@ -1,27 +1,7 @@
 function Set-Configuration {
-    <#
-    .SYNOPSIS
-        Stores a key/value pair to the configuration
-
-    .DESCRIPTION
-        Stores a key/value pair to the configuration.
-        This is only available in the current sessions, unless exported.
-
-    .EXAMPLE
-        Set-AtlassianConfiguration -Key "Headers" -Value @{Accept = "application/json"}
-        -----------
-        Description
-        This command will store a new Header configuration
-
-    .LINK
-        Export-Configuration
-    #>
     [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage( 'PSUseShouldProcessForStateChangingFunctions', '' )]
     param(
-        # Name under which to store the value
-        #
-        # Is not case sensitive
         [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ArgumentCompleter(
@@ -38,7 +18,6 @@ function Set-Configuration {
         [String]
         $Name,
 
-        # Value to store
         [Parameter( ValueFromPipelineByPropertyName )]
         [AllowNull()]
         [AllowEmptyCollection()]
@@ -46,11 +25,9 @@ function Set-Configuration {
         [Object]
         $Value,
 
-        # Append Value to exisitng data
         [Switch]
         $Append,
 
-        # Whether output should be provided after invoking this function
         [Switch]
         $Passthru
     )

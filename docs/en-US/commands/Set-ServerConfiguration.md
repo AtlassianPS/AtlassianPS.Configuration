@@ -1,11 +1,11 @@
 ---
 external help file: AtlassianPS.Configuration-help.xml
 Module Name: AtlassianPS.Configuration
-online version: https://atlassianps.org/docs/AtlassianPS.Configuration/commands/Get-Configuration/
+online version: https://atlassianps.org/docs/AtlassianPS.Configuration/commands/Set-ServerConfiguration/
 locale: en-US
 schema: 2.0.0
 layout: documentation
-permalink: /docs/AtlassianPS.Configuration/commands/Get-Configuration/
+permalink: /docs/AtlassianPS.Configuration/commands/Set-ServerConfiguration/
 ---
 # Set-ServerConfiguration
 

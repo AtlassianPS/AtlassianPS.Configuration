@@ -1,35 +1,7 @@
 function Get-Configuration {
-    <#
-    .SYNOPSIS
-        Retireve a stored configuration
-
-    .DESCRIPTION
-        Retireve a stored configuration
-
-    .EXAMPLE
-        Get-AtlassianConfiguration
-        --------
-        Description
-        Get all stored servers
-
-    .EXAMPLE
-        Get-AtlassianConfiguration -Key "Headers"
-        --------
-        Description
-        Get configuration data in key "Headers"
-
-    .LINK
-        Set-Configuration
-
-    .LINK
-        Remove-Configuration
-    #>
     [CmdletBinding()]
     [OutputType( [PSCustomObject] )]
     param(
-        # Name of the configuration to be retireved
-        #
-        # Is not case sensitive
         [Parameter( ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [SupportsWildcards()]
@@ -47,7 +19,6 @@ function Get-Configuration {
         [String[]]
         $Name = '*',
 
-        # Indicates that this cmdlet gets only the value of the variable.
         [Switch]
         $ValueOnly
     )

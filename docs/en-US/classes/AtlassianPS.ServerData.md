@@ -1,5 +1,6 @@
 ---
 layout: documentation
+Module Name: AtlassianPS.Configuration
 permalink: /docs/AtlassianPS.Configuration/classes/AtlassianPS.ServerData/
 ---
 # AtlassianPS.ServerData
