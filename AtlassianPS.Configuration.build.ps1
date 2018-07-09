@@ -1,6 +1,4 @@
 #requires -Modules InvokeBuild
-#requires -Modules Pester
-#requires -Modules PSScriptAnalyzer
 
 [CmdletBinding()]
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
@@ -186,7 +184,7 @@ task CompileModule {
 }
 
 # Synopsis: Use PlatyPS to generate External-Help
-task GenerateExternalHelp -If (Get-ChildItem "$env:BHProjectPath/docs/en-US/commands" -ErrorAction SilentlyContinue) Init, {
+task GenerateExternalHelp Init, {
     Import-Module platyPS -Force
     foreach ($locale in (Get-ChildItem "$env:BHProjectPath/docs" -Attribute Directory)) {
         New-ExternalHelp -Path "$($locale.FullName)" -OutputPath "$env:BHModulePath/$($locale.Basename)" -Force
@@ -239,7 +237,7 @@ task Test Init, Build, {
             Script       = "$env:BHBuildOutput/Tests/*"
             Tag          = $Tag
             ExcludeTag   = $ExcludeTag
-            # Show         = "Fails"
+            Show         = "Fails"
             PassThru     = $true
             OutputFile   = "$env:BHProjectPath/TestResult.xml"
             OutputFormat = "NUnitXml"
@@ -329,10 +327,11 @@ task UpdateHomepage {
 
 #region Cleaning tasks
 # Synopsis: Clean the working dir
-task Clean RemoveGeneratedFiles, RemoveTestResults
+task Clean Init, RemoveGeneratedFiles, RemoveTestResults
 
 # Synopsis: Remove generated and temp files.
 task RemoveGeneratedFiles {
+    Remove-Item "$env:BHModulePath/en-US/*" -Force -ErrorAction SilentlyContinue
     Remove-Item $env:BHBuildOutput -Force -Recurse -ErrorAction SilentlyContinue
 }
 

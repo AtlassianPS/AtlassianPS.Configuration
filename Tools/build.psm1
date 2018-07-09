@@ -47,10 +47,15 @@ function Get-AppVeyorBuild {
     Assert-True { $env:APPVEYOR_API_TOKEN } "missing api token for AppVeyor."
     Assert-True { $env:APPVEYOR_ACCOUNT_NAME } "not an appveyor build."
 
-    Invoke-RestMethod -Uri "https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG" -Method GET -Headers @{
-        "Authorization" = "Bearer $env:APPVEYOR_API_TOKEN"
-        "Content-type"  = "application/json"
+    $invokeRestMethodSplat = @{
+        Uri = "https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG"
+        Method = 'GET'
+        Headers = @{
+            "Authorization" = "Bearer $env:APPVEYOR_API_TOKEN"
+            "Content-type"  = "application/json"
+        }
     }
+    Invoke-RestMethod @invokeRestMethodSplat
 }
 
 function Get-TravisBuild {
@@ -59,10 +64,15 @@ function Get-TravisBuild {
     Assert-True { $env:TRAVIS_API_TOKEN } "missing api token for Travis-CI."
     Assert-True { $env:APPVEYOR_ACCOUNT_NAME } "not an appveyor build."
 
-    Invoke-RestMethod -Uri "https://api.travis-ci.org/builds?limit=10" -Method Get -Headers @{
-        "Authorization"      = "token $env:TRAVIS_API_TOKEN"
-        "Travis-API-Version" = "3"
+    $invokeRestMethodSplat = @{
+        Uri = "https://api.travis-ci.org/builds?limit=10"
+        Method = 'Get'
+        Headers = @{
+            "Authorization"      = "token $env:TRAVIS_API_TOKEN"
+            "Travis-API-Version" = "3"
+        }
     }
+    Invoke-RestMethod @invokeRestMethodSplat
 }
 
 function Test-IsLastJob {
@@ -166,6 +176,29 @@ function Publish-GithubReleaseArtifact {
         Body        = $body
     }
     Invoke-RestMethod @assetParams
+}
+
+function Set-AppVeyorBuildNumber {
+    param()
+
+    Assert-True { $env:APPVEYOR_REPO_NAME } "Is not an AppVeyor Job"
+    Assert-True { $env:APPVEYOR_API_TOKEN } "Is missing AppVeyor's API token"
+
+    $separator = "-"
+    $headers = @{
+        "Authorization" = "Bearer $env:APPVEYOR_API_TOKEN"
+        "Content-type" = "application/json"
+    }
+    $apiURL = "https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG"
+    $history = Invoke-RestMethod -Uri "$apiURL/history?recordsNumber=2" -Headers $headers  -Method Get
+    if ($history.builds.Count -eq 2) {
+    $s = Invoke-RestMethod -Uri "$apiURL/settings" -Headers $headers  -Method Get
+    $s.settings.nextBuildNumber = ($s.settings.nextBuildNumber - 1)
+    Invoke-RestMethod -Uri 'https://ci.appveyor.com/api/projects' -Headers $headers  -Body ($s.settings | ConvertTo-Json -Depth 10) -Method Put
+    $previousVersion = $history.builds[1].version
+    if ($previousVersion.IndexOf("$separator") -ne "-1") {$previousVersion = $previousVersion.SubString(0, $previousVersion.IndexOf("$separator"))}
+    Update-AppveyorBuild -Version $previousVersion$separator$((New-Guid).ToString().SubString(0,8))
+    }
 }
 
 #region Old
@@ -290,12 +323,20 @@ function Get-FileEncoding {
             $Path = $pscmdlet.GetUnresolvedProviderPathFromPSPath($Path)
 
             $bytes = [Byte[]]::new(8)
+            $stream = New-Object System.IO.StreamReader($Path)
+            $null = $stream.Peek()
+            $enc = $stream.CurrentEncoding
+            $stream.Close()
             $stream = [System.IO.File]::OpenRead($Path)
             $null = $stream.Read($bytes, 0, $bytes.Count)
             $bytes = [System.Collections.Generic.List[Byte]]$bytes
             $stream.Close()
 
-            $encoding = foreach ($name in $signatures.Keys) {
+            if ($enc -eq [System.Text.Encoding]::UTF8) {
+                $encoding = "UTF8"
+            }
+
+            foreach ($name in $signatures.Keys) {
                 $sampleEncoding = foreach ($sequence in $signatures[$name]) {
                     $sample = $bytes.GetRange(0, $sequence.Count)
 
@@ -305,13 +346,13 @@ function Get-FileEncoding {
                     }
                 }
                 if ($sampleEncoding) {
-                    $sampleEncoding
+                    $encoding = $sampleEncoding
                     break
                 }
             }
 
             if (-not $encoding) {
-                $encoding = "UTF8"
+                $encoding = "ASCII"
             }
 
             [PSCustomObject]@{

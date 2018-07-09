@@ -41,7 +41,7 @@ Describe "Validation of build environment" {
         "$env:BHProjectPath/CHANGELOG.md"
     }
 
-    $appveyorFile = "$env:BHProjectPath/appveyor.yml"
+    $appveyorFile = "$env:BHProjectPath/Tools/appveyor.yml"
 
     Context "CHANGELOG" {
 

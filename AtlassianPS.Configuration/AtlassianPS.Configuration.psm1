@@ -9,13 +9,6 @@ if ($PSVersionTable.PSVersion.Major -lt 5) {
 #endregion Dependencies
 
 #region ModuleConfig
-if (
-    ((Get-Variable -Name IsLinux -ErrorAction Ignore) -and $IsLinux) -or
-    ((Get-Variable -Name IsMacOS -ErrorAction Ignore) -and $IsMacOS)
-) {
-    $fixpath = "$HOME/.local/share/" #workaround for issue#14
-    Import-Module Configuration -Args @($null, $null, $null, $fixpath) -Force
-}
 # Add our own Converters for serialization
 if (Get-Command Add-MetadataConverter -Module Configuration -ErrorAction SilentlyContinue) {
     Configuration\Add-MetadataConverter @{
