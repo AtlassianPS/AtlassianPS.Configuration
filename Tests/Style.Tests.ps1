@@ -1,13 +1,31 @@
+#requires -modules BuildHelpers
 #requires -modules Pester
 
 Describe "Validation of code styling" {
 
     BeforeAll {
-        Import-Module BuildHelpers
         Remove-Item -Path Env:\BH*
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path "$PSScriptRoot\.." -ErrorAction SilentlyContinue
+        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
+        if ($projectRoot -like "*Release") {
+            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+        }
+
+        Import-Module BuildHelpers
+        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+
+        $env:BHManifestToTest = $env:BHPSModuleManifest
+        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+        if ($script:isBuild) {
+            $Pattern = [regex]::Escape($env:BHProjectPath)
+
+            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+            $env:BHManifestToTest = $env:BHBuildModuleManifest
+        }
+
+        Import-Module "$env:BHProjectPath/Tools/build.psm1"
+
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        # Import-Module $env:BHPSModuleManifest
+        # Import-Module $env:BHManifestToTest
     }
     AfterAll {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
@@ -52,8 +70,62 @@ Describe "Validation of code styling" {
         }
     }
 
-    It "uses UTF-8 for code files" { <# TODO #> }
-    It "uses UTF-8 for documentation files" { <# TODO #> }
-    It "uses CRLF as newline character in code files" { <# TODO #> }
-    It "uses CRLF as newline character in documentation files" { <# TODO #> }
+    It "uses UTF-8 for code files" {
+        $badFiles = @(
+            foreach ($file in $codeFiles) {
+                $encoding = Get-FileEncoding -Path $file.FullName
+                if ($encoding -and $encoding.encoding -ne "UTF8") {
+                    $file.FullName
+                }
+            }
+        )
+
+        if ($badFiles.Count -gt 0) {
+            throw "The following files are not encoded with UTF-8 (no BOM): `r`n`r`n$($badFiles -join "`r`n")"
+        }
+    }
+    It "uses UTF-8 for documentation files" {
+        $badFiles = @(
+            foreach ($file in $docFiles) {
+                $encoding = Get-FileEncoding -Path $file.FullName
+                if ($encoding -and $encoding.encoding -ne "UTF8") {
+                    $file.FullName
+                }
+            }
+        )
+
+        if ($badFiles.Count -gt 0) {
+            throw "The following files are not encoded with UTF-8 (no BOM): `r`n`r`n$($badFiles -join "`r`n")"
+        }
+    }
+
+    It "uses CRLF as newline character in code files" {
+        $badFiles = @(
+            foreach ($file in $codeFiles) {
+                $string = [System.IO.File]::ReadAllText($file.FullName)
+                if ($string.Length -gt 0 -and $string -notmatch "\r\n$") {
+                    $file.FullName
+                }
+            }
+        )
+
+        if ($badFiles.Count -gt 0) {
+            throw "The following files do not use CRLF as line break: `r`n`r`n$($badFiles -join "`r`n")"
+        }
+    }
+
+    It "uses CRLF as newline character in documentation files" {
+        $badFiles = @(
+            foreach ($file in $docFiles) {
+                $string = [System.IO.File]::ReadAllText($file.FullName)
+                if ($string.Length -gt 0 -and $string -notmatch "\r\n$") {
+                    $file.FullName
+                }
+            }
+        )
+
+        if ($badFiles.Count -gt 0) {
+            throw "The following files do not use CRLF as line break: `r`n`r`n$($badFiles -join "`r`n")"
+        }
+    }
 }

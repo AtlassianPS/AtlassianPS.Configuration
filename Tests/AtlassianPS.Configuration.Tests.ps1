@@ -1,13 +1,31 @@
+#requires -modules BuildHelpers
 #requires -modules Pester
 
 Describe "General project validation" -Tag Unit {
 
     BeforeAll {
-        Import-Module BuildHelpers
         Remove-Item -Path Env:\BH*
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path "$PSScriptRoot\.." -ErrorAction SilentlyContinue
+        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
+        if ($projectRoot -like "*Release") {
+            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+        }
+
+        Import-Module BuildHelpers
+        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+
+        $env:BHManifestToTest = $env:BHPSModuleManifest
+        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+        if ($script:isBuild) {
+            $Pattern = [regex]::Escape($env:BHProjectPath)
+
+            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+            $env:BHManifestToTest = $env:BHBuildModuleManifest
+        }
+
+        Import-Module "$env:BHProjectPath/Tools/build.psm1"
+
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        # Import-Module $env:BHPSModuleManifest
+        # Import-Module $env:BHManifestToTest
     }
     AfterAll {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
@@ -16,29 +34,29 @@ Describe "General project validation" -Tag Unit {
     }
 
     It "passes Test-ModuleManifest" {
-        { Test-ModuleManifest -Path $env:BHPSModuleManifest -ErrorAction Stop } | Should -Not -Throw
+        { Test-ModuleManifest -Path $env:BHManifestToTest -ErrorAction Stop } | Should -Not -Throw
     }
 
     It "module '$env:BHProjectName' can import cleanly" {
-        { Import-Module $env:BHPSModuleManifest } | Should Not Throw
+        { Import-Module $env:BHManifestToTest } | Should Not Throw
     }
 
     It "module '$env:BHProjectName' exports functions" {
-        Import-Module $env:BHPSModuleManifest
+        Import-Module $env:BHManifestToTest
 
         (Get-Command -Module $env:BHProjectName | Measure-Object).Count | Should -BeGreaterThan 0
     }
 
     It "module uses the correct root module" {
-        Get-Metadata -Path $env:BHPSModuleManifest -PropertyName RootModule | Should -Be 'AtlassianPS.Configuration.psm1'
+        Get-Metadata -Path $env:BHManifestToTest -PropertyName RootModule | Should -Be 'AtlassianPS.Configuration.psm1'
     }
 
     It "module uses the correct guid" {
-        Get-Metadata -Path $env:BHPSModuleManifest -PropertyName Guid | Should -Be 'f946e1f7-ed4f-43da-aa24-6d57a25117cb'
+        Get-Metadata -Path $env:BHManifestToTest -PropertyName Guid | Should -Be 'f946e1f7-ed4f-43da-aa24-6d57a25117cb'
     }
 
     It "module uses a valid version" {
-        [Version](Get-Metadata -Path $env:BHPSModuleManifest -PropertyName ModuleVersion) | Should -Not -BeNullOrEmpty
-        [Version](Get-Metadata -Path $env:BHPSModuleManifest -PropertyName ModuleVersion) | Should -BeOfType [Version]
+        [Version](Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -Not -BeNullOrEmpty
+        [Version](Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -BeOfType [Version]
     }
 }

@@ -1,13 +1,31 @@
+#requires -modules BuildHelpers
 #requires -modules Pester
 
 Describe "Help tests" -Tag Documentation {
 
     BeforeAll {
         Remove-Item -Path Env:\BH*
+        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
+        if ($projectRoot -like "*Release") {
+            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+        }
+
         Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path "$PSScriptRoot\.." -ErrorAction SilentlyContinue
+        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+
+        $env:BHManifestToTest = $env:BHPSModuleManifest
+        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+        if ($script:isBuild) {
+            $Pattern = [regex]::Escape($env:BHProjectPath)
+
+            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+            $env:BHManifestToTest = $env:BHBuildModuleManifest
+        }
+
+        Import-Module "$env:BHProjectPath/Tools/build.psm1"
+
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHPSModuleManifest
+        Import-Module $env:BHManifestToTest
     }
     AfterAll {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
@@ -31,16 +49,18 @@ Describe "Help tests" -Tag Documentation {
         'Confirm'
     )
 
-    $commands = Get-Command -Module $env:BHProjectName -CommandType Cmdlet, Function, Workflow  # Not alias
-    $classes = Get-ChildItem "$PSScriptRoot/../docs/en-US/classes"
-    $enums = Get-ChildItem "$PSScriptRoot/../docs/en-US/enumerations"
+    $module = Get-Module $env:BHProjectName
+    $commands = Get-Command -Module $module -CommandType Cmdlet, Function, Workflow  # Not alias
+    $classes = Get-ChildItem "$env:BHProjectPath/docs/en-US/classes/*"
+    $enums = Get-ChildItem "$env:BHProjectPath/docs/en-US/enumerations/*"
 
+    #region Public Functions
     foreach ($command in $commands) {
-        $commandName = $command.Name
-        $markdownFile = Resolve-Path "$env:BHProjectPath/docs/en-US/commands/$commandName.md" -ErrorAction SilentlyContinue
+        $commandName = $command.Name -replace $module.Prefix, ''
+        $markdownFile = Resolve-Path "$env:BHProjectPath/docs/en-US/commands/$commandName.md"
 
         # The module-qualified command fails on Microsoft.PowerShell.Archive cmdlets
-        $help = Get-Help $commandName -ErrorAction Stop
+        $help = Get-Help $command.Name -ErrorAction Stop
 
         Context "Function $commandName's Help" {
 
@@ -120,66 +140,74 @@ Describe "Help tests" -Tag Documentation {
 
             foreach ($parameterName in $command.Parameters.Keys) {
                 $parameterCode = $command.Parameters[$parameterName]
-                $parameterHelp = $help.Parameters.Parameter | Where-Object Name -EQ $parameterName
 
-                if ($parameterName -notin $DefaultParams) {
-                    It "has a description for parameter [-$parameterName] in $commandName" {
-                        $parameterHelp.Description.Text | Should -Not -BeNullOrEmpty
-                    }
+                if ($help.Parameters | Get-Member -Name Parameter) {
+                    $parameterHelp = $help.Parameters.Parameter | Where-Object Name -EQ $parameterName
 
-                    It "has a mandatory flag for parameter [-$parameterName] in $commandName" {
-                        $isMandatory = $parameterCode.ParameterSets.Values.IsMandatory -contains "True"
-
-                        $parameterHelp.Required | Should -BeLike $isMandatory.ToString()
-                    }
-
-                    It "matches the type of the parameter in code and help" {
-                        $codeType = $parameterCode.ParameterType.Name
-                        if ($codeType -eq "Object") {
-                            if (($parameterCode.Attributes) -and ($parameterCode.Attributes | Get-Member -Name PSTypeName)) {
-                                $codeType = $parameterCode.Attributes[0].PSTypeName
-                            }
+                    if ($parameterName -notin $DefaultParams) {
+                        It "has a description for parameter [-$parameterName] in $commandName" {
+                            $parameterHelp.Description.Text | Should -Not -BeNullOrEmpty
                         }
-                        # To avoid calling Trim method on a null object.
-                        $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
-                        if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
 
-                        $helpType | Should -Be $codeType
+                        It "has a mandatory flag for parameter [-$parameterName] in $commandName" {
+                            $isMandatory = $parameterCode.ParameterSets.Values.IsMandatory -contains "True"
+
+                            $parameterHelp.Required | Should -BeLike $isMandatory.ToString()
+                        }
+
+                        It "matches the type of the parameter in code and help" {
+                            $codeType = $parameterCode.ParameterType.Name
+                            if ($codeType -eq "Object") {
+                                if (($parameterCode.Attributes) -and ($parameterCode.Attributes | Get-Member -Name PSTypeName)) {
+                                    $codeType = $parameterCode.Attributes[0].PSTypeName
+                                }
+                            }
+                            # To avoid calling Trim method on a null object.
+                            $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
+                            if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
+
+                            $helpType | Should -Be $codeType
+                        }
                     }
                 }
+            }
 
-                It "does not have parameters that are not in the code" {
-                    foreach ($helpParm in ($help.Parameters.Parameter.Name | Sort-Object -Unique)) {
-                        $command.Parameters.Keys | Should -Contain $helpParm
-                    }
+            It "does not have parameters that are not in the code" {
+                $parameter = @()
+                if ($help.Parameters | Get-Member -Name Parameter) {
+                    $parameter = $help.Parameters.Parameter.Name | Sort-Object -Unique
+                }
+                foreach ($helpParm in $parameter) {
+                    $command.Parameters.Keys | Should -Contain $helpParm
                 }
             }
         }
     }
+    #endregion Public Functions
 
-    foreach ($className in $classes) {
-        $markdownFile = Resolve-Path "$env:BHProjectPath/docs/en-US/classes/$className.md" -ErrorAction SilentlyContinue
-
-        Context "Classes $className' Help" {
+    #region Classes
+    foreach ($class in $classes) {
+        Context "Classes $($class.BaseName) Help" {
 
             It "is described in a markdown file" {
-                $markdownFile | Should -Not -BeNullOrEmpty
-                Test-Path $markdownFile | Should -Be $true
+                $class.FullName | Should -Not -BeNullOrEmpty
+                Test-Path $class.FullName | Should -Be $true
             }
 
             It "has no platyPS template artifacts" {
-                $markdownFile | Should -Not -BeNullOrEmpty
-                $markdownFile | Should -Not -FileContentMatch '{{.*}}'
+                $class.FullName | Should -Not -BeNullOrEmpty
+                $class.FullName | Should -Not -FileContentMatch '{{.*}}'
             }
 
             It "defines the frontmatter for the homepage" {
-                $markdownFile | Should -Not -BeNullOrEmpty
-                $markdownFile | Should -FileContentMatch "Module Name: $env:BHProjectName"
-                $markdownFile | Should -FileContentMatchExactly "layout: documentation"
-                $markdownFile | Should -FileContentMatch "permalink: /docs/$env:BHProjectName/classes/$commandName/"
+                $class.FullName | Should -Not -BeNullOrEmpty
+                $class.FullName | Should -FileContentMatch "Module Name: $env:BHProjectName"
+                $class.FullName | Should -FileContentMatchExactly "layout: documentation"
+                $class.FullName | Should -FileContentMatch "permalink: /docs/$env:BHProjectName/classes/$($class.BaseName)/"
             }
         }
     }
+
 
     Context "Missing classes" {
         It "has a documentation file for every class" {
@@ -188,27 +216,27 @@ Describe "Help tests" -Tag Documentation {
             }
         }
     }
+    #endregion Classes
 
-    foreach ($enumName in $enums) {
-        $markdownFile = Resolve-Path "$env:BHProjectPath/docs/en-US/enumerations/$enumName.md" -ErrorAction SilentlyContinue
-
-        Context "Enumeration $enumName' Help" {
+    #region Enumerations
+    foreach ($enum in $enums) {
+        Context "Enumeration $($enum.BaseName) Help" {
 
             It "is described in a markdown file" {
-                $markdownFile | Should -Not -BeNullOrEmpty
-                Test-Path $markdownFile | Should -Be $true
+                $enum.FullName | Should -Not -BeNullOrEmpty
+                Test-Path $enum.FullName | Should -Be $true
             }
 
             It "has no platyPS template artifacts" {
-                $markdownFile | Should -Not -BeNullOrEmpty
-                $markdownFile | Should -Not -FileContentMatch '{{.*}}'
+                $enum.FullName | Should -Not -BeNullOrEmpty
+                $enum.FullName | Should -Not -FileContentMatch '{{.*}}'
             }
 
             It "defines the frontmatter for the homepage" {
-                $markdownFile | Should -Not -BeNullOrEmpty
-                $markdownFile | Should -FileContentMatch "Module Name: $env:BHProjectName"
-                $markdownFile | Should -FileContentMatchExactly "layout: documentation"
-                $markdownFile | Should -FileContentMatch "permalink: /docs/$env:BHProjectName/enumerations/$commandName/"
+                $enum.FullName | Should -Not -BeNullOrEmpty
+                $enum.FullName | Should -FileContentMatch "Module Name: $env:BHProjectName"
+                $enum.FullName | Should -FileContentMatchExactly "layout: documentation"
+                $enum.FullName | Should -FileContentMatch "permalink: /docs/$env:BHProjectName/enumerations/$($enum.BaseName)/"
             }
         }
     }
@@ -220,4 +248,5 @@ Describe "Help tests" -Tag Documentation {
             }
         }
     }
+    #endregion Enumerations
 }

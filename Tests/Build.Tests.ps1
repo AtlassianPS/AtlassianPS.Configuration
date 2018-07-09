@@ -1,13 +1,32 @@
+#requires -modules BuildHelpers
+#requires -modules Configuration
 #requires -modules Pester
 
 Describe "Validation of build environment" {
 
     BeforeAll {
-        Import-Module BuildHelpers
         Remove-Item -Path Env:\BH*
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path "$PSScriptRoot\.." -ErrorAction SilentlyContinue
+        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
+        if ($projectRoot -like "*Release") {
+            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+        }
+
+        Import-Module BuildHelpers
+        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+
+        $env:BHManifestToTest = $env:BHPSModuleManifest
+        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+        if ($script:isBuild) {
+            $Pattern = [regex]::Escape($env:BHProjectPath)
+
+            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+            $env:BHManifestToTest = $env:BHBuildModuleManifest
+        }
+
+        Import-Module "$env:BHProjectPath/Tools/build.psm1"
+
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHPSModuleManifest
+        # Import-Module $env:BHManifestToTest
     }
     AfterAll {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
@@ -15,16 +34,14 @@ Describe "Validation of build environment" {
         Remove-Item -Path Env:\BH*
     }
 
-    $changelogFile = if (Test-Path "$env:BHBuildOutput/CHANGELOG.md") {
-        "$env:BHBuildOutput/CHANGELOG.md"
+    $changelogFile = if ($script:isBuild) {
+        "$env:BHBuildOutput/$env:BHProjectName/CHANGELOG.md"
     }
     else {
         "$env:BHProjectPath/CHANGELOG.md"
     }
-    assert $changelogFile "no CHANGELOG file"
 
     $appveyorFile = "$env:BHProjectPath/appveyor.yml"
-    assert $appveyorFile "no AppVeyor file"
 
     Context "CHANGELOG" {
 
@@ -41,11 +58,11 @@ Describe "Validation of build environment" {
 
         It "has a valid version in the changelog" {
             $changelogVersion            | Should -Not -BeNullOrEmpty
-            [Version]($changelogVersion)  | Should -Not -BeNullOrEmpty
+            [Version]($changelogVersion)  | Should -BeOfType [Version]
         }
 
         It "has a version changelog that matches the manifest version" {
-            Get-Metadata -Path $env:BHPSModuleManifest -PropertyName ModuleVersion | Should -BeLike "$($changelogVersion.ModuleVersion)*"
+            Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion | Should -BeLike "$changelogVersion*"
         }
     }
 
@@ -67,11 +84,11 @@ Describe "Validation of build environment" {
 
         It "has a valid version in the appveyor config" {
             $appveyorVersion           | Should -Not -BeNullOrEmpty
-            [Version]($appveyorVersion) | Should -Not -BeNullOrEmpty
+            [Version]($appveyorVersion) | Should -BeOfType [Version]
         }
 
         It "has a version for appveyor that matches the manifest version" {
-            Get-Metadata -Path $env:BHPSModuleManifest -PropertyName ModuleVersion | Should -BeLike "$($appveyorVersion.ModuleVersion)*"
+            Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion | Should -BeLike "$appveyorVersion*"
         }
     }
 }

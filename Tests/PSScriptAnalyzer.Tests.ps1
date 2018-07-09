@@ -1,14 +1,32 @@
+#requires -modules BuildHelpers
 #requires -modules Pester
 #requires -modules PSScriptAnalyzer
 
 Describe "PSScriptAnalyzer Tests" -Tag Unit {
 
     BeforeAll {
-        Import-Module BuildHelpers
         Remove-Item -Path Env:\BH*
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path "$PSScriptRoot\.." -ErrorAction SilentlyContinue
+        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
+        if ($projectRoot -like "*Release") {
+            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+        }
+
+        Import-Module BuildHelpers
+        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+
+        $env:BHManifestToTest = $env:BHPSModuleManifest
+        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+        if ($script:isBuild) {
+            $Pattern = [regex]::Escape($env:BHProjectPath)
+
+            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+            $env:BHManifestToTest = $env:BHBuildModuleManifest
+        }
+
+        Import-Module "$env:BHProjectPath/Tools/build.psm1"
+
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        # Import-Module $env:BHPSModuleManifest
+        # Import-Module $env:BHManifestToTest
     }
     AfterAll {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
@@ -16,9 +34,16 @@ Describe "PSScriptAnalyzer Tests" -Tag Unit {
         Remove-Item -Path Env:\BH*
     }
 
+    $settingsPath = if ($script:isBuild) {
+        "$env:BHBuildOutput/PSScriptAnalyzerSettings.psd1"
+    }
+    else {
+        "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
+    }
+
     $Params = @{
-        Path          = "$PSScriptRoot/../$env:BHProjectName"
-        Settings      = "$PSScriptRoot/../PSScriptAnalyzerSettings.psd1"
+        Path          = $env:BHModulePath
+        Settings      = $settingsPath
         Severity      = @('Error', 'Warning')
         Recurse       = $true
         Verbose       = $false
@@ -26,7 +51,7 @@ Describe "PSScriptAnalyzer Tests" -Tag Unit {
         ErrorAction   = 'SilentlyContinue'
     }
     $ScriptWarnings = Invoke-ScriptAnalyzer @Params
-    $scripts = Get-ChildItem "$PSScriptRoot/../$env:BHProjectName" -Include *.ps1, *.psm1 -Recurse
+    $scripts = Get-ChildItem $env:BHModulePath -Include *.ps1, *.psm1 -Recurse
 
     foreach ($Script in $scripts) {
         $RelPath = $Script.FullName.Replace($env:BHProjectPath, '') -replace '^\\', ''
@@ -37,8 +62,8 @@ Describe "PSScriptAnalyzer Tests" -Tag Unit {
                 Where-Object {$_.ScriptPath -like $Script.FullName} |
                 Select-Object -ExpandProperty RuleName -Unique
 
-            It "Passes $rule" {
-                foreach ($rule in $Rules) {
+            foreach ($rule in $Rules) {
+                It "passes $rule" {
                     $BadLines = $ScriptWarnings |
                         Where-Object {$_.ScriptPath -like $Script.FullName -and $_.RuleName -like $rule} |
                         Select-Object -ExpandProperty Line
@@ -46,14 +71,16 @@ Describe "PSScriptAnalyzer Tests" -Tag Unit {
                 }
             }
 
-            $Exceptions = $ErrorVariable.Exception.Message |
-                Where-Object {$_ -match [regex]::Escape($Script.FullName)}
+            $Exceptions = $null
+            if ($ErrorVariable) {
+                $Exceptions = $ErrorVariable.Exception.Message |
+                    Where-Object {$_ -match [regex]::Escape($Script.FullName)}
+            }
 
-            It "Has no parse errors" {
+            It "has no parse errors" {
                 foreach ($Exception in $Exceptions) {
-                    $Exception | Should -Be $null
+                    $Exception | Should -BeNullOrEmpty
                 }
-                break
             }
         }
     }

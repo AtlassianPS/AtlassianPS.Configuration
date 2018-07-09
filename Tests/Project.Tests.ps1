@@ -1,13 +1,31 @@
+#requires -modules BuildHelpers
 #requires -modules Pester
 
 Describe "General project validation" -Tag Unit {
 
     BeforeAll {
-        Import-Module BuildHelpers
         Remove-Item -Path Env:\BH*
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path "$PSScriptRoot\.." -ErrorAction SilentlyContinue
+        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
+        if ($projectRoot -like "*Release") {
+            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+        }
+
+        Import-Module BuildHelpers
+        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+
+        $env:BHManifestToTest = $env:BHPSModuleManifest
+        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+        if ($script:isBuild) {
+            $Pattern = [regex]::Escape($env:BHProjectPath)
+
+            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+            $env:BHManifestToTest = $env:BHBuildModuleManifest
+        }
+
+        Import-Module "$env:BHProjectPath/Tools/build.psm1"
+
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHPSModuleManifest
+        Import-Module $env:BHManifestToTest
     }
     AfterAll {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
@@ -29,7 +47,7 @@ Describe "General project validation" -Tag Unit {
                 $testFiles.Name | Should -Contain $expectedTestFile
             }
 
-            It "is exported" {
+            It "exports $function" {
                 $expectedFunctionName = $function -replace "\-", "-$($module.Prefix)"
 
                 $module.ExportedCommands.keys | Should -Contain $expectedFunctionName
@@ -47,7 +65,7 @@ Describe "General project validation" -Tag Unit {
                 $testFiles.Name | Should -Contain $expectedTestFile
             }
 
-            It "is not exported" {
+            It "does not export $function" {
                 $expectedFunctionName = $function -replace "\-", "-$($module.Prefix)"
 
                 $module.ExportedCommands.keys | Should -Not -Contain $expectedFunctionName
@@ -80,7 +98,7 @@ Describe "General project validation" -Tag Unit {
 
         It "has all the public functions as a file in '$env:BHProjectName/Public'" {
             foreach ($function in $publicFunctions) {
-                $function = $function.Replace((Get-Module -Name $env:BHProjectName).Prefix,'')
+                $function = $function.Replace((Get-Module -Name $env:BHProjectName).Prefix, '')
 
                 (Get-ChildItem "$env:BHModulePath/Public").BaseName | Should -Contain $function
             }
