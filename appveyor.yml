@@ -19,8 +19,6 @@ matrix:
     fast_finish: true
 # Don't rebuild when a release is tagged on GitHub
 skip_tags: true
-# Do not increase AppVeyor's build number
-do_not_increment_build_number: true
 # Logic for skipping CI is in the build script
 
 for:
