@@ -94,9 +94,35 @@ Describe "General project validation" -Tag Unit {
     }
 
     Context "Project stucture" {
-        $publicFunctions = (Get-Module -Name $env:BHProjectName).ExportedCommands.Keys
+        It "has a README" {
+            Test-Path "$env:BHProjectPath/README.md" | Should -Be $true
+        }
+
+        It "defines the homepage's frontmatter in the README" {
+            Get-Content "$env:BHProjectPath/README.md" | Should -Not -BeNullOrEmpty
+            "$env:BHProjectPath/README.md" | Should -FileContentMatchExactly "layout: module"
+            "$env:BHProjectPath/README.md" | Should -FileContentMatchExactly "permalink: /module/$env:BHProjectName/"
+        }
+
+        It "uses the MIT license" {
+            Test-Path "$env:BHProjectPath/LICENSE" | Should -Be $true
+            Get-Content "$env:BHProjectPath/LICENSE" | Should -Not -BeNullOrEmpty
+            "$env:BHProjectPath/LICENSE" | Should -FileContentMatchExactly "MIT License"
+            "$env:BHProjectPath/LICENSE" | Should -FileContentMatch "Copyright \(c\) 20\d{2} AtlassianPS"
+
+        }
+
+        It "has a .gitignore" {
+            Test-Path "$env:BHProjectPath/.gitignore" | Should -Be $true
+        }
+
+        It "has a .gitattributes" {
+            Test-Path "$env:BHProjectPath/.gitattributes" | Should -Be $true
+        }
 
         It "has all the public functions as a file in '$env:BHProjectName/Public'" {
+            $publicFunctions = (Get-Module -Name $env:BHProjectName).ExportedCommands.Keys
+
             foreach ($function in $publicFunctions) {
                 $function = $function.Replace((Get-Module -Name $env:BHProjectName).Prefix, '')
 

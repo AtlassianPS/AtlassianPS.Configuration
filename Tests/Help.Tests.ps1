@@ -50,9 +50,43 @@ Describe "Help tests" -Tag Documentation {
     )
 
     $module = Get-Module $env:BHProjectName
+    $abouts = Get-ChildItem "$env:BHProjectPath/docs/en-US/about*.md"
     $commands = Get-Command -Module $module -CommandType Cmdlet, Function, Workflow  # Not alias
     $classes = Get-ChildItem "$env:BHProjectPath/docs/en-US/classes/*"
     $enums = Get-ChildItem "$env:BHProjectPath/docs/en-US/enumerations/*"
+
+    #region About Help
+    It "has an About Help for the module" {
+        $abouts | Where-Object {$_.Name -eq "about_$env:BHProjectName.md"} | Should -Not -BeNullOrEmpty
+
+        if ($script:isBuild) {
+            Test-Path "$env:BHBuildOutput/$env:BHProjectName/en-US/about_$env:BHProjectName.help.txt" | Should -Be $true
+        }
+    }
+
+    foreach ($about in $abouts) {
+        $markdownFile = $about.FullName
+
+        Context "About $($about.BaseName)'s Help" {
+            It "has no platyPS template artifacts" {
+                $markdownFile | Should -Not -BeNullOrEmpty
+                $markdownFile | Should -Not -FileContentMatch '{{.*}}'
+            }
+
+            It "defines the frontmatter for the homepage" {
+                $markdownFile | Should -Not -BeNullOrEmpty
+                $markdownFile | Should -FileContentMatch "Module Name: $env:BHProjectName"
+                $markdownFile | Should -FileContentMatchExactly "layout: documentation"
+                $markdownFile | Should -FileContentMatch "permalink: /docs/$env:BHProjectName*"
+                $markdownFile | Should -FileContentMatch "online version: https://atlassianps.org/docs/$env:BHProjectName*"
+            }
+
+            if ($script:isBuild) {
+                @(Get-Help $about.BaseName).Count | Should -BeGreaterOrEqual 1
+            }
+        }
+    }
+    #endregion About Help
 
     #region Public Functions
     foreach ($command in $commands) {

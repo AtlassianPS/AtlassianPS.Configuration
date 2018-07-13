@@ -34,16 +34,13 @@ Describe "Validation of build environment" {
         Remove-Item -Path Env:\BH*
     }
 
-    $changelogFile = if ($script:isBuild) {
-        "$env:BHBuildOutput/$env:BHProjectName/CHANGELOG.md"
-    }
-    else {
-        "$env:BHProjectPath/CHANGELOG.md"
-    }
-
-    $appveyorFile = "$env:BHProjectPath/Tools/appveyor.yml"
-
     Context "CHANGELOG" {
+        $changelogFile = if ($script:isBuild) {
+            "$env:BHBuildOutput/$env:BHProjectName/CHANGELOG.md"
+        }
+        else {
+            "$env:BHProjectPath/CHANGELOG.md"
+        }
 
         foreach ($line in (Get-Content $changelogFile)) {
             if ($line -match "(?:##|\<h2.*?\>)\s*(?<Version>(\d+\.?){1,2})") {
@@ -67,6 +64,7 @@ Describe "Validation of build environment" {
     }
 
     Context "AppVeyor" {
+        $appveyorFile = "$env:BHProjectPath/Tools/appveyor.yml"
 
         foreach ($line in (Get-Content $appveyorFile)) {
             # (?<Version>()) - non-capturing group, but named Version. This makes it
@@ -80,6 +78,24 @@ Describe "Validation of build environment" {
 
         It "has a config file for AppVeyor" {
             $appveyorFile | Should -Exist
+        }
+
+        It "contains an authentication token for the PS Gallery" {
+            $appveyorFile | Should -FileContentMatch "PSGalleryAPIKey"
+        }
+
+        foreach ($version in @("4.0", "5.1", "6.0")) {
+            It "tests the project on Powersell version $version" {
+                $appveyorFile | Should -FileContentMatch "PowershellVersion: `"$version"
+            }
+        }
+
+        It "tests the project on Windows" {
+            $appveyorFile | Should -FileContentMatch "APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio"
+        }
+
+        It "tests the project on Ubuntu" {
+            $appveyorFile | Should -FileContentMatch "APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu"
         }
 
         It "has a valid version in the appveyor config" {
