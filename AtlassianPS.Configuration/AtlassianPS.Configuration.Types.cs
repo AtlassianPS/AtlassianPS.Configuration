@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Management.Automation;
 using Microsoft.PowerShell.Commands;
-using Hashtable = System.Collections.Generic.Dictionary<object, object>;
 
 namespace AtlassianPS
 {
@@ -27,7 +26,7 @@ namespace AtlassianPS
             Type = _Type;
         }
 
-        public ServerData(Hashtable Table)
+        public ServerData(IDictionary Table)
         {
             bool foundName = false;
             bool foundUri = false;

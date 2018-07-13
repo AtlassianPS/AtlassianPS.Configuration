@@ -23,5 +23,8 @@
     },
     "search.exclude": {
         "./Release/*": true
+    },
+    "markdownlint.config": {
+        "MD025": false // no-duplicate-header
     }
 }

@@ -33,10 +33,10 @@ _Exported servers will be imported automatically when the module is loaded._
 ### EXAMPLE 1
 
 ```powershell
-Set-AtlassianServerConfiguration -Uri "https://server.com/" -ServerName "Server Prod"
+Set-AtlassianServerConfiguration -Uri "https://server.com/" -ServerName "Server Prod" -Type "Jira"
 ```
 
-This command will store the server address and name in memory and allow other
+This command will store the Jira server address and name in memory and allow other
 commands to identify the server by the name "Server Prod"
 
 ## PARAMETERS

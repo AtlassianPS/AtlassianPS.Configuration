@@ -16,6 +16,7 @@ environment:
           PowershellVersion: "5.1"
         # waiting on https://github.com/RamblingCookieMonster/BuildHelpers/pull/60
         # - APPVEYOR_BUILD_WORKER_IMAGE: WMF 4
+        #   PowershellVersion: "4.0"
         - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
           PowershellVersion: "6.0.2"
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017

@@ -1,4 +1,4 @@
-# Contributing to JiraPS
+# Contributing to AtlassianPS.Configuration
 
 Happy to see you are interested in helping.
 
@@ -7,15 +7,17 @@ We have a comprehensive documentation on how to contribute here: **[Contributing
 But here is the gist of it once you have forked the repository:
 
 * before changing the code  
+
 ```powershell
-git clone https://github.com/<YOUR GITHUB USER>/JiraPS
-cd JiraPS
+git clone https://github.com/<YOUR GITHUB USER>/AtlassianPS.Configuration
+cd AtlassianPS.Configuration
 git checkout develop
 git checkout -b <NAME FOR YOUR FEATURE>
 code .
 ```
 
 * after making the changes  
+
 ```powershell
 git add .
 git commit -m "<A MESSAGE ABOUT THE CHANGES>"
