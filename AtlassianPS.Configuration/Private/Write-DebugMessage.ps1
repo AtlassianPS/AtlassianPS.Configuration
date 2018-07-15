@@ -54,7 +54,9 @@ function Write-DebugMessage {
     begin {
         $indent, $functionName, $timeStamp = ""
 
-        Import-MqcnAlias -Alias "WriteDebug" -Command "Microsoft.PowerShell.Utility\Write-DebugMessage"
+        Import-MqcnAlias -Alias "WriteDebug" -Command "Microsoft.PowerShell.Utility\Write-Debug"
+
+        $messageSettings = $script:Configuration["message"]
 
         if (-not $BreakPoint) {
             $oldDebugPreference = $DebugPreference
@@ -70,23 +72,23 @@ function Write-DebugMessage {
             $DebugPreference = 'Continue'
         }
 
-        if ($script:Configuration["message"]["style"]["breadcrumbs"]) {
+        if ($messageSettings["style"]["breadcrumbs"]) {
             WriteDebug "[$(Get-BreadCrumb)]:"
 
-            if ($script:Configuration["message"]["style"]["indent"]) {
-                $indent = " " * $script:Configuration.message.style.indent
+            if ($messageSettings["style"]["indent"]) {
+                $indent = " " * $messageSettings["style"]["indent"]
             }
             else {
                 $indent = " " * 4
             }
         }
         else {
-            if ($script:Configuration.message.style.functionname) {
+            if ($messageSettings["style"]["functionname"]) {
                 $functionName = "[$($Cmdlet.MyInvocation.MyCommand.Name)] "
             }
         }
 
-        if ($script:Configuration.message.style.timestamp) {
+        if ($messageSettings["style"]["timestamp"]) {
             $timeStamp = "[$(Get-Date -f "HH:mm:ss")] "
         }
 
