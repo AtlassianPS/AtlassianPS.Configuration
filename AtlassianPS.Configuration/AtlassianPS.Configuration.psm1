@@ -10,11 +10,10 @@ if ($PSVersionTable.PSVersion.Major -lt 5) {
 
 #region ModuleConfig
 # Add our own Converters for serialization
-if (Get-Command Add-MetadataConverter -Module Configuration -ErrorAction SilentlyContinue) {
-    Configuration\Add-MetadataConverter @{
-        [AtlassianPS.ServerData] = { "AtlassianPSServerData @{{Name = '{0}'; Uri = '{1}'; Type = '{2}'; Headers = '{3}'}}" -f $_.Name, $_.Uri, $_.Type, $_.Headers }
-        "AtlassianPSServerData" = { [AtlassianPS.ServerData]$Args[0] }
-    }
+Configuration\Add-MetadataConverter @{
+    # [AtlassianPS.ServerData] = { "AtlassianPSServerData @{{Name = '{0}'; Uri = '{1}'; Type = '{2}'; Headers = '{3}'}}" -f $_.Name, $_.Uri, $_.Type, $_.Headers }
+    [AtlassianPS.ServerData] = { "AtlassianPSServerData @{{Name = '{0}'; Uri = '{1}'; Type = '{2}'}}" -f $_.Name, $_.Uri, $_.Type }
+    "AtlassianPSServerData" = { [AtlassianPS.ServerData]$Args[0] }
 }
 
 # Load configuration using
