@@ -13,7 +13,9 @@ function Export-Configuration {
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $export = Get-Configuration
-        $export.ServerList | Foreach-Object { $_.Session = $null }
+        $export.ServerList |
+            Where-Object { $_.Session } |
+            Foreach-Object { $_.Session = $null }
 
         ExportConfiguration -InputObject $export
     }
