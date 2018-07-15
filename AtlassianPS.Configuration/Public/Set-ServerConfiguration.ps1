@@ -41,7 +41,7 @@ function Set-ServerConfiguration {
 
         $config = [AtlassianPS.ServerData]@{
             Name    = $ServerName
-            Uri     = $Uri
+            Uri     = ([Uri]($Uri.AbsoluteUri -replace "\/$", ""))
             Type    = $Type
             # IsCloudServer = (Test-ServerIsCloud -Type $Type -Uri $Uri -Headers $Headers -ErrorAction Stop -verbose)
             Session = $Session
