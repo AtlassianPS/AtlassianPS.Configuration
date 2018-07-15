@@ -46,11 +46,11 @@ function Set-Configuration {
             try {
                 $newValue = @(@($oldValue) + @($Value)) -as ($oldValue.GetType())
                 if (-not $newValue) {
-                    throw "failed to case to $oldValue.GetType().Name"
+                    throw "failed to case to $($oldValue.GetType().Name)"
                 }
             }
             catch {
-                Write-DebugMessage "Failed to use Type of previous value"
+                Write-DebugMessage $_
 
                 $newValue = @(@($oldValue) + @($Value))
             }
