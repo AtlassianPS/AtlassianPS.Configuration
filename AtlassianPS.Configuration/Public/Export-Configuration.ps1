@@ -1,4 +1,5 @@
 function Export-Configuration {
+    # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
     param()
 

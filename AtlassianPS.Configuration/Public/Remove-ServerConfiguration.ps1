@@ -1,4 +1,5 @@
 function Remove-ServerConfiguration {
+    # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
@@ -12,9 +13,9 @@ function Remove-ServerConfiguration {
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Name, $_.Name, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Name ) }
             }
         )]
-        [Alias('Name', 'Alias')]
+        [Alias('ServerName', 'Alias')]
         [String[]]
-        $ServerName
+        $Name
     )
 
     begin {
@@ -27,16 +28,12 @@ function Remove-ServerConfiguration {
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        foreach ($serverToRemove in $ServerName) {
+        foreach ($serverToRemove in $Name) {
             if ($serverToRemove -notin $serverList.Name) {
-                $exception = "Object Not Found"
-                $errorId = "ServerType.ServerNotFound"
-                $errorCategory = "ObjectNotFound"
-
                 $writeErrorSplat = @{
-                    Exception    = $exception
-                    ErrorId      = $errorId
-                    Category     = $errorCategory
+                    ExceptionType = "System.ApplicationException"
+                    ErrorId      = "ServerType.ServerNotFound"
+                    Category     = "ObjectNotFound"
                     Message      = "No server '$serverToRemove' could be found."
                     TargetObject = $serverToRemove
                     Cmdlet       = $PSCmdlet
@@ -46,7 +43,7 @@ function Remove-ServerConfiguration {
 
         }
 
-        $serverList = $serverList | Where-Object { $_.Name -notin $ServerName }
+        $serverList = $serverList | Where-Object { $_.Name -notin $Name }
     }
 
     end {

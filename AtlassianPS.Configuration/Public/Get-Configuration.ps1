@@ -1,4 +1,5 @@
 function Get-Configuration {
+    # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
     [OutputType( [PSCustomObject] )]
     param(
