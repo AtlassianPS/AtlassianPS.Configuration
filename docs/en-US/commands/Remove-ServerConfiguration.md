@@ -16,7 +16,7 @@ Remove a Stores Server from memory.
 ## SYNTAX
 
 ```powershell
-Remove-ServerConfiguration [-ServerName] <String[]> [<CommonParameters>]
+Remove-AtlassianServerConfiguration [-Name] <String[]> [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -28,14 +28,14 @@ This function allows for several Server object to be removed in memory.
 ### EXAMPLE 1
 
 ```powershell
-Remove-ServerConfiguration -ServerName "Server Prod"
+Remove-AtlassianServerConfiguration -Name "Server Prod"
 ```
 
 This command will remove the server identified as "Server Prod" from memory.
 
 ## PARAMETERS
 
-### -ServerName
+### -Name
 
 Name with which this server is stored.
 
@@ -44,7 +44,7 @@ Is case sensitive
 ```yaml
 Type: String[]
 Parameter Sets: (All)
-Aliases: Name, Alias
+Aliases: ServerName, Alias
 
 Required: True
 Position: 1

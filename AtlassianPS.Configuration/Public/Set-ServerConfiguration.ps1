@@ -1,26 +1,34 @@
 function Set-ServerConfiguration {
-    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
+    # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
+    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false, DefaultParameterSetName = 'Adding' )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [UInt32]
+        $Id,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [Alias('Url', 'Address')]
         [Uri]
         $Uri,
 
-        [Parameter( ValueFromPipelineByPropertyName )]
-        [Alias('Name', 'Alias')]
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [Alias('ServerName', 'Alias')]
         [String]
-        $ServerName = $Uri.Authority,
+        $Name = $Uri.Authority,
 
-        [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [AtlassianPS.ServerType]
         $Type,
 
-        [Parameter( ValueFromPipelineByPropertyName )]
+        [Parameter()]
         [Microsoft.PowerShell.Commands.WebRequestSession]
         $Session,
 
-        [Parameter( ValueFromPipelineByPropertyName )]
+        [Parameter()]
         [Hashtable]
         $Headers
     )
@@ -28,43 +36,49 @@ function Set-ServerConfiguration {
     begin {
         Write-Verbose "Function started"
 
-        if (-not ($script:Configuration.ServerList)) {
-            $script:Configuration.ServerList = $null
-        }
-
-        $serverList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
+        $parametersToIgnore = @(
+            'Id'
+            'Verbose'
+            'Debug'
+            'ErrorAction'
+            'WarningAction'
+            'InformationAction'
+            'ErrorVariable'
+            'WarningVariable'
+            'InformationVariable'
+            'OutVariable'
+            'OutBuffer'
+            'PipelineVariable'
+            'WhatIf'
+            'Confirm'
+        )
     }
 
     process {
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $config = [AtlassianPS.ServerData]@{
-            Name    = $ServerName
-            Uri     = ([Uri]($Uri.AbsoluteUri -replace "\/$", ""))
-            Type    = $Type
-            # IsCloudServer = (Test-ServerIsCloud -Type $Type -Uri $Uri -Headers $Headers -ErrorAction Stop -verbose)
-            Session = $Session
-            Headers = $Headers
-        }
+        $serverEntry = $script:Configuration.ServerList | Where-Object { $_.Id -eq $Id }
+        if ($serverEntry) {
+            foreach ($property in ($PSBoundParameters.Keys | Where-Object { $_ -notin $parametersToIgnore} )) {
+                Write-Verbose "Changing [$property] of entry #$Id"
 
-        foreach ($server in $script:Configuration.ServerList) {
-            if ($server.Name -ne $config.Name) {
-                $serverList.Add($server)
-            }
-            else {
-                Write-DebugMessage "Removing server `$server: $($server.Name)"
+                $serverEntry.$property = Get-Variable $property -ValueOnly
             }
         }
-
-        Write-DebugMessage "Adding server `$config: $($config.Name)" -BreakPoint
-        $serverList.Add($config)
+        else {
+            $writeErrorSplat = @{
+                ExceptionType = "System.ApplicationException"
+                Message       = "No entry could be found at index $Id"
+                ErrorId       = "AtlassianPS.ServerData.NoEntryExists"
+                Category      = "InvalidData"
+                TargetObject  = $Id
+            }
+            WriteError @writeErrorSplat
+        }
     }
 
     end {
-        Write-DebugMessage "Persisting ServerList"
-        $script:Configuration.ServerList = $serverList
-
         Write-Verbose "Function ended"
     }
 }

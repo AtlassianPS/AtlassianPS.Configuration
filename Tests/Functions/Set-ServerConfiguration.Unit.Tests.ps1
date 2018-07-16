@@ -1,5 +1,6 @@
 #requires -modules BuildHelpers
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
+
 
 Describe "Set-ServerConfiguration" -Tag Unit {
 
@@ -39,7 +40,7 @@ Describe "Set-ServerConfiguration" -Tag Unit {
         Mock Write-DebugMessage -ModuleName $env:BHProjectName {}
         Mock Write-Verbose -ModuleName $env:BHProjectName {}
 
-        Mock Get-ServerConfiguration {
+        Mock Get-ServerConfiguration -Module $env:BHProjectName {
             $script:Configuration["ServerList"]
         }
         #endregion Mocking
@@ -48,17 +49,17 @@ Describe "Set-ServerConfiguration" -Tag Unit {
 
             $command = Get-Command -Name Set-ServerConfiguration
 
-            It "has a [String] -ServerName parameter" {
-                $command.Parameters.ContainsKey("ServerName")
-                $command.Parameters["ServerName"].ParameterType | Should -Be "String"
+            It "has a [String] -Name parameter" {
+                $command.Parameters.ContainsKey("Name")
+                $command.Parameters["Name"].ParameterType | Should -Be "String"
             }
 
-            It "has an alias -Name for -Servername" {
-                $command.Parameters["ServerName"].Aliases | Should -Contain "Name"
+            It "has an alias -ServerName for -Name" {
+                $command.Parameters["Name"].Aliases | Should -Contain "ServerName"
             }
 
-            It "has an alias -Alias for -Servername" {
-                $command.Parameters["ServerName"].Aliases | Should -Contain "Alias"
+            It "has an alias -Alias for -name" {
+                $command.Parameters["Name"].Aliases | Should -Contain "Alias"
             }
 
             It "has a [Uri] -Uri parameter" {
@@ -96,19 +97,21 @@ Describe "Set-ServerConfiguration" -Tag Unit {
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{
-                    Foo = "lorem ipsum"
-                    Bar = 42
-                    Baz = (Get-Date)
+                    Foo        = "lorem ipsum"
+                    Bar        = 42
+                    Baz        = (Get-Date)
                     ServerList = @(
                         [AtlassianPS.ServerData]@{
+                            Id   = 1
                             Name = "Google"
-                            Uri = "https://google.com"
+                            Uri  = "https://google.com"
                             Type = "Jira"
                         }
                         [AtlassianPS.ServerData]@{
-                            Name = "Google with Session"
-                            Uri = "https://google.com"
-                            Type = "Jira"
+                            Id      = 2
+                            Name    = "Google with Session"
+                            Uri     = "https://google.com"
+                            Type    = "Jira"
                             Session = (New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession)
                         }
                     )
@@ -116,91 +119,139 @@ Describe "Set-ServerConfiguration" -Tag Unit {
             }
             #endregion Arrange
 
-            It "adds a new server if it didn't exist before" {
-                @(Get-ServerConfiguration).Count | Should -Be 2
+            It "uses -Id to identify the entry to change" {
                 (Get-ServerConfiguration).Name | Should -Not -Contain "New Server"
 
-                Set-ServerConfiguration -Name "New Server" -Uri "https://atlassianps.org" -Type Jira
+                Set-ServerConfiguration -Id 1 -Name "New Server"
 
-                @(Get-ServerConfiguration).Count | Should -Be 3
                 (Get-ServerConfiguration).Name | Should -Contain "New Server"
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "New Server"
             }
 
-            It "overwrite an entry in case in existed before" {
-                @(Get-ServerConfiguration).Count | Should -Be 2
-                (Get-ServerConfiguration).Name | Should -Contain "Google"
-                (Get-ServerConfiguration | Where-Object Name -eq "Google").Uri | Should -Be "https://google.com/"
+            It "accepts the Id over the pipeline" {
+                (Get-ServerConfiguration).Name | Should -Not -Contain "New Server"
 
-                Set-ServerConfiguration -Name "Google" -Uri "https://atlassianps.org" -Type Jira
+                1 | Set-ServerConfiguration -Name "New Server"
+
+                (Get-ServerConfiguration).Name | Should -Contain "New Server"
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "New Server"
+            }
+
+            It "accepts the Id over the pipeline as a property" {
+                (Get-ServerConfiguration).Name | Should -Not -Contain "New Server"
+
+                Get-ServerConfiguration |
+                    Where-Object Id -eq 1 |
+                    Set-ServerConfiguration -Name "New Server"
+
+                (Get-ServerConfiguration).Name | Should -Contain "New Server"
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "New Server"
+            }
+
+            It "does not change the number of entries" {
+                @(Get-ServerConfiguration).Count | Should -Be 2
+
+                Set-ServerConfiguration -Id 1 -Name "New Server"
+                1 | Set-ServerConfiguration -Name "New Server"
+                Get-ServerConfiguration |
+                    Where-Object Id -eq 1 |
+                    Set-ServerConfiguration -Name "New Server"
 
                 @(Get-ServerConfiguration).Count | Should -Be 2
-                (Get-ServerConfiguration).Name | Should -Contain "Google"
-                (Get-ServerConfiguration | Where-Object Name -eq "Google").Uri | Should -Be "https://atlassianps.org/"
+            }
+
+            It "writes an error if the index does not exist" {
+                { Set-ServerConfiguration -Id 1 -Name "New Server" -ErrorAction Stop } | Should -Not -Throw
+                { Set-ServerConfiguration -Id 2 -Name "New Server" -ErrorAction Stop } | Should -Not -Throw
+                { Set-ServerConfiguration -Id 3 -Name "New Server" -ErrorAction Stop } | Should -Throw "No entry could be found at index 3"
+                { Set-ServerConfiguration -Id 3 -Name "New Server" -ErrorAction SilentlyContinue } | Should -Not -Throw
+            }
+        }
+
+        Context "Parameter checking" {
+
+            #region Arrange
+            BeforeEach {
+                $script:Configuration = @{
+                    Foo        = "lorem ipsum"
+                    Bar        = 42
+                    Baz        = (Get-Date)
+                    ServerList = @(
+                        [AtlassianPS.ServerData]@{
+                            Id   = 1
+                            Name = "Google"
+                            Uri  = "https://google.com"
+                            Type = "Jira"
+                        }
+                        [AtlassianPS.ServerData]@{
+                            Id      = 2
+                            Name    = "Google with Session"
+                            Uri     = "https://google.com"
+                            Type    = "Jira"
+                            Session = (New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession)
+                        }
+                    )
+                }
+            }
+            #endregion Arrange
+
+            It "can change the Name" {
+                (Get-ServerConfiguration | Where Id -eq 1).Name | Should -Be "Google"
+
+                Set-ServerConfiguration -Id 1 -Name "https://atlassianps.org"
+
+                (Get-ServerConfiguration | Where Id -eq 1).Name | Should -Be "https://atlassianps.org"
+            }
+
+            It "can change the Uri" {
+                (Get-ServerConfiguration | Where Id -eq 1).Uri | Should -Be "https://google.com/"
+
+                Set-ServerConfiguration -Id 1 -Uri "https://atlassian.net"
+
+                (Get-ServerConfiguration | Where Id -eq 1).Uri | Should -Be "https://atlassian.net/"
+            }
+
+            It "can change the Type" {
+                (Get-ServerConfiguration | Where Id -eq 1).Type | Should -Be "Jira"
+
+                Set-ServerConfiguration -Id 1 -Type Bitbucket
+
+                (Get-ServerConfiguration | Where Id -eq 1).Type | Should -Be "Bitbucket"
             }
 
             It "only allowed AtlassianPS server types" {
                 @(Get-ServerConfiguration).Count | Should -Be 2
 
-                { Set-ServerConfiguration -Name "Bitbucket" -Uri "https://atlassianps.org" -Type Bitbucket } | Should -Not -Throw
-                { Set-ServerConfiguration -Name "Confluence" -Uri "https://atlassianps.org" -Type Confluence } | Should -Not -Throw
-                { Set-ServerConfiguration -Name "Jira" -Uri "https://atlassianps.org" -Type Jira } | Should -Not -Throw
+                { Set-ServerConfiguration -Id 1 -Name "Bitbucket" -Uri "https://atlassianps.org" -Type Bitbucket } | Should -Not -Throw
+                { Set-ServerConfiguration -Id 1 -Name "Confluence" -Uri "https://atlassianps.org" -Type Confluence } | Should -Not -Throw
+                { Set-ServerConfiguration -Id 1 -Name "Jira" -Uri "https://atlassianps.org" -Type Jira } | Should -Not -Throw
                 # Hipchat is not yet supported
-                { Set-ServerConfiguration -Name "Hipchat" -Uri "https://atlassianps.org" -Type Hipchat } | Should -Throw
+                { Set-ServerConfiguration -Id 1 -Name "Hipchat" -Uri "https://atlassianps.org" -Type Hipchat } | Should -Throw
 
-                { Set-ServerConfiguration -Name "None" -Uri "https://atlassianps.org" -Type "" } | Should -Throw
-                { Set-ServerConfiguration -Name "Github" -Uri "https://atlassianps.org" -Type Github } | Should -Throw
+                { Set-ServerConfiguration -Id 1 -Name "None" -Uri "https://atlassianps.org" -Type "" } | Should -Throw
+                { Set-ServerConfiguration -Id 1 -Name "Github" -Uri "https://atlassianps.org" -Type Github } | Should -Throw
 
-                @(Get-ServerConfiguration).Count | Should -Be 5
+                @(Get-ServerConfiguration).Count | Should -Be 2
             }
 
-            It "allows value to be passed over pipeline for a new entry" {
-                @(Get-ServerConfiguration).Count | Should -Be 2
-                (Get-ServerConfiguration).Name | Should -Contain "Google"
-                (Get-ServerConfiguration | Where-Object Name -eq "Google").Uri | Should -Be "https://google.com/"
-
-                (Get-ServerConfiguration | Where-Object Name -eq "Google") | Set-ServerConfiguration -Uri "https://atlassianps.org"
-
-                @(Get-ServerConfiguration).Count | Should -Be 2
-                (Get-ServerConfiguration).Name | Should -Contain "Google"
-                (Get-ServerConfiguration | Where-Object Name -eq "Google").Uri | Should -Be "https://atlassianps.org/"
-            }
-
-            It "allows value to be passed over pipeline for an existing entry" {
-                @(Get-ServerConfiguration).Count | Should -Be 2
-                (Get-ServerConfiguration).Name | Should -Contain "Google"
-                (Get-ServerConfiguration | Where-Object Name -eq "Google").Uri | Should -Be "https://google.com/"
-
-                (Get-ServerConfiguration | Where-Object Name -eq "Google") | Set-ServerConfiguration -Name "NewName"
-
-                @(Get-ServerConfiguration).Count | Should -Be 3
-                (Get-ServerConfiguration).Name | Should -Contain "NewName"
-                (Get-ServerConfiguration | Where-Object Name -eq "NewName").Uri | Should -Be "https://google.com/"
-            }
-
-            It "stores a WebSession to a server" {
-                @(Get-ServerConfiguration).Count | Should -Be 2
+            It "can change the WebSession" {
+                (Get-ServerConfiguration | Where Id -eq 1).Session | Should -BeNullOrEmpty
 
                 $webSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
                 $webSession.UserAgent = "Test Value"
-                Set-ServerConfiguration -Name "New Entry" -Uri "https://atlassianps.org" -Type Jira -Session $webSession
+                Set-ServerConfiguration -Id 1 -Session $webSession
 
-                @(Get-ServerConfiguration).Count | Should -Be 3
-                (Get-ServerConfiguration).Name | Should -Contain "New Entry"
-                (Get-ServerConfiguration | Where-Object Name -eq "New Entry").Session | Should -Not -BeNullOrEmpty
-                (Get-ServerConfiguration | Where-Object Name -eq "New Entry").Session.UserAgent | Should -Be "Test Value"
+                (Get-ServerConfiguration | Where Id -eq 1).Session | Should -Not -BeNullOrEmpty
+                (Get-ServerConfiguration | Where Id -eq 1).Session.UserAgent | Should -Be "Test Value"
             }
 
-            It "stores a hashtable for the Headers for a server" {
-                @(Get-ServerConfiguration).Count | Should -Be 2
+            It "can change the Headers" {
+                (Get-ServerConfiguration | Where Id -eq 1).Headers | Should -BeNullOrEmpty
 
-                Set-ServerConfiguration -Name "New Entry" -Uri "https://atlassianps.org" -Type Jira -Headers @{
-                    Authorization = "Basic ABCDEF"
-                }
+                Set-ServerConfiguration -Id 1 -Headers @{ Authorization = "Basic ABCDEF" }
 
-                @(Get-ServerConfiguration).Count | Should -Be 3
-                (Get-ServerConfiguration).Name | Should -Contain "New Entry"
-                (Get-ServerConfiguration | Where-Object Name -eq "New Entry").Headers | Should -BeOfType [Hashtable]
-                (Get-ServerConfiguration | Where-Object Name -eq "New Entry").Headers.Authorization | Should -Be "Basic ABCDEF"
+                (Get-ServerConfiguration | Where Id -eq 1).Headers | Should -BeOfType [Hashtable]
+                (Get-ServerConfiguration | Where Id -eq 1).Headers.Authorization | Should -Be "Basic ABCDEF"
             }
         }
     }

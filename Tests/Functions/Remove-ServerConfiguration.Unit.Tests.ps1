@@ -1,5 +1,6 @@
 #requires -modules BuildHelpers
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
+
 
 Describe "Remove-ServerConfiguration" -Tag Unit {
 
@@ -47,17 +48,17 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
         Context "Sanity checking" {
             $command = Get-Command -Name Remove-ServerConfiguration
 
-            It "has a [String[]] -ServerName parameter" {
-                $command.Parameters.ContainsKey("ServerName")
-                $command.Parameters["ServerName"].ParameterType | Should -Be "String[]"
+            It "has a [String[]] -Name parameter" {
+                $command.Parameters.ContainsKey("Name")
+                $command.Parameters["Name"].ParameterType | Should -Be "String[]"
             }
 
-            It "has an alias -Name for -Servername" {
-                $command.Parameters["ServerName"].Aliases | Should -Contain "Name"
+            It "has an alias -ServerName for -Name" {
+                $command.Parameters["Name"].Aliases | Should -Contain "ServerName"
             }
 
-            It "has an alias -Alias for -Servername" {
-                $command.Parameters["ServerName"].Aliases | Should -Contain "Alias"
+            It "has an alias -Alias for -Name" {
+                $command.Parameters["Name"].Aliases | Should -Contain "Alias"
             }
         }
 
@@ -71,11 +72,13 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
                     Baz        = (Get-Date)
                     ServerList = @(
                         [AtlassianPS.ServerData]@{
+                            Id   = 1
                             Name = "Google"
                             Uri  = "https://google.com"
                             Type = "Jira"
                         }
                         [AtlassianPS.ServerData]@{
+                            Id      = 2
                             Name    = "Google with Session"
                             Uri     = "https://google.com"
                             Type    = "Jira"
@@ -89,7 +92,7 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
             It "removes one entry of the servers" {
                 @(Get-ServerConfiguration).Count | Should -Be 2
 
-                Remove-ServerConfiguration -ServerName "Google"
+                Remove-ServerConfiguration -Name "Google"
 
                 @(Get-ServerConfiguration).Count | Should -Be 1
             }
@@ -97,7 +100,7 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
             It "removes multiple entries of the servers" {
                 @(Get-ServerConfiguration).Count | Should -Be 2
 
-                Remove-ServerConfiguration -ServerName "Google", "Google with Session"
+                Remove-ServerConfiguration -Name "Google", "Google with Session"
 
                 Get-ServerConfiguration | Should -BeNullOrEmpty
             }
@@ -123,8 +126,8 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
             }
 
             It "writes an error when the server could not be removed" {
-                { Remove-ServerConfiguration -ServerName "Foo" -ErrorAction SilentlyContinue } | Should -Not -Throw
-                { Remove-ServerConfiguration -ServerName "Foo" -ErrorAction Stop } | Should -Throw "No server 'foo' could be found."
+                { Remove-ServerConfiguration -Name "Foo" -ErrorAction SilentlyContinue } | Should -Not -Throw
+                { Remove-ServerConfiguration -Name "Foo" -ErrorAction Stop } | Should -Throw "No server 'foo' could be found."
             }
         }
     }

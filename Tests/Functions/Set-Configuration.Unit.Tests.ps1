@@ -1,5 +1,6 @@
 #requires -modules BuildHelpers
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
+
 
 Describe "Set-Configuration" -Tag Unit {
 
@@ -44,7 +45,7 @@ Describe "Set-Configuration" -Tag Unit {
             $return = $tempConfig.Keys |
                 ForEach-Object {
                 [PSCustomObject]@{
-                    Name = $_
+                    Name  = $_
                     Value = $tempConfig[$_]
                 }
             }
@@ -87,19 +88,21 @@ Describe "Set-Configuration" -Tag Unit {
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{
-                    Foo = "lorem ipsum"
-                    Bar = 42
-                    Baz = (Get-Date)
+                    Foo        = "lorem ipsum"
+                    Bar        = 42
+                    Baz        = (Get-Date)
                     ServerList = @(
                         [AtlassianPS.ServerData]@{
+                            Id   = 1
                             Name = "Google"
-                            Uri = "https://google.com"
+                            Uri  = "https://google.com"
                             Type = "Jira"
                         }
                         [AtlassianPS.ServerData]@{
-                            Name = "Google with Session"
-                            Uri = "https://google.com"
-                            Type = "Jira"
+                            Id      = 2
+                            Name    = "Google with Session"
+                            Uri     = "https://google.com"
+                            Type    = "Jira"
                             Session = (New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession)
                         }
                     )

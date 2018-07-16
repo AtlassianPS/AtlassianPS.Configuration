@@ -41,9 +41,10 @@ Describe "[AtlassianPS.ServerType] Tests" -Tag Unit {
 
     It "throws an error if incomplete data is provided" {
         $session = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
-        $message = "Must contain Name, Uri and Type."
+        $message = "Must contain Id, Name, Uri and Type."
 
         { [AtlassianPS.ServerData]@{ } } | Should -Throw $message
+        { [AtlassianPS.ServerData]@{ Id = 1 } } | Should -Throw $message
         { [AtlassianPS.ServerData]@{ Name = "Name" } } | Should -Throw $message
         { [AtlassianPS.ServerData]@{ Uri = "https://google.com" } } | Should -Throw $message
         { [AtlassianPS.ServerData]@{ Type = "Jira" } } | Should -Throw $message
@@ -54,9 +55,9 @@ Describe "[AtlassianPS.ServerType] Tests" -Tag Unit {
     It "converts a [Hashtable] to [AtlassianPS.ServerData]" {
         $session = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
 
-        { [AtlassianPS.ServerData]@{ Name = "Name"; Uri = "https://google.com"; Type = "Jira" } } | Should -Not -Throw
-        { [AtlassianPS.ServerData]@{ Name = "Name"; Uri = "https://google.com"; Type = "Jira"; Session = $session } } | Should -Not -Throw
-        { [AtlassianPS.ServerData]@{ Name = "Name"; Uri = "https://google.com"; Type = "Jira"; Session = $session; Headers = @{ } } } | Should -Not -Throw
+        { [AtlassianPS.ServerData]@{ Id = 1; Name = "Name"; Uri = "https://google.com"; Type = "Jira" } } | Should -Not -Throw
+        { [AtlassianPS.ServerData]@{ Id = 1; Name = "Name"; Uri = "https://google.com"; Type = "Jira"; Session = $session } } | Should -Not -Throw
+        { [AtlassianPS.ServerData]@{ Id = 1; Name = "Name"; Uri = "https://google.com"; Type = "Jira"; Session = $session; Headers = @{ } } } | Should -Not -Throw
     }
 
     It "has a constructor" {
@@ -65,7 +66,7 @@ Describe "[AtlassianPS.ServerType] Tests" -Tag Unit {
     }
 
     It "has a string representation" {
-        $object = [AtlassianPS.ServerData]@{ Name = "Name"; Uri = "https://google.com"; Type = "Jira" }
+        $object = [AtlassianPS.ServerData]@{ Id = 1; Name = "Name"; Uri = "https://google.com"; Type = "Jira" }
 
         $object.ToString() | Should -Be "Name (https://google.com/)"
     }

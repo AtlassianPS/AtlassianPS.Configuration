@@ -16,7 +16,7 @@ Retrieve a stored configuration
 ## SYNTAX
 
 ```powershell
-Get-Configuration [[-Name] <String[]>] [-ValueOnly] [<CommonParameters>]
+Get-AtlassianConfiguration [[-Name] <String[]>] [-ValueOnly] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -28,7 +28,7 @@ Retrieve a stored configuration
 ### EXAMPLE 1
 
 ```powershell
-Get-Configuration
+Get-AtlassianConfiguration
 ```
 
 Get all stored servers
@@ -36,7 +36,8 @@ Get all stored servers
 ### EXAMPLE 2
 
 ```powershell
-Get-Configuration -Key "Headers"
+Add-AtlassianConfiguration -Key "Headers" -Value @{ Authorization = "Basic ABCDEF" }
+Get-AtlassianConfiguration -Key "Headers"
 ```
 
 Get configuration data in key "Headers"

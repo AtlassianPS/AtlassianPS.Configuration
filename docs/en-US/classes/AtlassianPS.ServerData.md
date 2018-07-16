@@ -31,7 +31,7 @@ A new object of type `[AtlassianPS.ServerData]` can be create by providing a
 hashtable containing keys for `Name`, `Uri` and `Type`
 
 ```powershell
-[AtlassianPS.ServerData]@{ Name = "<Name>"; Uri = "<Uri>"; Type = "<Type>" }
+[AtlassianPS.ServerData]@{ Id = <Id> Name = "<Name>"; Uri = "<Uri>"; Type = "<Type>" }
 ```
 
 ## PROPERTIES

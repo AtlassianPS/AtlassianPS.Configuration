@@ -16,7 +16,7 @@ Store the server configuration to disk
 ## SYNTAX
 
 ```powershell
-Export-Configuration [<CommonParameters>]
+Export-AtlassianConfiguration [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -31,8 +31,8 @@ _Sessions are not stored when exported._
 ### EXAMPLE 1
 
 ```powershell
-Set-ServerConfiguration -Uri "https://server.com"
-Export-Configuration
+Add-AtlassianServerConfiguration -Uri "https://atlassian.net" -Type Confluence
+Export-AtlassianConfiguration
 ```
 
 Stores the server to disk.

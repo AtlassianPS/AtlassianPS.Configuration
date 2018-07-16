@@ -1,5 +1,6 @@
 #requires -modules BuildHelpers
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
+
 
 Describe "Get-Configuration" -Tag Unit {
 
@@ -65,11 +66,13 @@ Describe "Get-Configuration" -Tag Unit {
                     Baz        = (Get-Date)
                     ServerList = @(
                         [AtlassianPS.ServerData]@{
+                            Id   = 1
                             Name = "Google"
                             Uri  = "https://google.com"
                             Type = "Jira"
                         }
                         [AtlassianPS.ServerData]@{
+                            Id      = 2
                             Name    = "Google with Session"
                             Uri     = "https://google.com"
                             Type    = "Jira"

@@ -28,6 +28,7 @@ namespace AtlassianPS
 
         public ServerData(IDictionary Table)
         {
+            bool foundId = false;
             bool foundName = false;
             bool foundUri = false;
             bool foundType = false;
@@ -36,6 +37,10 @@ namespace AtlassianPS
             {
                 switch (key.ToString().ToLower())
                 {
+                    case "id":
+                        Id = Convert.ToUInt32(Table[key]);
+                        foundId = true;
+                        break;
                     case "name":
                         Name = (String)Table[key];
                         foundName = true;
@@ -60,10 +65,11 @@ namespace AtlassianPS
                         break;
                 }
             }
-            if (!(foundName && foundUri && foundType))
-                throw new ArgumentException("Must contain Name, Uri and Type.");
+            if (!(foundId && foundName && foundUri && foundType))
+                throw new ArgumentException("Must contain Id, Name, Uri and Type.");
         }
 
+        public UInt32 Id { get; set; }
         public String Name { get; set; }
         public Uri Uri { get; set; }
         public ServerType Type { get; set; }
