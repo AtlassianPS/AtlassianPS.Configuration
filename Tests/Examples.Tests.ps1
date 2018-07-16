@@ -25,7 +25,7 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
         Import-Module "$env:BHProjectPath/Tools/build.psm1"
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        # Import-Module $env:BHManifestToTest
+        Import-Module $env:BHManifestToTest
     }
     AfterAll {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
@@ -35,10 +35,26 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
 
     Assert-True $script:isBuild "Examples can only be tested in the build environment. Please run `Invoke-Build -Task Build`."
 
-    $functions = Get-Command -Module $env:BHProjectName | Get-Help
+    #region Mocks
+    Mock Invoke-WebRequest { }
+    Mock Invoke-RestMethod { }
+    #endregion Mocks
+
+    $functions = Get-Command -Module $env:BHProjectName
     foreach ($function in $functions) {
         Context "Examples of $($function.Name)" {
+            $help = Get-Help $function.Name
 
+            foreach ($example in $help.examples.example) {
+                $exampleName = ($example.title -replace "-").trim()
+
+                It "has a working example: $exampleName" {
+                    $scriptBlock = [Scriptblock]::Create($example.code)
+                    # {
+                        & $scriptBlock
+                    #} | Should -Not -Throw
+                }
+            }
 
         }
     }

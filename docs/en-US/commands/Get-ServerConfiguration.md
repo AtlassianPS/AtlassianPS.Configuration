@@ -18,19 +18,19 @@ Get the data of a stored server.
 ### _All (Default)
 
 ```powershell
-Get-ServerConfiguration [<CommonParameters>]
+Get-AtlassianServerConfiguration [<CommonParameters>]
 ```
 
 ### ServerDataByUri
 
 ```powershell
-Get-ServerConfiguration [-Uri] <Uri> [<CommonParameters>]
+Get-AtlassianServerConfiguration [-Uri] <Uri> [<CommonParameters>]
 ```
 
 ### ServerDataByName
 
 ```powershell
-Get-ServerConfiguration [-ServerName] <String[]> [<CommonParameters>]
+Get-AtlassianServerConfiguration [-ServerName] <String[]> [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -42,7 +42,7 @@ Retrieve the stored servers.
 ### EXAMPLE 1
 
 ```powershell
-Get-ServerConfiguration
+Get-AtlassianServerConfiguration
 ```
 
 Get all stored servers
@@ -50,7 +50,7 @@ Get all stored servers
 ### EXAMPLE 2
 
 ```powershell
-Get-ServerConfiguration -Name "prod"
+Get-AtlassianServerConfiguration -Name "prod"
 ```
 
 Get the data of the server with Name "prod"
@@ -58,7 +58,7 @@ Get the data of the server with Name "prod"
 ### EXAMPLE 3
 
 ```powershell
-Get-ServerConfiguration -Uri "https://myserver.com"
+Get-AtlassianServerConfiguration -Uri "https://myserver.com"
 ```
 
 Get the data of the server with address "https://myserver.com"

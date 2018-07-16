@@ -1,5 +1,6 @@
 #requires -modules BuildHelpers
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
+
 
 Describe "WriteError" -Tag Unit {
 

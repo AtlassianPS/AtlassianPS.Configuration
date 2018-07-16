@@ -16,7 +16,7 @@ Stores a key/value pair to the configuration
 ## SYNTAX
 
 ```powershell
-Set-Configuration [-Name] <String> [[-Value] <Object>] [-Append] [-Passthru]
+Set-AtlassianConfiguration [-Name] <String> [[-Value] <Object>] [-Append] [-Passthru]
  [<CommonParameters>]
 ```
 
@@ -31,7 +31,7 @@ This is only available in the current sessions, unless exported.
 ### EXAMPLE 1
 
 ```powershell
-Set-Configuration -Key "Headers" -Value @{Accept = "application/json"}
+Set-AtlassianConfiguration -Key "Headers" -Value @{Accept = "application/json"}
 ```
 
 This command will store a new Header configuration

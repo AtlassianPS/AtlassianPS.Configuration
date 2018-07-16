@@ -16,7 +16,7 @@ Remove a configuration entry.
 ## SYNTAX
 
 ```powershell
-Remove-Configuration [-Name] <String[]> [<CommonParameters>]
+Remove-AtlassianConfiguration [-Name] <String[]> [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -28,7 +28,7 @@ Remove a configuration entry.
 ### EXAMPLE 1
 
 ```powershell
-Remove-Configuration -Name "Headers"
+Remove-AtlassianConfiguration -Name "Headers"
 ```
 
 This command will remove "Headers" configuration.
