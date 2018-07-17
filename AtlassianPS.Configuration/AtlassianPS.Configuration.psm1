@@ -11,6 +11,11 @@ if ($PSVersionTable.PSVersion.Major -lt 5) {
 #region ModuleConfig
 # Add our own Converters for serialization
 Configuration\Add-MetadataConverter @{
+    [AtlassianPS.MessageStyle] = { "AtlassianPSMessageStyle -Indent {0} -TimeStamp {1} -BreadCrumbs {2} -FunctionName {3}" -f (ConvertTo-Metadata $_.Indent), (ConvertTo-Metadata $_.TimeStamp), (ConvertTo-Metadata $_.BreadCrumbs), (ConvertTo-Metadata $_.FunctionName) }
+    AtlassianPSMessageStyle = {
+        param($Indent, $TimeStamp, $BreadCrumbs, $FunctionName)
+        [AtlassianPS.MessageStyle]$PSBoundParameters
+    }
     [AtlassianPS.ServerData] = { "AtlassianPSServerData -Id {0} -Name '{1}' -Uri '{2}' -Type '{3}' -Headers {4}" -f $_.Id, $_.Name, $_.Uri, $_.Type, (ConvertTo-Metadata $_.Headers) }
     AtlassianPSServerData = {
         param($Id, $Name, $Uri, $Type, $Headers)
@@ -20,9 +25,9 @@ Configuration\Add-MetadataConverter @{
 
 # Load configuration using
 # https://github.com/PoshCode/Configuration
-$script:Configuration = Configuration\Import-Configuration -CompanyName "AtlassianPS" -Name "AtlassianPS.Configuration"
-if (-not $script:Configuration.ServerList) {
-    $script:Configuration.ServerList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
+[Hashtable]$script:Configuration = Configuration\Import-Configuration -CompanyName "AtlassianPS" -Name "AtlassianPS.Configuration"
+if (-not $script:Configuration.ContainsKey("ServerList")) {
+    $script:Configuration.Add("ServerList",[System.Collections.Generic.List[AtlassianPS.ServerData]]::new())
 }
 #endregion ModuleConfig
 

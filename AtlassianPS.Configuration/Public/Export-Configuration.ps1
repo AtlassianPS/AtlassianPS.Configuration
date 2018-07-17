@@ -7,21 +7,23 @@ function Export-Configuration {
         Write-Verbose "Function started"
 
         Import-MqcnAlias -Alias "ExportConfiguration" -Command "Configuration\Export-Configuration"
-    }
 
-    process {
+        $data = Get-Configuration
+
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $export = Get-Configuration
-        $export.ServerList |
+        $export = @{}
+        foreach ($entry in $data) {
+            $export[$entry.name] = $entry.value
+        }
+
+        $export["ServerList"] |
             Where-Object { $_.Session } |
             Foreach-Object { $_.Session = $null }
 
-        ExportConfiguration -InputObject $export
-    }
+        ExportConfiguration -InputObject $export 3>$null
 
-    end {
         Write-Verbose "Function ended"
     }
 }

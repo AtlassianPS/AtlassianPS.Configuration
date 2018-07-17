@@ -13,6 +13,29 @@ namespace AtlassianPS
         JIRA
     }
 
+    public class MessageStyle {
+        public MessageStyle()
+        {
+            Indent = 4;
+            TimeStamp = true;
+            BreadCrumbs = true;
+            FunctionName = true;
+        }
+
+        public MessageStyle(UInt32 _Indent, Boolean _TimeStamp, Boolean _BreadCrumbs, Boolean _FunctionName)
+        {
+            Indent = _Indent;
+            TimeStamp = _TimeStamp;
+            BreadCrumbs = _BreadCrumbs;
+            FunctionName = _FunctionName;
+        }
+
+        public UInt32 Indent { get; set; }
+        public Boolean TimeStamp { get; set; }
+        public Boolean BreadCrumbs { get; set; }
+        public Boolean FunctionName { get; set; }
+    }
+
     [Serializable]
     public class ServerData
     {

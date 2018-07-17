@@ -53,7 +53,7 @@ function Write-Verbose {
 
         Import-MqcnAlias -Alias "WriteVerbose" -Command "Microsoft.PowerShell.Utility\Write-Verbose"
 
-        $messageSettings = $script:Configuration["message"]
+        $messageSettings = $script:Configuration["Message"]
     }
 
     process {
@@ -62,23 +62,23 @@ function Write-Verbose {
             $VerbosePreference = 'Continue'
         }
 
-        if ($messageSettings["style"]["breadcrumbs"]) {
+        if ($messageSettings["Breadcrumbs"]) {
             WriteVerbose "[$(Get-BreadCrumb)]:"
 
-            if ($script:Configuration["message"]["style"]["indent"]) {
-                $indent = " " * $messageSettings["style"]["indent"]
+            if ($messageSettings["Indent"]) {
+                $indent = " " * $messageSettings["Indent"]
             }
             else {
                 $indent = " " * 4
             }
         }
         else {
-            if ($messageSettings["style"]["functionname"]) {
+            if ($messageSettings["FunctionName"]) {
                 $functionName = "[$($Cmdlet.MyInvocation.MyCommand.Name)] "
             }
         }
 
-        if ($messageSettings["style"]["timestamp"]) {
+        if ($messageSettings["Timestamp"]) {
             $timeStamp = "[$(Get-Date -f "HH:mm:ss")] "
         }
 

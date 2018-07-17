@@ -1,10 +1,4 @@
 @{
-    message = @{
-        style = @{
-            breadcrumbs  = $false
-            indent       = 4
-            functionname = $true
-            timestamp    = $true
-        }
-    }
+    'Message' = (AtlassianPSMessageStyle -Indent 4 -TimeStamp $true -BreadCrumbs $false -FunctionName $true)
+    'ServerList' = @()
 }
