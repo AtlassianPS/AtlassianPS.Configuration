@@ -31,7 +31,15 @@ This function allows for several Server object to be removed in memory.
 Remove-AtlassianServerConfiguration -Name "Server Prod"
 ```
 
-This command will remove the server identified as "Server Prod" from memory.
+Remove "Server Prod" from the list of stored servers.
+
+### EXAMPLE 2
+
+```powershell
+Get-AtlassianServerConfiguration | Remove-AtlassianServerConfiguration
+```
+
+This command will remove all stored servers.
 
 ## PARAMETERS
 

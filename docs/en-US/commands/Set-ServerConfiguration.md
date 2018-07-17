@@ -30,7 +30,8 @@ This function provides the means to change a stored server entry.
 ### EXAMPLE 1
 
 ```powershell
-Set-AtlassianServerConfiguration -Id 1 -Uri "https://server.com/"
+Add-AtlassianServerConfiguration -Uri "https://server.com/" -Type "Confluence"
+Set-AtlassianServerConfiguration -Id 1 -Uri "https://atlassian.net"
 ```
 
 This command will replace the Uri stored of the first entry of the stored servers.
@@ -38,6 +39,7 @@ This command will replace the Uri stored of the first entry of the stored server
 ### EXAMPLE 2
 
 ```powershell
+Add-AtlassianServerConfiguration -Name "My Server" -Uri "https://server.com/" -Type "Jira"
 Set-AtlassianServerConfiguration -Id 1 -Name "wiki" -Type "Confluence"
 ```
 
@@ -46,9 +48,10 @@ This command will replace the Name and Type of the first entry of the stored ser
 ### EXAMPLE 3
 
 ```powershell
+Add-AtlassianServerConfiguration -Name "JiraServer" -Uri "https://server.com/" -Type "Jira"
 Get-AtlassianServerConfiguration |
     Where Type -eq "JIRA" |
-    Set-AtlassianServerConfiguration -Uri "https://server.com/"
+    Set-AtlassianServerConfiguration -Uri "https://atlassian.net"
 ```
 
 This command will replace the Uri of all stored Jira servers with the new address.
@@ -129,7 +132,7 @@ Parameter Sets: (All)
 Aliases:
 Accepted values: BITBUCKET, CONFLUENCE, JIRA
 
-Required: True
+Required: False
 Position: 4
 Default value: None
 Accept pipeline input: True (ByPropertyName)

@@ -36,8 +36,8 @@ Get all stored servers
 ### EXAMPLE 2
 
 ```powershell
-Add-AtlassianConfiguration -Key "Headers" -Value @{ Authorization = "Basic ABCDEF" }
-Get-AtlassianConfiguration -Key "Headers"
+Set-AtlassianConfiguration -Name "Headers" -Value @{ Authorization = "Basic ABCDEF" }
+Get-AtlassianConfiguration -Name "Headers"
 ```
 
 Get configuration data in key "Headers"

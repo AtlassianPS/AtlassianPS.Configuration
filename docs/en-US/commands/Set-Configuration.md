@@ -31,7 +31,7 @@ This is only available in the current sessions, unless exported.
 ### EXAMPLE 1
 
 ```powershell
-Set-AtlassianConfiguration -Key "Headers" -Value @{Accept = "application/json"}
+Set-AtlassianConfiguration -Name "Headers" -Value @{Accept = "application/json"}
 ```
 
 This command will store a new Header configuration

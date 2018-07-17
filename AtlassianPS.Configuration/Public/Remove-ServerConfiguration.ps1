@@ -32,7 +32,7 @@ function Remove-ServerConfiguration {
             if ($serverToRemove -notin $serverList.Name) {
                 $writeErrorSplat = @{
                     ExceptionType = "System.ApplicationException"
-                    ErrorId      = "ServerType.ServerNotFound"
+                    ErrorId      = "AtlassianPS.ServerData.ServerNotFound"
                     Category     = "ObjectNotFound"
                     Message      = "No server '$serverToRemove' could be found."
                     TargetObject = $serverToRemove
@@ -40,7 +40,6 @@ function Remove-ServerConfiguration {
                 }
                 WriteError @writeErrorSplat
             }
-
         }
 
         $serverList = $serverList | Where-Object { $_.Name -notin $Name }

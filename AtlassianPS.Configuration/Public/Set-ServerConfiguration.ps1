@@ -58,7 +58,7 @@ function Set-ServerConfiguration {
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $serverEntry = $script:Configuration.ServerList | Where-Object { $_.Id -eq $Id }
+        $serverEntry = Get-ServerConfiguration | Where-Object { $_.Id -eq $Id }
         if ($serverEntry) {
             foreach ($property in ($PSBoundParameters.Keys | Where-Object { $_ -notin $parametersToIgnore} )) {
                 Write-Verbose "Changing [$property] of entry #$Id"

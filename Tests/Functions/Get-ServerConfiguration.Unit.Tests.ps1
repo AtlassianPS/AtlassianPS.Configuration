@@ -49,16 +49,16 @@ Describe "Get-ServerConfiguration" -Tag Unit {
 
             $command = Get-Command -Name Get-ServerConfiguration
 
-            It "has a [String[]] -ServerName parameter" {
+            It "has a [String[]] -Name parameter" {
                 $command.Parameters.ContainsKey("ServerName")
                 $command.Parameters["ServerName"].ParameterType | Should -Be "String[]"
             }
 
-            It "has an alias -Name for -Servername" {
+            It "has an alias -Name for -name" {
                 $command.Parameters["ServerName"].Aliases | Should -Contain "Name"
             }
 
-            It "has an alias -Alias for -Servername" {
+            It "has an alias -Alias for -name" {
                 $command.Parameters["ServerName"].Aliases | Should -Contain "Alias"
             }
 
@@ -105,7 +105,7 @@ Describe "Get-ServerConfiguration" -Tag Unit {
             #endregion Arrange
 
             It "retrieves all ServerData" {
-                $config = Get-ServerConfiguration -ErrorAction Stop
+                $config = Get-ServerConfiguration -ErrorAction SilentlyContinue
 
                 @($config).Count | Should -Be 2
                 $config | Should -BeOfType [AtlassianPS.ServerData]
@@ -118,21 +118,21 @@ Describe "Get-ServerConfiguration" -Tag Unit {
             }
 
             It "filters the results by ServerName" {
-                $config = Get-ServerConfiguration -ServerName "Google" -ErrorAction Stop
+                $config = Get-ServerConfiguration -Name "Google" -ErrorAction SilentlyContinue
 
                 @($config).Count | Should -Be 1
                 $config | Should -BeOfType [AtlassianPS.ServerData]
             }
 
             It "filters the results by multiple ServerNames" {
-                $config = Get-ServerConfiguration -ServerName "Google", "Google with Session" -ErrorAction Stop
+                $config = Get-ServerConfiguration -Name "Google", "Google with Session" -ErrorAction SilentlyContinue
 
                 @($config).Count | Should -Be 2
                 $config | Should -BeOfType [AtlassianPS.ServerData]
             }
 
             It "accepts names over the pipeline" {
-                $config = "Google", "Google with Session" | Get-ServerConfiguration -ErrorAction Stop
+                $config = "Google", "Google with Session" | Get-ServerConfiguration -ErrorAction SilentlyContinue
 
                 @($config).Count | Should -Be 2
                 $config | Should -BeOfType [AtlassianPS.ServerData]
@@ -142,33 +142,33 @@ Describe "Get-ServerConfiguration" -Tag Unit {
                 $objects = New-Object -TypeName PSCustomObject -Property @{
                     Name = "Google"
                 }
-                $config = $objects | Get-ServerConfiguration -ErrorAction Stop
+                $config = $objects | Get-ServerConfiguration -ErrorAction SilentlyContinue
 
                 @($config).Count | Should -Be 1
                 $config | Should -BeOfType [AtlassianPS.ServerData]
             }
 
             It "does not allow for wildcards when filtering by ServerName" {
-                $config = Get-ServerConfiguration -ServerName "Google*" -ErrorAction Stop
+                $config = Get-ServerConfiguration -Name "Google*" -ErrorAction SilentlyContinue
 
                 @($config).Count | Should -Be 0
             }
 
             It "is not case sensitive when filtering by ServerName" {
-                $config = Get-ServerConfiguration -ServerName "google" -ErrorAction Stop
+                $config = Get-ServerConfiguration -Name "google" -ErrorAction SilentlyContinue
 
                 @($config).Count | Should -Be 1
             }
 
             It "filters the results by Uri" {
-                $config = Get-ServerConfiguration -Uri "https://google.com" -ErrorAction Stop
+                $config = Get-ServerConfiguration -Uri "https://google.com" -ErrorAction SilentlyContinue
 
                 @($config).Count | Should -Be 2
                 $config | Should -BeOfType [AtlassianPS.ServerData]
             }
 
             It "is not case sensitive when filtering by Uri" {
-                $config = Get-ServerConfiguration -Uri "https://GOOGLE.com" -ErrorAction Stop
+                $config = Get-ServerConfiguration -Uri "https://GOOGLE.com" -ErrorAction SilentlyContinue
 
                 @($config).Count | Should -Be 2
                 $config | Should -BeOfType [AtlassianPS.ServerData]

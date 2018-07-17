@@ -56,27 +56,27 @@ function Add-ServerConfiguration {
                 TargetObject  = $Name
             }
             WriteError @writeErrorSplat
-            return
         }
+        else {
+            if (-not ($index = ((Get-ServerConfiguration).Id | Measure-Object -Maximum).Maximum)) {
+                $index = 0
+            }
+            $index++
 
-        if (-not ($index = ((Get-ServerConfiguration).Id | Measure-Object -Maximum).Maximum)) {
-            $index = 0
+            $config = [AtlassianPS.ServerData]@{
+                Id      = $index
+                Name    = $Name
+                Uri     = ([Uri]($Uri.AbsoluteUri -replace "\/$", ""))
+                Type    = $Type
+                # IsCloudServer = (Test-ServerIsCloud -Type $Type -Uri $Uri -Headers $Headers -ErrorAction Stop -verbose)
+                Session = $Session
+                Headers = $Headers
+            }
+
+            Write-Verbose "Adding server #$($index): [$($config.Name)]"
+            Write-DebugMessage "Adding server `$config: $($config.Name) @ index $index" -BreakPoint
+            $serverList.Add($config)
         }
-        $index++
-
-        $config = [AtlassianPS.ServerData]@{
-            Id      = $index
-            Name    = $Name
-            Uri     = ([Uri]($Uri.AbsoluteUri -replace "\/$", ""))
-            Type    = $Type
-            # IsCloudServer = (Test-ServerIsCloud -Type $Type -Uri $Uri -Headers $Headers -ErrorAction Stop -verbose)
-            Session = $Session
-            Headers = $Headers
-        }
-
-        Write-Verbose "Adding server #$($index): [$($config.Name)]"
-        Write-DebugMessage "Adding server `$config: $($config.Name) @ index $index" -BreakPoint
-        $serverList.Add($config)
     }
 
     end {
