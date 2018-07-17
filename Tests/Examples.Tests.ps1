@@ -49,10 +49,11 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
                 $exampleName = ($example.title -replace "-").trim()
 
                 It "has a working example: $exampleName" {
-                    $scriptBlock = [Scriptblock]::Create($example.code)
-                    # {
-                        & $scriptBlock
-                    #} | Should -Not -Throw
+                    {
+                        $scriptBlock = [Scriptblock]::Create($example.code)
+
+                        & $scriptBlock 2>$null
+                    } | Should -Not -Throw
                 }
             }
 

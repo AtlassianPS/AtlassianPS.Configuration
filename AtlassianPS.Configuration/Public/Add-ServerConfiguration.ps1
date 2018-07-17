@@ -23,7 +23,7 @@ function Add-ServerConfiguration {
 
         [Parameter( ValueFromPipelineByPropertyName )]
         [Hashtable]
-        $Headers
+        $Headers = @{}
     )
 
     begin {

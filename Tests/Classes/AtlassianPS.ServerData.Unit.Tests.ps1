@@ -61,8 +61,8 @@ Describe "[AtlassianPS.ServerType] Tests" -Tag Unit {
     }
 
     It "has a constructor" {
-        { [AtlassianPS.ServerData]::new("Name", "https://google.com", "Jira") } | Should -Not -Throw
-        { New-Object -TypeName AtlassianPS.ServerData -ArgumentList "Name", "https://google.com", "Jira" } | Should -Not -Throw
+        { [AtlassianPS.ServerData]::new(1, "Name", "https://google.com", "Jira") } | Should -Not -Throw
+        { New-Object -TypeName AtlassianPS.ServerData -ArgumentList 1, "Name", "https://google.com", "Jira" } | Should -Not -Throw
     }
 
     It "has a string representation" {

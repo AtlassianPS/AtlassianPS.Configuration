@@ -35,6 +35,8 @@ Describe "General project validation" -Tag Unit {
 
     $module = Get-Module $env:BHProjectName
     $testFiles = Get-ChildItem $PSScriptRoot -Include "*.Tests.ps1" -Recurse
+    $loadedNamespace = [AtlassianPS.ServerData].Assembly.GetTypes() |
+        Where-Object IsPublic
 
     Context "Public functions" {
         $publicFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1").BaseName
@@ -75,7 +77,7 @@ Describe "General project validation" -Tag Unit {
 
     Context "Classes" {
 
-        foreach ($class in ([AtlassianPS.ServerData].Assembly.GetTypes() | Where-Object IsClass)) {
+        foreach ($class in ($loadedNamespace | Where-Object IsClass)) {
             It "has a test file for $class" {
                 $expectedTestFile = "$class.Unit.Tests.ps1"
                 $testFiles.Name | Should -Contain $expectedTestFile
@@ -85,7 +87,7 @@ Describe "General project validation" -Tag Unit {
 
     Context "Enumeration" {
 
-        foreach ($enum in ([AtlassianPS.ServerData].Assembly.GetTypes() | Where-Object IsEnum)) {
+        foreach ($enum in ($loadedNamespace | Where-Object IsEnum)) {
             It "has a test file for $enum" {
                 $expectedTestFile = "$enum.Unit.Tests.ps1"
                 $testFiles.Name | Should -Contain $expectedTestFile

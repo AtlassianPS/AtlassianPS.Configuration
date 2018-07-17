@@ -54,6 +54,8 @@ Describe "Help tests" -Tag Documentation {
     $commands = Get-Command -Module $module -CommandType Cmdlet, Function, Workflow  # Not alias
     $classes = Get-ChildItem "$env:BHProjectPath/docs/en-US/classes/*"
     $enums = Get-ChildItem "$env:BHProjectPath/docs/en-US/enumerations/*"
+    $loadedNamespace = [AtlassianPS.ServerData].Assembly.GetTypes() |
+        Where-Object IsPublic
 
     #region About Help
     It "has an About Help for the module" {
@@ -245,7 +247,7 @@ Describe "Help tests" -Tag Documentation {
 
     Context "Missing classes" {
         It "has a documentation file for every class" {
-            foreach ($class in ([AtlassianPS.ServerData].Assembly.GetTypes() | Where-Object IsClass)) {
+            foreach ($class in ($loadedNamespace | Where-Object IsClass)) {
                 $classes.BaseName | Should -Contain $class.FullName
             }
         }
@@ -277,7 +279,7 @@ Describe "Help tests" -Tag Documentation {
 
     Context "Missing classes" {
         It "has a documentation file for every class" {
-            foreach ($enum in ([AtlassianPS.ServerData].Assembly.GetTypes() | Where-Object IsEnum)) {
+            foreach ($enum in ($loadedNamespace | Where-Object IsEnum)) {
                 $enums.BaseName | Should -Contain $enum.FullName
             }
         }

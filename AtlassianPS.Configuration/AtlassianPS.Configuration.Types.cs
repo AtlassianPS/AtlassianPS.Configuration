@@ -16,11 +16,12 @@ namespace AtlassianPS
     [Serializable]
     public class ServerData
     {
-        public ServerData(String _Name, String _Uri, ServerType _Type)
+        public ServerData(UInt32 _Id, String _Name, String _Uri, ServerType _Type)
         {
             Uri tempUri;
             Uri.TryCreate(_Uri, UriKind.RelativeOrAbsolute, out tempUri);
 
+            Id = _Id;
             Name = _Name;
             Uri = tempUri;
             Type = _Type;
