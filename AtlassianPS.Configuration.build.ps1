@@ -165,7 +165,7 @@ task CompileModule {
         }
 
         if ($capture) {
-            $compiled += "$line`n"
+            $compiled += "$line`r`n"
         }
     }
 
@@ -174,7 +174,7 @@ task CompileModule {
 
     foreach ($function in @($PublicFunctions + $PrivateFunctions)) {
         $compiled += (Get-Content -Path $function.FullName -Raw)
-        $compiled += "`n"
+        $compiled += "`r`n"
     }
 
     Set-Content -LiteralPath $targetFile -Value $compiled -Encoding UTF8 -Force
