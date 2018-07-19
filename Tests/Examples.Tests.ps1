@@ -38,6 +38,7 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
     #region Mocks
     Mock Invoke-WebRequest { }
     Mock Invoke-RestMethod { }
+    Mock Export-Configuration { }
     #endregion Mocks
 
     $functions = Get-Command -Module $env:BHProjectName

@@ -48,10 +48,17 @@ Describe "Export-Configuration" -Tag Unit {
         }
 
         Mock Get-Configuration {
-            Write-Output @{
-                Foo        = "lorem ipsum"
-                Bar        = 42
-                ServerList = @(
+            [PSCustomObject]@{
+                Name  = "Foo"
+                Value = "lorem ipsum"
+            }
+            [PSCustomObject]@{
+                Name  = "Bar"
+                Value = 42
+            }
+            [PSCustomObject]@{
+                Name  = "ServerList"
+                Value = @(
                     [AtlassianPS.ServerData]@{
                         Id   = 1
                         Name = "Google"
@@ -102,8 +109,7 @@ Describe "Export-Configuration" -Tag Unit {
 
                 $after.Foo | Should -BeOfType [String]
                 $after.Bar | Should -BeOfType [Int]
-
-                $before.ServerList.Session.UserAgent | Should -Not -BeNullOrEmpty
+                ($before | Where-Object Name -eq "ServerList").Value.Session.UserAgent | Should -Not -BeNullOrEmpty
                 $after.ServerList.Session.UserAgent | Should -BeNullOrEmpty
             }
         }

@@ -14,8 +14,8 @@ function Export-Configuration {
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $export = @{}
-        foreach ($entry in $data) {
-            $export[$entry.name] = $entry.value
+        foreach ($key in $data.Name) {
+            $export[$key] = ($data | Where-Object Name -eq $key).Value
         }
 
         $export["ServerList"] |
