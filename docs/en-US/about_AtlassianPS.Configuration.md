@@ -12,7 +12,8 @@ hide: true
 
 # SHORT DESCRIPTION
 
-AtlassianPS.Configuration is a module that offers a common set of tools to the <https://AtlassianPS.org> products to handle user-specific configuration.
+AtlassianPS.Configuration is a module that offers a common set of tools to the
+<https://AtlassianPS.org> products to handle user-specific configuration.
 
 # LONG DESCRIPTION
 
