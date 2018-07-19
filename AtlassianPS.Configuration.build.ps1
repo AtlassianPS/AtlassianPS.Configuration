@@ -246,7 +246,11 @@ task Test Init, Build, {
         $testResults = Invoke-Pester @parameter
 
         If ('AppVeyor' -eq $env:BHBuildSystem) {
-            BuildHelpers\Add-TestResultToAppveyor -TestFile $parameter["OutputFile"]
+            Write-Host "yes!"
+            Write-Host $parameter["OutputFile"]
+            BuildHelpers\Add-TestResultToAppveyor -TestFile $parameter["OutputFile"] -verbose
+
+            Add-TestResultToAppveyor -TestFile $parameter["OutputFile"] -verbose
         }
 
         Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) Pester test(s) failed."
