@@ -33,14 +33,54 @@ Get-AtlassianConfiguration
 
 Get all stored servers
 
+> Each entry is returned as a PSCustomObject where the `Name` is the name of the
+> entry and the `Value` is it's value.
+> This is used for using the pipleline. See Example 4.
+> Use `-ValueOnly` if interested _only_ in the value.
+
 ### EXAMPLE 2
 
 ```powershell
 Set-AtlassianConfiguration -Name "Headers" -Value @{ Authorization = "Basic ABCDEF" }
+
 Get-AtlassianConfiguration -Name "Headers"
 ```
 
-Get configuration data in key "Headers"
+Get a specific entry in the configuration.
+
+> Each entry is returned as a PSCustomObject where the `Name` is the name of the
+> entry and the `Value` is it's value.
+> This is used for using the pipeline. See Example 4.
+> Use `-ValueOnly` if interested _only_ in the value.
+
+### EXAMPLE 3
+
+```powershell
+Set-AtlassianConfiguration -Name "Headers" -Value @{ Authorization = "Basic ABCDEF" }
+
+Get-AtlassianConfiguration -Name "Headers" -ValueOnly
+```
+
+Get the value of a specific entry in the configuration.
+
+### EXAMPLE 4
+
+```powershell
+Set-AtlassianConfiguration -Name "Headers" -Value @{ Authorization = "Basic ABCDEF" }
+Set-AtlassianConfiguration -Name "SomethingElse" -Value (Get-Date)
+
+"Headers", "SomethingElse", "SomethingMissing" |
+    Get-AtlassianConfiguration |
+    Set-AtlassianConfiguration -Value $null
+```
+
+> Command is spread across multiple lines to be easier to read
+
+This example uses the pipeline twice:
+
+1. The `-Name` of the entry is passed from the three string
+2. The `-Name` of the two entries found are passed to `Set-AtlassianConfigration`
+3. `Set-AtlassianConfigration` resets the value of the two entries
 
 ## PARAMETERS
 
