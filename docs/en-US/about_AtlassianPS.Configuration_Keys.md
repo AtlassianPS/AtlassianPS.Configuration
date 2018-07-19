@@ -20,7 +20,7 @@ Here is the list of the currently supported Keys:
 
 ## ServerList
 
-Is a list of server currently stored by the user.
+Is a list of servers currently stored by the user.
 
 > ServerData objects are describe here:  
 > <https://atlassianps.org/docs/AtlassianPS.Configuration/classes/AtlassianPS.ServerData/>
