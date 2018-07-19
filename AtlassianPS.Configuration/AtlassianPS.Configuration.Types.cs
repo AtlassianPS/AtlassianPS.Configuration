@@ -18,7 +18,7 @@ namespace AtlassianPS
         {
             Indent = 4;
             TimeStamp = true;
-            BreadCrumbs = true;
+            BreadCrumbs = false;
             FunctionName = true;
         }
 
