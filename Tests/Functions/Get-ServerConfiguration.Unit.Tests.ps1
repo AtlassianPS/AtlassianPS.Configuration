@@ -50,16 +50,16 @@ Describe "Get-ServerConfiguration" -Tag Unit {
             $command = Get-Command -Name Get-ServerConfiguration
 
             It "has a [String[]] -Name parameter" {
-                $command.Parameters.ContainsKey("ServerName")
-                $command.Parameters["ServerName"].ParameterType | Should -Be "String[]"
+                $command.Parameters.ContainsKey("Name")
+                $command.Parameters["Name"].ParameterType | Should -Be "String[]"
             }
 
             It "has an alias -Name for -name" {
-                $command.Parameters["ServerName"].Aliases | Should -Contain "Name"
+                $command.Parameters["Name"].Aliases | Should -Contain "ServerName"
             }
 
             It "has an alias -Alias for -name" {
-                $command.Parameters["ServerName"].Aliases | Should -Contain "Alias"
+                $command.Parameters["Name"].Aliases | Should -Contain "Alias"
             }
 
             It "has a [Uri] -Uri parameter" {

@@ -31,9 +31,9 @@ function Get-ServerConfiguration {
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Name, $_.Name, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Name ) }
             }
         )]
-        [Alias('Name', 'Alias')]
+        [Alias('ServerName', 'Alias')]
         [String[]]
-        $ServerName
+        $Name
     )
 
     begin {
@@ -48,12 +48,12 @@ function Get-ServerConfiguration {
 
         switch ($PsCmdlet.ParameterSetName) {
             'ServerDataByName' {
-                Write-Verbose "Filtering for [ServerName = $ServerName]"
+                Write-Verbose "Filtering ServerList for [Name = $Name]"
 
-                $serverList | Where-Object { $_.Name -in $ServerName }
+                $serverList | Where-Object { $_.Name -in $Name }
             }
             'ServerDataByUri' {
-                Write-Verbose "Filtering for [URI = $Uri]"
+                Write-Verbose "Filtering ServerList for [URI = $Uri]"
 
                 $serverList | Where-Object { $_.Uri -like $Uri }
             }

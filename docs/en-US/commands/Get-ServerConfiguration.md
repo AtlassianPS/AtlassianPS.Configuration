@@ -30,7 +30,7 @@ Get-AtlassianServerConfiguration [-Uri] <Uri> [<CommonParameters>]
 ### ServerDataByName
 
 ```powershell
-Get-AtlassianServerConfiguration [-ServerName] <String[]> [<CommonParameters>]
+Get-AtlassianServerConfiguration [-Name] <String[]> [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -83,7 +83,7 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ServerName
+### -Name
 
 Name of the server that was defined when stored.
 
@@ -92,7 +92,7 @@ Is not case sensitive
 ```yaml
 Type: String[]
 Parameter Sets: ServerDataByName
-Aliases: Name, Alias
+Aliases: ServerName, Alias
 
 Required: True
 Position: 1
