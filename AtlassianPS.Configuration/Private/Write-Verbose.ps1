@@ -12,21 +12,19 @@ function Write-Verbose {
 
         {
             "message": {
-                "style": {
-                    // show a line with the Bread Crumbs of the caller stack
-                    "breadcrumbs": true,
+                // show a line with the Bread Crumbs of the caller stack
+                "breadcrumbs": true,
 
-                    // how many whitespaces should be used for indenting the
-                    // message
-                    "indent": true,
+                // how many whitespaces should be used for indenting the
+                // message
+                "indent": true,
 
-                    // show the name of the calling function - this is ignored
-                    // if breadcrumbs is active
-                    "functionname": true,
+                // show the name of the calling function - this is ignored
+                // if breadcrumbs is active
+                "functionname": true,
 
-                    // show the timestamp (HH:mm:ss format) of the message
-                    "timestamp": true
-                }
+                // show the timestamp (HH:mm:ss format) of the message
+                "timestamp": true
             }
         }
 
@@ -62,23 +60,23 @@ function Write-Verbose {
             $VerbosePreference = 'Continue'
         }
 
-        if ($messageSettings["Breadcrumbs"]) {
+        if ($messageSettings.Breadcrumbs) {
             WriteVerbose "[$(Get-BreadCrumb)]:"
 
-            if ($messageSettings["Indent"]) {
-                $indent = " " * $messageSettings["Indent"]
+            if ($messageSettings.Indent) {
+                $indent = " " * $messageSettings.Indent
             }
             else {
                 $indent = " " * 4
             }
         }
         else {
-            if ($messageSettings["FunctionName"]) {
+            if ($messageSettings.FunctionName) {
                 $functionName = "[$($Cmdlet.MyInvocation.MyCommand.Name)] "
             }
         }
 
-        if ($messageSettings["Timestamp"]) {
+        if ($messageSettings.Timestamp) {
             $timeStamp = "[$(Get-Date -f "HH:mm:ss")] "
         }
 
