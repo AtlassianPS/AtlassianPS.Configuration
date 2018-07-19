@@ -16,8 +16,8 @@ AtlassianPS.Configuration is a module that offers a common set of tools to the <
 
 # LONG DESCRIPTION
 
-This module contains a set cmdlets for AtlassianPS products,
-such as JiraPS and ConfluencePS,to use for store
+This module contains a set of cmdlets for AtlassianPS products,
+such as JiraPS and ConfluencePS, to use for storing 
 and retrieving user settings.
 
 The module shall be imported into the global scope
@@ -36,7 +36,7 @@ must implement a usage for the key-value.
 A documentation of the currently implemented key-value pairs can be found in
 [About AtlassianPS.Configuration Keys](about/implemented-keys.html).
 
-When the user decided to export the configuration (persist to disk) with the
+When the user decides to export the configuration (persist to disk) with the
 `Export-AtlassianConfiguration` cmdlet, this module will store it in a
 `Configuration.psd1` file.
 This file can be deployed to other systems.
