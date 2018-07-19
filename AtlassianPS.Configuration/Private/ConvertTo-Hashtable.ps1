@@ -11,12 +11,12 @@ function ConvertTo-HashTable {
     [OutputType( [Hashtable] )]
     param(
         # Object to convert
-        [Parameter( Mandatory )]
+        [Parameter( Mandatory, ValueFromPipeline )]
         [PSCustomObject]
         $InputObject
     )
 
-    begin {
+    process {
         $hash = @{}
         $InputObject.PSObject.Properties | Foreach-Object {
             $hash[$_.Name] = $_.Value
