@@ -269,7 +269,7 @@ task Deploy -If { Test-ShouldDeploy } Init, PublishToGallery, TagReplository, Up
 
 # Synipsis: Publish the $release to the PSGallery
 task PublishToGallery {
-    Assert-True ($env:PSGalleryAPIKey) "No key for the PSGallery"
+    Assert-True (-not [String]::IsNullOrEmpty($env:PSGalleryAPIKey)) "No key for the PSGallery"
 
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
 
