@@ -127,7 +127,7 @@ function Publish-GithubRelease {
         [Object]$NextBuildVersion
     )
 
-    Assert-True { $env:access_token } "Missing Github authentication"
+    Assert-True { $env:GITHUB_ACCESS_TOKEN } "Missing Github authentication"
     Assert-True { $env:APPVEYOR_REPO_NAME } "Missing AppVeyor's Repo Name"
 
     $body = @{
@@ -144,7 +144,7 @@ function Publish-GithubRelease {
         Method      = 'POST'
         Headers     = @{
             Authorization = 'Basic ' + [Convert]::ToBase64String(
-                [Text.Encoding]::ASCII.GetBytes($env:access_token + ":x-oauth-basic")
+                [Text.Encoding]::ASCII.GetBytes($env:GITHUB_ACCESS_TOKEN + ":x-oauth-basic")
             )
         }
         ContentType = 'application/json'
@@ -160,7 +160,7 @@ function Publish-GithubReleaseArtifact {
         [String]$Path
     )
 
-    Assert-True { $env:access_token } "Missing Github authentication"
+    Assert-True { $env:GITHUB_ACCESS_TOKEN } "Missing Github authentication"
     Assert-True { $env:APPVEYOR_REPO_NAME } "Missing AppVeyor's Repo Name"
 
     $body = [System.IO.File]::ReadAllBytes($Path)
@@ -169,7 +169,7 @@ function Publish-GithubReleaseArtifact {
         Method      = 'POST'
         Headers     = @{
             Authorization = 'Basic ' + [Convert]::ToBase64String(
-                [Text.Encoding]::ASCII.GetBytes($env:access_token + ":x-oauth-basic")
+                [Text.Encoding]::ASCII.GetBytes($env:GITHUB_ACCESS_TOKEN + ":x-oauth-basic")
             )
         }
         ContentType = "application/zip"
