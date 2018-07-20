@@ -95,6 +95,9 @@ function Test-IsLastJob {
 }
 
 function Test-ShouldDeploy {
+    if (-not ($env:ShouldDeploy -eq $true)) {
+        return $false
+    }
     # only deploy master branch
     if (-not ('master' -eq $env:BHBranchName)) {
         return $false
