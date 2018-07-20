@@ -22,7 +22,7 @@
     Copyright            = '(c) 2018 AtlassianPS. All rights reserved.'
 
     # Description of the functionality provided by this module
-    # Description = ''
+    Description = "A module for modules - AtlasianPS modules use this to handle the user's configuration"
 
     # Minimum version of the Windows PowerShell engine required by this module
     # PowerShellVersion = ''
