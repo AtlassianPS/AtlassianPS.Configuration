@@ -1,5 +1,3 @@
-# requires -module InvokeBuild
-
 [CmdletBinding()]
 param()
 
@@ -23,6 +21,12 @@ function Assert-True {
     }
 }
 
+function LogCall {
+    Assert-True { Test-Path TestDrive:\ } "This function only work inside pester"
+
+    Set-Content -Value "$($MyInvocation.Invocationname) $($MyInvocation.UnBoundArguments -join " ")" -Path "TestDrive:\FunctionCalled.$($MyInvocation.Invocationname).txt" -Force
+}
+
 function Add-ToModulePath ([String]$Path) {
     $PSModulePath = $env:PSModulePath -split ([IO.Path]::PathSeparator)
     if ($Path -notin $PSModulePath) {
@@ -30,6 +34,7 @@ function Add-ToModulePath ([String]$Path) {
         $env:PSModulePath = $PSModulePath -join ([IO.Path]::PathSeparator)
     }
 }
+
 function Install-PSDepend {
     if (-not (Get-Module PSDepend -ListAvailable)) {
         if (Get-Module PowershellGet -ListAvailable) {
@@ -423,3 +428,5 @@ function Remove-Utf8Bom {
         }
     }
 }
+
+Export-ModuleMember -Function * -Alias *
