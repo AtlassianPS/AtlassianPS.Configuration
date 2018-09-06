@@ -26,7 +26,13 @@ catch { }
 
 Set-StrictMode -Version Latest
 
-Import-Module "$PSScriptRoot/Tools/build.psm1" -Force -ErrorAction Stop
+Import-Module "$PSScriptRoot/Tools/BuildTools.psm1" -Force -ErrorAction Stop
+Import-Module "$PSScriptRoot/Tools/AppVeyor.psm1" -Force -ErrorAction Stop
+
+if ($env:APPVEYOR_JOB_ID) {
+    $project = Get-AppVeyorProject
+}
+
 if ($BuildTask -notin @("SetUp", "InstallDependencies")) {
     Import-Module BuildHelpers -Force -ErrorAction Stop
 }
@@ -42,7 +48,7 @@ task InstallDependencies {
     $parameterPSDepend = @{
         Path        = "$PSScriptRoot/Tools/build.requirements.psd1"
         Install     = $true
-        Import      = $true
+        Import      = $false
         Force       = $true
         ErrorAction = "Stop"
     }
@@ -119,7 +125,7 @@ task ShowInfo Init, {
 
 #region BuildRelease
 # Synopsis: Build a shippable release
-task Build GenerateRelease, UpdateManifest, CompileModule, Package
+task Build GenerateRelease, UpdateManifest, CompileModule, UploadArtifacts
 
 # Synopsis: Generate ./Release structure
 task GenerateRelease Init, GenerateExternalHelp, {
@@ -136,11 +142,8 @@ task GenerateRelease Init, GenerateExternalHelp, {
         "$env:BHProjectPath/LICENSE"
         "$env:BHProjectPath/README.md"
     ) -Destination "$env:BHBuildOutput/$env:BHProjectName" -Force
-    Copy-Item -Path @(
-        # TODO: "$env:BHProjectPath/appveyor.yml"
-        "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
-    ) -Destination $env:BHBuildOutput -Force
     # Copy Tests
+    Copy-Item -Path "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" -Destination $env:BHBuildOutput -Force
     $null = New-Item -Path "$env:BHBuildOutput/Tests" -ItemType Directory -ErrorAction SilentlyContinue
     Copy-Item -Path "$env:BHProjectPath/Tests" -Destination $env:BHBuildOutput -Recurse -Force
     # Remove all execptions from PSScriptAnalyzer
@@ -216,10 +219,37 @@ task Package GenerateRelease, {
     Remove-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction SilentlyContinue
     $null = Compress-Archive -Path "$env:BHBuildOutput\$env:BHProjectName" -DestinationPath "$env:BHBuildOutput\$env:BHProjectName.zip"
 }
+
+# Synopsis: Upload build files as artifacts
+task UploadArtifacts -If ($env:APPVEYOR_JOB_ID) {
+    Get-ChildItem $env:BHBuildOutput/$env:BHProjectName -File | % { Push-AppveyorArtifact $_.FullName }
+}
+
+# Synopsis: Download build module from artifacts
+task DownloadArtifacts -If ($env:APPVEYOR_JOB_ID) Init, GenerateExternalHelp, {
+    # Setup
+    if (-not (Test-Path "$env:BHBuildOutput/$env:BHProjectName")) {
+        $null = New-Item -Path "$env:BHBuildOutput/$env:BHProjectName" -ItemType Directory
+    }
+
+    Get-AppVeyorArtifact -Job $project.build.jobs[0] |
+        Get-AppVeyorArtifactFile -Job $project.build.jobs[0] -OutPath "$env:BHBuildOutput/$env:BHProjectName"
+
+    # Copy Documentation
+    foreach ($locale in (Get-ChildItem "$env:BHProjectPath/docs" -Attribute Directory)) {
+        Copy-Item -Path "$env:BHModulePath/$locale" -Destination "$env:BHBuildOutput/$env:BHProjectName" -Recurse -Force
+    }
+    # Copy Tests
+    Copy-Item -Path "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" -Destination $env:BHBuildOutput -Force
+    $null = New-Item -Path "$env:BHBuildOutput/Tests" -ItemType Directory -ErrorAction SilentlyContinue
+    Copy-Item -Path "$env:BHProjectPath/Tests" -Destination $env:BHBuildOutput -Recurse -Force
+    # Remove all execptions from PSScriptAnalyzer
+    BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/PSScriptAnalyzerSettings.psd1" -PropertyName ExcludeRules -Value ''
+}
 #endregion BuildRelease
 
 #region Test
-task Test Init, Build, {
+task Test Init, {
     Assert-True { Test-Path $env:BHBuildOutput -PathType Container } "Release path must exist"
 
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
@@ -245,12 +275,8 @@ task Test Init, Build, {
         }
         $testResults = Invoke-Pester @parameter
 
-        If ('AppVeyor' -eq $env:BHBuildSystem) {
-            Write-Host "yes!"
-            Write-Host $parameter["OutputFile"]
-            BuildHelpers\Add-TestResultToAppveyor -TestFile $parameter["OutputFile"] -verbose
-
-            Add-TestResultToAppveyor -TestFile $parameter["OutputFile"] -verbose
+        if ($env:APPVEYOR_JOB_ID) {
+            BuildHelpers\Add-TestResultToAppveyor -TestFile $parameter["OutputFile"]
         }
 
         Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) Pester test(s) failed."
@@ -258,8 +284,6 @@ task Test Init, Build, {
     catch {
         throw $_
     }
-
-    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
 }, RemoveTestResults
 #endregion
 
@@ -267,7 +291,7 @@ task Test Init, Build, {
 # Synopsis: Publish a new release on github and the PSGallery
 task Deploy -If { Test-ShouldDeploy } Init, PublishToGallery, TagReplository, UpdateHomepage
 
-# Synipsis: Publish the $release to the PSGallery
+# Synpsis: Publish the $release to the PSGallery
 task PublishToGallery {
     Assert-True (-not [String]::IsNullOrEmpty($env:PSGalleryAPIKey)) "No key for the PSGallery"
 
@@ -276,7 +300,8 @@ task PublishToGallery {
     Publish-Module -Name $env:BHProjectName -NuGetApiKey $env:PSGalleryAPIKey
 }
 
-task TagReplository GetNextVersion, {
+# Synopsis: push a tag with the version to the git repository
+task TagReplository GetNextVersion, Package, {
     $releaseText = "Release version $env:NextBuildVersion"
 
     # Push a tag to the repository
@@ -345,6 +370,11 @@ task RemoveTestResults {
 }
 #endregion
 
-task . ShowInfo, Clean, Build, Test, Deploy
+if (($env:APPVEYOR_JOB_ID) -and ($env:APPVEYOR_JOB_ID -ne $project.build.jobs[0].JobId)) {
+    task . ShowInfo, Clean, DownloadArtifacts, Test, Deploy
+}
+else {
+    task . ShowInfo, Clean, Build, Test, Deploy
+}
 
 Remove-Item -Path Env:\BH*

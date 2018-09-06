@@ -23,7 +23,7 @@ Describe "Get-Configuration" -Tag Unit {
             $env:BHManifestToTest = $env:BHBuildModuleManifest
         }
 
-        Import-Module "$env:BHProjectPath/Tools/build.psm1"
+        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
@@ -53,6 +53,11 @@ Describe "Get-Configuration" -Tag Unit {
             It "has a [Switch] -ValueOnly parameter" {
                 $command.Parameters.ContainsKey("ValueOnly")
                 $command.Parameters["ValueOnly"].ParameterType | Should -Be "Switch"
+            }
+
+            It "has a [Switch] -AsHashtable parameter" {
+                $command.Parameters.ContainsKey("AsHashtable")
+                $command.Parameters["AsHashtable"].ParameterType | Should -Be "Switch"
             }
         }
 
@@ -123,13 +128,33 @@ Describe "Get-Configuration" -Tag Unit {
             }
 
             It "returns only the value when -ValueOnly is provided" {
-                $config = Get-Configuration -Name "Foo", "Bar" -ValueOnly -ErrorAction Stop
+                $config = Get-Configuration -Name "Bar" -ValueOnly -ErrorAction Stop
 
-                @($config).Count | Should -Be 2
-                $config[0] | Should -Not -BeNullOrEmpty
-                $config[0] | Should -BeOfType [String]
-                $config[1] | Should -Not -BeNullOrEmpty
-                $config[1] | Should -BeOfType [Int]
+                @($config).Count | Should -Be 1
+                $config | Should -Not -BeNullOrEmpty
+                $config | Should -BeOfType [Int]
+
+                $config = Get-Configuration -Name "Foo" -ValueOnly -ErrorAction Stop
+                @($config).Count | Should -Be 1
+                $config | Should -Not -BeNullOrEmpty
+                $config | Should -BeOfType [String]
+            }
+
+            It "returns the configuration has Hashtable when -AsHashtable is provided" {
+                $config = Get-Configuration -AsHashtable -ErrorAction Stop
+
+                $config | Should -BeOfType [Hashtable]
+                $config.Keys.Count | Should -Be 4
+                $config["Foo"] | Should -Not -BeNullOrEmpty
+                $config["Foo"] | Should -BeOfType [String]
+                $config["Bar"] | Should -Not -BeNullOrEmpty
+                $config["Bar"] | Should -BeOfType [Int]
+                $config["Baz"] | Should -Not -BeNullOrEmpty
+                $config["Baz"] | Should -BeOfType [DateTime]
+                $config["ServerList"] | Should -Not -BeNullOrEmpty
+                $config["ServerList"] | Should -BeOfType [AtlassianPS.ServerData]
+                $config["ServerList"].Session[0] | Should -BeNullOrEmpty
+                $config["ServerList"].Session[1] | Should -Not -BeNullOrEmpty
             }
         }
     }

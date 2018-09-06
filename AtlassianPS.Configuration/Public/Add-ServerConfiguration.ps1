@@ -1,6 +1,7 @@
 function Add-ServerConfiguration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
+    [OutputType( [void] )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [Alias('Url', 'Address')]
@@ -82,6 +83,7 @@ function Add-ServerConfiguration {
     end {
         Write-DebugMessage "Persisting ServerList"
         $script:Configuration["ServerList"] = $serverList
+        Save-Configuration
 
         Write-Verbose "Function ended"
     }

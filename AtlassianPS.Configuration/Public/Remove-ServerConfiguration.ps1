@@ -1,6 +1,7 @@
 function Remove-ServerConfiguration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
+    [OutputType( [void] )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
@@ -46,7 +47,9 @@ function Remove-ServerConfiguration {
     }
 
     end {
+        Write-DebugMessage "Persisting ServerList"
         $script:Configuration.ServerList = $serverList
+        Save-Configuration
 
         Write-Verbose "Function ended"
     }

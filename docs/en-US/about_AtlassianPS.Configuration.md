@@ -18,30 +18,26 @@ AtlassianPS.Configuration is a module that offers a common set of tools to the
 # LONG DESCRIPTION
 
 This module contains a set of cmdlets for AtlassianPS products,
-such as JiraPS and ConfluencePS, to use for storing 
+such as JiraPS and ConfluencePS, to use for storing
 and retrieving user settings.
 
 The module shall be imported into the global scope
 and thus making the configuration available across all AtlassianPS products
 loaded into the same powershell workspace.
-By using the `Export-AtlassianConfiguration` cmdlets, the user is able to share
-the settings across workspaces.
 
 The module stores a Hashtable in a private variable - not available in the
 global scope.
 This Hashtable can be extended with virtually any key-value pair by using the
 module's cmdlets.
 Such a key-value pair will not produce any change in behavior of any other
-cmdlet by itself; the module using this module, AtlassinaPS.Configuration,
+cmdlet by itself; the module using this module, AtlassianPS.Configuration,
 must implement a usage for the key-value.
 A documentation of the currently implemented key-value pairs can be found in
 [About AtlassianPS.Configuration Keys](about/implemented-keys.html).
 
-When the user decides to export the configuration (persist to disk) with the
-`Export-AtlassianConfiguration` cmdlet, this module will store it in a
-`Configuration.psd1` file.
-This file can be deployed to other systems.
-When this module is loaded, the exported configuration will be loaded again.
+This module stores the latest configuration in memory to disk.
+By doing so, the module is able to retrieve the last known configuration when
+being imported.
 
 > AtlassianPS.Configuration uses
 > [PoshCode/Configuration](Export-AtlassianConfiguration) for importing and
@@ -55,7 +51,7 @@ When this module is loaded, the exported configuration will be loaded again.
 > This example uses [splatting](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_splatting).
 
 ```powershell
-Import-Module ConfluencePS   # AtlassianPS.Configuration is imported automatically
+Import-Module ConfluencePS # AtlassianPS.Configuration is imported automatically
 
 $serverData = @{
     # BaseURL of the server

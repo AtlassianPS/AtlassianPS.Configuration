@@ -1,7 +1,9 @@
 function Get-Configuration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [CmdletBinding()]
-    [OutputType( [PSCustomObject] )]
+    [CmdletBinding( DefaultParameterSetName = 'asObject' )]
+    [OutputType( [PSCustomObject], ParameterSetName = 'asObject' )]
+    [OutputType( [PSObject], ParameterSetName = 'asValue' )]
+    [OutputType( [Hashtable], ParameterSetName = 'asHashTable' )]
     param(
         [Parameter( ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
@@ -20,8 +22,13 @@ function Get-Configuration {
         [String[]]
         $Name = '*',
 
+        [Parameter( Mandatory, ParameterSetName = 'asValue' )]
         [Switch]
-        $ValueOnly
+        $ValueOnly,
+
+        [Parameter( Mandatory, ParameterSetName = 'asHashtable' )]
+        [Switch]
+        $AsHashtable
     )
 
     begin {
@@ -32,19 +39,21 @@ function Get-Configuration {
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
+        $data = @{}
+
         foreach ($_name in $Name) {
             foreach ($key in ($script:Configuration.Keys | Where-Object { $_ -like $_name })) {
                 Write-Verbose "Filtering for [name = $key]"
 
-                if ($ValueOnly) {
-                    $script:Configuration[$key]
-                }
-                else {
-                    [PSCustomObject]@{
-                        Name  = $key
-                        Value = $script:Configuration[$key]
-                    }
-                }
+                $data[$key] = $script:Configuration[$key]
+            }
+        }
+
+        if ($AsHashtable) { $data }
+        elseif ($ValueOnly) { $data.Values }
+        else {
+            foreach ($key in $data.Keys) {
+                New-Object -TypeName PSCustomObject -Property @{ Name = $key; Value = $data[$key] }
             }
         }
     }

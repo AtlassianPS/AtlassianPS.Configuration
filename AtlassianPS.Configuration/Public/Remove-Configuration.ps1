@@ -1,6 +1,7 @@
 function Remove-Configuration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [CmdletBinding( ConfirmImpact = 'Low' ,SupportsShouldProcess = $false )]
+    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
+    [OutputType( [void] )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage( 'PSUseShouldProcessForStateChangingFunctions', '' )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
@@ -36,6 +37,8 @@ function Remove-Configuration {
     }
 
     end {
+        Save-Configuration
+
         Write-Verbose "Function ended"
     }
 }

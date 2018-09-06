@@ -1,6 +1,7 @@
 function Set-Configuration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
+    [OutputType( [PSCustomObject] )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage( 'PSUseShouldProcessForStateChangingFunctions', '' )]
     param(
         [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
@@ -64,12 +65,14 @@ function Set-Configuration {
 
         $script:Configuration.Remove($Name)
         $script:Configuration.Add($Name, $Value)
+
+        if ($Passthru) {
+            Get-Configuration -Name $Name
+        }
     }
 
     end {
-        if ($Passthru) {
-            Get-Configuration
-        }
+        Save-Configuration
 
         Write-Verbose "Function ended"
     }

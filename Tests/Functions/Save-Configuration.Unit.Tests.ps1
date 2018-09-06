@@ -2,7 +2,7 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
 
 
-Describe "Export-Configuration" -Tag Unit {
+Describe "Save-Configuration" -Tag Unit {
 
     BeforeAll {
         Remove-Item -Path Env:\BH*
@@ -23,7 +23,7 @@ Describe "Export-Configuration" -Tag Unit {
             $env:BHManifestToTest = $env:BHBuildModuleManifest
         }
 
-        Import-Module "$env:BHProjectPath/Tools/build.psm1"
+        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
@@ -37,10 +37,9 @@ Describe "Export-Configuration" -Tag Unit {
     InModuleScope $env:BHProjectName {
 
         #region Mocking
-        Mock Import-MqcnAlias -ModuleName $env:BHProjectName {}
-
         Mock Write-DebugMessage -ModuleName $env:BHProjectName {}
         Mock Write-Verbose -ModuleName $env:BHProjectName {}
+        Mock Import-MqcnAlias -ModuleName $env:BHProjectName {}
 
         function ExportConfiguration($InputObject) {}
         Mock ExportConfiguration {
@@ -48,17 +47,10 @@ Describe "Export-Configuration" -Tag Unit {
         }
 
         Mock Get-Configuration {
-            [PSCustomObject]@{
-                Name  = "Foo"
-                Value = "lorem ipsum"
-            }
-            [PSCustomObject]@{
-                Name  = "Bar"
-                Value = 42
-            }
-            [PSCustomObject]@{
-                Name  = "ServerList"
-                Value = @(
+            @{
+                Foo = "lorem ipsum"
+                Bar = 42
+                ServerList = @(
                     [AtlassianPS.ServerData]@{
                         Id   = 1
                         Name = "Google"
@@ -82,34 +74,34 @@ Describe "Export-Configuration" -Tag Unit {
         Context "Behavior checking" {
 
             It "does not fail on invocation" {
-                { Export-Configuration } | Should -Not -Throw
+                { Save-Configuration } | Should -Not -Throw
             }
 
             It "uses the Configuration module to export the data" {
-                Export-Configuration
+                Save-Configuration
 
                 Assert-MockCalled -CommandName "ExportConfiguration" -ModuleName $env:BHProjectName -Exactly -Times 1 -Scope It
             }
 
             It "exports all keys in the configuration" {
-                $after = Export-Configuration
+                $after = Save-Configuration
 
-                $after.Foo | Should -Not -BeNullOrEmpty
-                $after.Foo | Should -BeOfType [String]
-                $after.Bar | Should -Not -BeNullOrEmpty
-                $after.Bar | Should -BeOfType [Int]
-                $after.ServerList | Should -Not -BeNullOrEmpty
-                $after.ServerList | Should -BeOfType [AtlassianPS.ServerData]
-                $after.ServerList.Count | Should -Be 2
+                $after["Foo"] | Should -Not -BeNullOrEmpty
+                $after["Foo"] | Should -BeOfType [String]
+                $after["Bar"] | Should -Not -BeNullOrEmpty
+                $after["Bar"] | Should -BeOfType [Int]
+                $after["ServerList"] | Should -Not -BeNullOrEmpty
+                $after["ServerList"] | Should -BeOfType [AtlassianPS.ServerData]
+                $after["ServerList"].Count | Should -Be 2
             }
 
             It "does not allow sessions to be exported" {
                 $before = Get-Configuration
-                $after = Export-Configuration
+                $after = Save-Configuration
 
-                $after.Foo | Should -BeOfType [String]
-                $after.Bar | Should -BeOfType [Int]
-                ($before | Where-Object Name -eq "ServerList").Value.Session.UserAgent | Should -Not -BeNullOrEmpty
+                $after["Foo"] | Should -BeOfType [String]
+                $after["Bar"] | Should -BeOfType [Int]
+                $before["ServerList"].Session.UserAgent | Should -Not -BeNullOrEmpty
                 $after.ServerList.Session.UserAgent | Should -BeNullOrEmpty
             }
         }

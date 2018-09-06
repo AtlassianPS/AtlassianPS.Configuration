@@ -61,7 +61,7 @@ Get the data of the server with Name "prod"
 Get-AtlassianServerConfiguration -Uri "https://myserver.com"
 ```
 
-Get the data of the server with address "https://myserver.com"
+Get the data of the server with address <https://myserver.com>
 
 ## PARAMETERS
 
