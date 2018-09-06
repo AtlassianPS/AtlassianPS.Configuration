@@ -128,13 +128,16 @@ Describe "Get-Configuration" -Tag Unit {
             }
 
             It "returns only the value when -ValueOnly is provided" {
-                $config = Get-Configuration -Name "Foo", "Bar" -ValueOnly -ErrorAction Stop
+                $config = Get-Configuration -Name "Bar" -ValueOnly -ErrorAction Stop
 
-                @($config).Count | Should -Be 2
-                $config[0] | Should -Not -BeNullOrEmpty
-                $config[0] | Should -BeOfType [Int]
-                $config[1] | Should -Not -BeNullOrEmpty
-                $config[1] | Should -BeOfType [String]
+                @($config).Count | Should -Be 1
+                $config | Should -Not -BeNullOrEmpty
+                $config | Should -BeOfType [Int]
+
+                $config = Get-Configuration -Name "Foo" -ValueOnly -ErrorAction Stop
+                @($config).Count | Should -Be 1
+                $config | Should -Not -BeNullOrEmpty
+                $config | Should -BeOfType [String]
             }
 
             It "returns the configuration has Hashtable when -AsHashtable is provided" {
