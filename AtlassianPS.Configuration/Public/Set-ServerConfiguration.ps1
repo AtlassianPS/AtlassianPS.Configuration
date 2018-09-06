@@ -79,6 +79,8 @@ function Set-ServerConfiguration {
     }
 
     end {
+        Save-Configuration
+
         Write-Verbose "Function ended"
     }
 }

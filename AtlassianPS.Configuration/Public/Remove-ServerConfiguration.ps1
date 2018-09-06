@@ -46,7 +46,9 @@ function Remove-ServerConfiguration {
     }
 
     end {
+        Write-DebugMessage "Persisting ServerList"
         $script:Configuration.ServerList = $serverList
+        Save-Configuration
 
         Write-Verbose "Function ended"
     }

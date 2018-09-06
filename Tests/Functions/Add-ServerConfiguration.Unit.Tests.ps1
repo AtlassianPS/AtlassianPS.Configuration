@@ -38,6 +38,7 @@ Describe "Add-ServerConfiguration" -Tag Unit {
         #region Mocking
         Mock Write-DebugMessage -ModuleName $env:BHProjectName {}
         Mock Write-Verbose -ModuleName $env:BHProjectName {}
+        Mock Save-Configuration -ModuleName $env:BHProjectName {}
 
         Mock Get-ServerConfiguration -Module $env:BHProjectName {
             $script:Configuration["ServerList"]

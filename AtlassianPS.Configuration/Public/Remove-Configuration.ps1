@@ -36,6 +36,8 @@ function Remove-Configuration {
     }
 
     end {
+        Save-Configuration
+
         Write-Verbose "Function ended"
     }
 }

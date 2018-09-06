@@ -64,12 +64,14 @@ function Set-Configuration {
 
         $script:Configuration.Remove($Name)
         $script:Configuration.Add($Name, $Value)
+
+        if ($Passthru) {
+            Get-Configuration -Name $Name
+        }
     }
 
     end {
-        if ($Passthru) {
-            Get-Configuration
-        }
+        Save-Configuration
 
         Write-Verbose "Function ended"
     }

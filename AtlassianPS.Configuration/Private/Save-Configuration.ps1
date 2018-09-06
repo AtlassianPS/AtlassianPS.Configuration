@@ -1,4 +1,4 @@
-function Export-Configuration {
+function Save-Configuration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
     param()
@@ -8,16 +8,10 @@ function Export-Configuration {
 
         Import-MqcnAlias -Alias "ExportConfiguration" -Command "Configuration\Export-Configuration"
 
-        $data = Get-Configuration
-
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $export = @{}
-        foreach ($key in $data.Name) {
-            $export[$key] = ($data | Where-Object Name -eq $key).Value
-        }
-
+        $export = Get-Configuration -AsHashtable
         $export["ServerList"] |
             Where-Object { $_.Session } |
             Foreach-Object { $_.Session = $null }

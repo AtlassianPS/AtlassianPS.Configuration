@@ -15,13 +15,29 @@ Retrieve a stored configuration
 
 ## SYNTAX
 
+### asObject (Default)
+
 ```powershell
 Get-AtlassianConfiguration [[-Name] <String[]>] [-ValueOnly] [<CommonParameters>]
 ```
 
+### asValue
+
+```powershell
+Get-AtlassianConfiguration [[-Name] <String[]>] [-ValueOnly] [<CommonParameters>]
+```
+
+### asHashtable
+
+```powershell
+Get-AtlassianConfiguration [[-Name] <String[]>] [-AsHashtable] [<CommonParameters>]
+```
+
 ## DESCRIPTION
 
-Retrieve a stored configuration
+Retrieve a stored configuration.
+
+The object return can be customized as needed with the parameters `-AsHashtable` and `-ValueOnly`.
 
 ## EXAMPLES
 
@@ -35,7 +51,7 @@ Get all stored servers
 
 > Each entry is returned as a PSCustomObject where the `Name` is the name of the
 > entry and the `Value` is it's value.
-> This is used for using the pipleline. See Example 4.
+> This is used for using the pipeline. See Example 4.
 > Use `-ValueOnly` if interested _only_ in the value.
 
 ### EXAMPLE 2
@@ -79,8 +95,18 @@ Set-AtlassianConfiguration -Name "SomethingElse" -Value (Get-Date)
 This example uses the pipeline twice:
 
 1. The `-Name` of the entry is passed from the three string
-2. The `-Name` of the two entries found are passed to `Set-AtlassianConfigration`
-3. `Set-AtlassianConfigration` resets the value of the two entries
+2. The `-Name` of the two entries found are passed to `Set-AtlassianConfiguration`
+3. `Set-AtlassianConfiguration` resets the value of the two entries
+
+### EXAMPLE 5
+
+```powershell
+Set-AtlassianConfiguration -Name "Headers" -Value @{ Authorization = "Basic ABCDEF" }
+
+Get-AtlassianConfiguration -AsHashtable
+```
+
+This example will return a hashtable (key-value pair) where `Headers` is the key.
 
 ## PARAMETERS
 
@@ -104,14 +130,30 @@ Accept wildcard characters: True
 
 ### -ValueOnly
 
-Indicates that this cmdlet gets only the value of the variable.
+Determine that this cmdlet shall only return the value of the configuration.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
+Parameter Sets: asValue
 Aliases:
 
-Required: False
+Required: True
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -AsHashtable
+
+Determine the result shall be return as a hashtable.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: asHashtable
+Aliases:
+
+Required: True
 Position: Named
 Default value: False
 Accept pipeline input: False
@@ -131,6 +173,8 @@ For more information, see about_CommonParameters
 ## OUTPUTS
 
 ### [System.Management.Automation.PSObject]
+
+### [System.Hashtable]
 
 ## NOTES
 
