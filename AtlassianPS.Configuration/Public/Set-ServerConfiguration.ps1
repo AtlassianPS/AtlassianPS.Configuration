@@ -1,6 +1,7 @@
 function Set-ServerConfiguration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false, DefaultParameterSetName = 'Adding' )]
+    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
+    [OutputType( [void] )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]

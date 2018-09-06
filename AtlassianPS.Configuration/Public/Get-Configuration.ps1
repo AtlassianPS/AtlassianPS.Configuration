@@ -1,7 +1,9 @@
 function Get-Configuration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding( DefaultParameterSetName = 'asObject' )]
-    [OutputType( [PSCustomObject] )]
+    [OutputType( [PSCustomObject], ParameterSetName = 'asObject' )]
+    [OutputType( [PSObject], ParameterSetName = 'asValue' )]
+    [OutputType( [Hashtable], ParameterSetName = 'asHashTable' )]
     param(
         [Parameter( ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]

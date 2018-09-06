@@ -1,6 +1,7 @@
 function Add-ServerConfiguration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
+    [OutputType( [void] )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [Alias('Url', 'Address')]
