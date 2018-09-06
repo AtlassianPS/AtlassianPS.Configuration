@@ -77,7 +77,7 @@ This value must be unique.
 In case the ServerName was already saved, it will be overwritten.
 
 Example for "Authority":
-  https://**www.google.com**/maps?hl=en --> "www.google.com"
+  `https://**www.google.com**/maps?hl=en` --> `www.google.com`
 
 Is not case sensitive
 
