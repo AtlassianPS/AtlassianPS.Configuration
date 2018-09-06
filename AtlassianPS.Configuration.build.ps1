@@ -142,10 +142,8 @@ task GenerateRelease Init, GenerateExternalHelp, {
         "$env:BHProjectPath/LICENSE"
         "$env:BHProjectPath/README.md"
     ) -Destination "$env:BHBuildOutput/$env:BHProjectName" -Force
-    Copy-Item -Path @(
-        "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
-    ) -Destination $env:BHBuildOutput -Force
     # Copy Tests
+    Copy-Item -Path "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" -Destination $env:BHBuildOutput -Force
     $null = New-Item -Path "$env:BHBuildOutput/Tests" -ItemType Directory -ErrorAction SilentlyContinue
     Copy-Item -Path "$env:BHProjectPath/Tests" -Destination $env:BHBuildOutput -Recurse -Force
     # Remove all execptions from PSScriptAnalyzer
@@ -228,19 +226,30 @@ task UploadArtifacts -If ($env:APPVEYOR_JOB_ID) {
 }
 
 # Synopsis: Download build module from artifacts
-task DownloadArtifacts -If ($env:APPVEYOR_JOB_ID) Init, {
+task DownloadArtifacts -If ($env:APPVEYOR_JOB_ID) Init, GenerateExternalHelp, {
     # Setup
     if (-not (Test-Path "$env:BHBuildOutput/$env:BHProjectName")) {
         $null = New-Item -Path "$env:BHBuildOutput/$env:BHProjectName" -ItemType Directory
     }
 
-    Get-AppVeyorArtifact -Job $project.build.jobs[0] -Verbose |
-        Get-AppVeyorArtifactFile -Job $project.build.jobs[0] -OutPath "$env:BHBuildOutput/$env:BHProjectName" -Verbose
+    Get-AppVeyorArtifact -Job $project.build.jobs[0] |
+        Get-AppVeyorArtifactFile -Job $project.build.jobs[0] -OutPath "$env:BHBuildOutput/$env:BHProjectName"
+
+    # Copy Documentation
+    foreach ($locale in (Get-ChildItem "$env:BHProjectPath/docs" -Attribute Directory)) {
+        Copy-Item -Path "$env:BHModulePath/$locale" -Destination "$env:BHBuildOutput/$env:BHProjectName" -Recurse -Force
+    }
+    # Copy Tests
+    Copy-Item -Path "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" -Destination $env:BHBuildOutput -Force
+    $null = New-Item -Path "$env:BHBuildOutput/Tests" -ItemType Directory -ErrorAction SilentlyContinue
+    Copy-Item -Path "$env:BHProjectPath/Tests" -Destination $env:BHBuildOutput -Recurse -Force
+    # Remove all execptions from PSScriptAnalyzer
+    BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/PSScriptAnalyzerSettings.psd1" -PropertyName ExcludeRules -Value ''
 }
 #endregion BuildRelease
 
 #region Test
-task Test Init, Build, {
+task Test Init, {
     Assert-True { Test-Path $env:BHBuildOutput -PathType Container } "Release path must exist"
 
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
