@@ -1,6 +1,16 @@
 [CmdletBinding()]
 param()
 
+function Invoke-Init {
+    [Alias("Init")]
+    [CmdletBinding()]
+    param()
+    begin {
+        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
+        Add-ToModulePath -Path $env:BHBuildOutput
+    }
+}
+
 function Assert-True {
     [CmdletBinding( DefaultParameterSetName = 'ByBool' )]
     param(
@@ -53,8 +63,8 @@ function Get-AppVeyorBuild {
     Assert-True { $env:APPVEYOR_ACCOUNT_NAME } "not an appveyor build."
 
     $invokeRestMethodSplat = @{
-        Uri = "https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG"
-        Method = 'GET'
+        Uri     = "https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG"
+        Method  = 'GET'
         Headers = @{
             "Authorization" = "Bearer $env:APPVEYOR_API_TOKEN"
             "Content-type"  = "application/json"
@@ -70,8 +80,8 @@ function Get-TravisBuild {
     Assert-True { $env:APPVEYOR_ACCOUNT_NAME } "not an appveyor build."
 
     $invokeRestMethodSplat = @{
-        Uri = "https://api.travis-ci.org/builds?limit=10"
-        Method = 'Get'
+        Uri     = "https://api.travis-ci.org/builds?limit=10"
+        Method  = 'Get'
         Headers = @{
             "Authorization"      = "token $env:TRAVIS_API_TOKEN"
             "Travis-API-Version" = "3"
@@ -112,7 +122,7 @@ function Test-ShouldDeploy {
         return $false
     }
     # only deploy from AppVeyor
-    if (-not ('AppVeyor' -eq $env:BHBuildSystem)) {
+    if (-not ($env:APPVEYOR_JOB_ID)) {
         return $false
     }
     # must be last job of AppVeyor
@@ -195,17 +205,17 @@ function Set-AppVeyorBuildNumber {
     $separator = "-"
     $headers = @{
         "Authorization" = "Bearer $env:APPVEYOR_API_TOKEN"
-        "Content-type" = "application/json"
+        "Content-type"  = "application/json"
     }
     $apiURL = "https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG"
     $history = Invoke-RestMethod -Uri "$apiURL/history?recordsNumber=2" -Headers $headers  -Method Get
     if ($history.builds.Count -eq 2) {
-    $s = Invoke-RestMethod -Uri "$apiURL/settings" -Headers $headers  -Method Get
-    $s.settings.nextBuildNumber = ($s.settings.nextBuildNumber - 1)
-    Invoke-RestMethod -Uri 'https://ci.appveyor.com/api/projects' -Headers $headers  -Body ($s.settings | ConvertTo-Json -Depth 10) -Method Put
-    $previousVersion = $history.builds[1].version
-    if ($previousVersion.IndexOf("$separator") -ne "-1") {$previousVersion = $previousVersion.SubString(0, $previousVersion.IndexOf("$separator"))}
-    Update-AppveyorBuild -Version $previousVersion$separator$((New-Guid).ToString().SubString(0,8))
+        $s = Invoke-RestMethod -Uri "$apiURL/settings" -Headers $headers  -Method Get
+        $s.settings.nextBuildNumber = ($s.settings.nextBuildNumber - 1)
+        Invoke-RestMethod -Uri 'https://ci.appveyor.com/api/projects' -Headers $headers  -Body ($s.settings | ConvertTo-Json -Depth 10) -Method Put
+        $previousVersion = $history.builds[1].version
+        if ($previousVersion.IndexOf("$separator") -ne "-1") {$previousVersion = $previousVersion.SubString(0, $previousVersion.IndexOf("$separator"))}
+        Update-AppveyorBuild -Version $previousVersion$separator$((New-Guid).ToString().SubString(0,8))
     }
 }
 
@@ -320,7 +330,7 @@ function Get-FileEncoding {
                 [System.Collections.Generic.List[Byte]]$signatureBytes = foreach ($byte in $value.Split('-')) {
                     [Convert]::ToByte($byte, 16)
                 }
-                ,$signatureBytes
+                , $signatureBytes
             }
             $signatures[$name] = $values
         }
@@ -369,7 +379,8 @@ function Get-FileEncoding {
                 Encoding  = $encoding
                 Path      = $Path
             } | Add-Member -TypeName 'EncodingInfo' -PassThru
-        } catch {
+        }
+        catch {
             $pscmdlet.WriteError($_)
         }
     }
@@ -420,10 +431,12 @@ function Remove-Utf8Bom {
                     [System.IO.File]::ReadAllLines($Path),
                     $encoding
                 )
-            } else {
+            }
+            else {
                 Write-Verbose ('A UTF8 BOM was not detected on the file {0}' -f $Path)
             }
-        } catch {
+        }
+        catch {
             Write-Error -ErrorRecord $_
         }
     }

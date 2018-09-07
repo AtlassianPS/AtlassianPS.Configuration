@@ -10,6 +10,7 @@ environment:
     TRAVIS_API_TOKEN:
         secure: xwsl4f9maG+AEQDAWzFNA/sFXFZfGuFdHf+V6Eikabs=
     TIMEOUT_MINS: 30
+    ShouldDeploy: true
     # APPVEYOR_BUILD_WORKER_CLOUD: gce
     matrix:
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
