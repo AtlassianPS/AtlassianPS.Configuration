@@ -254,7 +254,7 @@ task Test Init, {
             ExcludeTag   = $ExcludeTag
             Show         = "Fails"
             PassThru     = $true
-            OutputFile   = "$env:BHProjectPath/TestResult.xml"
+            OutputFile   = "$env:BHProjectPath/TEST-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
             OutputFormat = "NUnitXml"
             # CodeCoverage = $codeCoverageFiles
         }
