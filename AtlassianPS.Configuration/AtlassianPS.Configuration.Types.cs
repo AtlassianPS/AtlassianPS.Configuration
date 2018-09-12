@@ -22,12 +22,12 @@ namespace AtlassianPS
             FunctionName = true;
         }
 
-        public MessageStyle(UInt32 _Indent, Boolean _TimeStamp, Boolean _BreadCrumbs, Boolean _FunctionName)
+        public MessageStyle(UInt32 Indent, Boolean TimeStamp, Boolean BreadCrumbs, Boolean FunctionName)
         {
-            Indent = _Indent;
-            TimeStamp = _TimeStamp;
-            BreadCrumbs = _BreadCrumbs;
-            FunctionName = _FunctionName;
+            this.Indent = Indent;
+            this.TimeStamp = TimeStamp;
+            this.BreadCrumbs = BreadCrumbs;
+            this.FunctionName = FunctionName;
         }
 
         public UInt32 Indent { get; set; }
@@ -39,15 +39,15 @@ namespace AtlassianPS
     [Serializable]
     public class ServerData
     {
-        public ServerData(UInt32 _Id, String _Name, String _Uri, ServerType _Type)
+        public ServerData(UInt32 Id, String Name, String Url, ServerType Type)
         {
             Uri tempUri;
-            Uri.TryCreate(_Uri, UriKind.RelativeOrAbsolute, out tempUri);
+            Uri.TryCreate(Url, UriKind.RelativeOrAbsolute, out tempUri);
 
-            Id = _Id;
-            Name = _Name;
-            Uri = tempUri;
-            Type = _Type;
+            this.Id = Id;
+            this.Name = Name;
+            this.Uri = tempUri;
+            this.Type = Type;
         }
 
         public ServerData(IDictionary Table)
