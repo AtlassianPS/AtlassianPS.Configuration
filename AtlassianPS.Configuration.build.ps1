@@ -5,7 +5,9 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingEmptyCatchBlock', '')]
 param(
     [String[]]$Tag,
-    [String[]]$ExcludeTag
+    [String[]]$ExcludeTag,
+    [String]$PSGalleryAPIKey,
+    [String]$GithubAccessToken
 )
 
 $WarningPreference = "Continue"
@@ -254,7 +256,7 @@ task Test Init, {
             ExcludeTag   = $ExcludeTag
             Show         = "Fails"
             PassThru     = $true
-            OutputFile   = "$env:BHProjectPath/TEST-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
+            OutputFile   = "$env:BHProjectPath/Test-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
             OutputFormat = "NUnitXml"
             # CodeCoverage = $codeCoverageFiles
         }
@@ -278,12 +280,12 @@ task Deploy -If ($shouldDeploy) Init, PublishToGallery, TagReplository, UpdateHo
 
 # Synpsis: Publish the $release to the PSGallery
 task PublishToGallery {
-    Assert-True (-not [String]::IsNullOrEmpty($env:PSGalleryAPIKey)) "No key for the PSGallery"
+    Assert-True (-not [String]::IsNullOrEmpty($PSGalleryAPIKey)) "No key for the PSGallery"
     Assert-True {Get-Module $env:BHProjectName -ListAvailable} "Module $env:BHProjectName is not available"
 
     Remove-Module $env:BHProjectName -ErrorAction Ignore
 
-    Publish-Module -Name $env:BHProjectName -NuGetApiKey $env:PSGalleryAPIKey
+    Publish-Module -Name $env:BHProjectName -NuGetApiKey $PSGalleryAPIKey
 }
 
 # Synopsis: push a tag with the version to the git repository
@@ -301,17 +303,28 @@ task TagReplository GetNextVersion, Package, {
     cmd /c "git push origin v$env:NextBuildVersion 2>&1"
 
     # Publish a release on github for the tag above
-    $releaseResponse = Publish-GithubRelease -ReleaseText $releaseText -NextBuildVersion $env:NextBuildVersion
+    $releaseResponse = Publish-GithubRelease -GITHUB_ACCESS_TOKEN $GithubAccessToken -ReleaseText $releaseText -NextBuildVersion $env:NextBuildVersion
 
     # Upload the package of the version to the release
     $packageFile = Get-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction Stop
     $uploadURI = $releaseResponse.upload_url -replace "\{\?name,label\}", "?name=$($packageFile.Name)"
-    $null = Publish-GithubReleaseArtifact -Uri $uploadURI -Path $packageFile
+    $null = Publish-GithubReleaseArtifact -GITHUB_ACCESS_TOKEN $GithubAccessToken -Uri $uploadURI -Path $packageFile
 }
 
 # Synopsis: Update the version of this module that the homepage uses
 task UpdateHomepage {
     try {
+        Add-Content (Join-Path $Home ".git-credentials") "https://$GithubAccessToken:x-oauth-basic@github.com`n"
+
+        Write-Build Gray "git config --global credential.helper `"store --file ~/.git-credentials`""
+        git config --global credential.helper "store --file ~/.git-credentials"
+
+        Write-Build Gray "git config --global user.email `"support@atlassianps.org`""
+        git config --global user.email "support@atlassianps.org"
+
+        Write-Build Gray "git config --global user.name `"AtlassianPS automation`""
+        git config --global user.name "AtlassianPS automation"
+
         Write-Build Gray "git close .../AtlassianPS.github.io --recursive"
         $null = cmd /c "git clone https://github.com/AtlassianPS/AtlassianPS.github.io --recursive 2>&1"
 
