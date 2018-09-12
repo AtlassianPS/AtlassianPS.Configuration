@@ -28,12 +28,16 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
         Import-Module $env:BHManifestToTest
 
         # backup current configuration
-        & (Get-Module $env:BHProjectName) {$script:previousConfig = $script:configuration}
+        & (Get-Module $env:BHProjectName) {
+            $script:previousConfig = $script:Configuration
+            $script:Configuration = @{}
+            $script:Configuration.Add("ServerList",[System.Collections.Generic.List[AtlassianPS.ServerData]]::new())
+        }
     }
     AfterAll {
         #restore previous configuration
         & (Get-Module $env:BHProjectName) {
-            $script:configuration = $script:previousConfig
+            $script:Configuration = $script:previousConfig
             Save-Configuration
         }
 

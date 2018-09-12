@@ -1,7 +1,7 @@
 #requires -modules BuildHelpers
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
 
-Describe "[AtlassianPS.ServerType] Tests" -Tag Unit {
+Describe "[AtlassianPS.ServerData] Tests" -Tag Unit {
 
     BeforeAll {
         Remove-Item -Path Env:\BH*
@@ -69,5 +69,25 @@ Describe "[AtlassianPS.ServerType] Tests" -Tag Unit {
         $object = [AtlassianPS.ServerData]@{ Id = 1; Name = "Name"; Uri = "https://google.com"; Type = "Jira" }
 
         $object.ToString() | Should -Be "Name (https://google.com/)"
+    }
+
+    Context "Types of properties" {
+        $object = [AtlassianPS.ServerData]@{ Id = 1; Name = "Name"; Uri = "https://google.com"; Type = "Jira" }
+
+        It "has a Id of type UInt32" {
+            $object.Id | Should -BeOfType [UInt32]
+        }
+
+        It "has a Name of type String" {
+            $object.Name | Should -BeOfType [String]
+        }
+
+        It "has a Uri of type Uri" {
+            $object.Uri | Should -BeOfType [Uri]
+        }
+
+        It "has a Type of type AtlassianPS.ServerType" {
+            $object.Type | Should -BeOfType [AtlassianPS.ServerType]
+        }
     }
 }

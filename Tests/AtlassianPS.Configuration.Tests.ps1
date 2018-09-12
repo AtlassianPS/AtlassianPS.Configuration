@@ -41,30 +41,34 @@ Describe "General project validation" -Tag Unit {
         { Test-ModuleManifest -Path $env:BHManifestToTest -ErrorAction Stop } | Should -Not -Throw
     }
 
-    It "module '$env:BHProjectName' can import cleanly" {
-        { Import-Module $env:BHManifestToTest } | Should Not Throw
+    It "imports '$env:BHProjectName' cleanly" {
+        Import-Module $env:BHManifestToTest
+
+        $module = Get-Module $env:BHProjectName
+
+        $module | Should BeOfType [PSModuleInfo]
     }
 
-    It "module '$env:BHProjectName' exports functions" {
+    It "has public functions" {
         Import-Module $env:BHManifestToTest
 
         (Get-Command -Module $env:BHProjectName | Measure-Object).Count | Should -BeGreaterThan 0
     }
 
-    It "module uses the correct root module" {
+    It "uses the correct root module" {
         Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName RootModule | Should -Be 'AtlassianPS.Configuration.psm1'
     }
 
-    It "module uses the correct guid" {
+    It "uses the correct guid" {
         Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName Guid | Should -Be 'f946e1f7-ed4f-43da-aa24-6d57a25117cb'
     }
 
-    It "module uses a valid version" {
+    It "uses a valid version" {
         [Version](Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -Not -BeNullOrEmpty
         [Version](Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -BeOfType [Version]
     }
 
-    It "module requires Configuration" {
+    It "requires Configuration" {
         # this workaround will be obsolete with
         # https://github.com/PoshCode/Configuration/pull/20
         $pureExpression = Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName RequiredModules -Passthru
