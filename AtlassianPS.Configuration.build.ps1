@@ -42,11 +42,11 @@ $shouldDeploy = (
     # only deploy master branch
     ('master' -eq $env:BHBranchName) -and
     # it cannot be a PR
-    ( -not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and
+    # ( -not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and
     # only deploy from AppVeyor
-    ('AppVeyor' -eq $env:BHBuildSystem) -and
+    ('VSTS' -eq $env:BHBuildSystem) -and
     # must be last job of AppVeyor
-    (Test-IsLastJob) -and
+    # (Test-IsLastJob) -and
     # Travis-CI must be finished (if used)
     # TODO: ( -not Test-TravisProgress) -and
     # it cannot have a commit message that contains "skip-deploy"
@@ -137,7 +137,7 @@ task ShowInfo Init, GetNextVersion, {
 
 #region BuildRelease
 # Synopsis: Build a shippable release
-task Build Init, GenerateRelease, UpdateManifest, CompileModule, UploadArtifacts
+task Build Init, GenerateRelease, UpdateManifest, CompileModule
 
 # Synopsis: Generate ./Release structure
 task GenerateRelease GenerateExternalHelp, {
@@ -230,33 +230,6 @@ task UpdateManifest GetNextVersion, {
 task Package GenerateRelease, {
     Remove-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction SilentlyContinue
     $null = Compress-Archive -Path "$env:BHBuildOutput\$env:BHProjectName" -DestinationPath "$env:BHBuildOutput\$env:BHProjectName.zip"
-}
-
-# Synopsis: Upload build files as artifacts
-task UploadArtifacts -If ('AppVeyor' -eq $env:BHBuildSystem) {
-    Get-ChildItem $env:BHBuildOutput/$env:BHProjectName -File | % { Push-AppveyorArtifact $_.FullName }
-}
-
-# Synopsis: Download build module from artifacts
-task DownloadArtifacts -If ('AppVeyor' -eq $env:BHBuildSystem) GenerateExternalHelp, {
-    # Setup
-    if (-not (Test-Path "$env:BHBuildOutput/$env:BHProjectName")) {
-        $null = New-Item -Path "$env:BHBuildOutput/$env:BHProjectName" -ItemType Directory
-    }
-
-    Get-AppVeyorArtifact -Job $project.build.jobs[0] |
-        Get-AppVeyorArtifactFile -Job $project.build.jobs[0] -OutPath "$env:BHBuildOutput/$env:BHProjectName"
-
-    # Copy Documentation
-    foreach ($locale in (Get-ChildItem "$env:BHProjectPath/docs" -Attribute Directory)) {
-        Copy-Item -Path "$env:BHModulePath/$locale" -Destination "$env:BHBuildOutput/$env:BHProjectName" -Recurse -Force
-    }
-    # Copy Tests
-    Copy-Item -Path "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" -Destination $env:BHBuildOutput -Force
-    $null = New-Item -Path "$env:BHBuildOutput/Tests" -ItemType Directory -ErrorAction SilentlyContinue
-    Copy-Item -Path "$env:BHProjectPath/Tests" -Destination $env:BHBuildOutput -Recurse -Force
-    # Remove all execptions from PSScriptAnalyzer
-    BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/PSScriptAnalyzerSettings.psd1" -PropertyName ExcludeRules -Value ''
 }
 #endregion BuildRelease
 
@@ -383,11 +356,6 @@ task RemoveTestResults {
 }
 #endregion
 
-if (('AppVeyor' -eq $env:BHBuildSystem) -and ($env:APPVEYOR_JOB_ID -ne $project.build.jobs[0].JobId)) {
-    task . ShowInfo, Clean, DownloadArtifacts, Test, Deploy
-}
-else {
-    task . ShowInfo, Clean, Build, Test, Deploy
-}
+task . ShowInfo, Clean, Build, Test, Deploy
 
 Remove-Item -Path Env:\BH*
