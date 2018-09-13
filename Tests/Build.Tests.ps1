@@ -63,7 +63,7 @@ Describe "Validation of build environment" {
         }
     }
 
-    Context "AppVeyor" {
+    <# Context "AppVeyor" {
         $appveyorFile = "$env:BHProjectPath/appveyor.yml"
         $appveyorDevFile = "$env:BHProjectPath/Tools/dev-appveyor.yml"
 
@@ -113,5 +113,5 @@ Describe "Validation of build environment" {
         It "has a version for appveyor that matches the manifest version" {
             Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion | Should -BeLike "$appveyorVersion*"
         }
-    }
+    } #>
 }

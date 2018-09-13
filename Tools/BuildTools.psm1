@@ -141,12 +141,14 @@ function Test-ShouldDeploy {
 
 function Publish-GithubRelease {
     param(
+        [Parameter( Mandatory )]
+        [ValidateNotNullOrEmpty]
+        $GITHUB_ACCESS_TOKEN,
         [String]$ReleaseText,
         [Object]$NextBuildVersion
     )
 
-    Assert-True { $env:GITHUB_ACCESS_TOKEN } "Missing Github authentication"
-    Assert-True { $env:APPVEYOR_REPO_NAME } "Missing AppVeyor's Repo Name"
+    Assert-True { $env:BHProjectName } "Missing AppVeyor's Repo Name"
 
     $body = @{
         "tag_name"         = "v$NextBuildVersion"
@@ -158,11 +160,11 @@ function Publish-GithubRelease {
     } | ConvertTo-Json
 
     $releaseParams = @{
-        Uri         = "https://api.github.com/repos/{0}/releases" -f $env:APPVEYOR_REPO_NAME
+        Uri         = "https://api.github.com/repos/{0}/releases" -f $env:BHProjectName
         Method      = 'POST'
         Headers     = @{
             Authorization = 'Basic ' + [Convert]::ToBase64String(
-                [Text.Encoding]::ASCII.GetBytes($env:GITHUB_ACCESS_TOKEN + ":x-oauth-basic")
+                [Text.Encoding]::ASCII.GetBytes($GITHUB_ACCESS_TOKEN + ":x-oauth-basic")
             )
         }
         ContentType = 'application/json'
@@ -174,12 +176,12 @@ function Publish-GithubRelease {
 
 function Publish-GithubReleaseArtifact {
     param(
+        [Parameter( Mandatory )]
+        [ValidateNotNullOrEmpty]
+        $GITHUB_ACCESS_TOKEN,
         [Uri]$Uri,
         [String]$Path
     )
-
-    Assert-True { $env:GITHUB_ACCESS_TOKEN } "Missing Github authentication"
-    Assert-True { $env:APPVEYOR_REPO_NAME } "Missing AppVeyor's Repo Name"
 
     $body = [System.IO.File]::ReadAllBytes($Path)
     $assetParams = @{
@@ -187,7 +189,7 @@ function Publish-GithubReleaseArtifact {
         Method      = 'POST'
         Headers     = @{
             Authorization = 'Basic ' + [Convert]::ToBase64String(
-                [Text.Encoding]::ASCII.GetBytes($env:GITHUB_ACCESS_TOKEN + ":x-oauth-basic")
+                [Text.Encoding]::ASCII.GetBytes($GITHUB_ACCESS_TOKEN + ":x-oauth-basic")
             )
         }
         ContentType = "application/zip"

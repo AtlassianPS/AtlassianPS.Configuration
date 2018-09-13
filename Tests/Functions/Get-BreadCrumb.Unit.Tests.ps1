@@ -58,13 +58,13 @@ Describe "Get-BreadCrumb" -Tag Unit {
             It "tracks the call stack" {
                 $breadCrumb = function1
                 $breadCrumb | Should -Not -BeNullOrEmpty
-                $breadCrumb | Should -Be 'function2 > function1 >  >  > AtlassianPS.Configuration.psm1 > '
+                $breadCrumb | Should -Match '^function2 > function1 >  >  > AtlassianPS.Configuration.psm1 > '
             }
 
             It "allows for customizing of the delimiter" {
                 $breadCrumb = Get-BreadCrumb -Delimiter "--> "
                 $breadCrumb | Should -Not -BeNullOrEmpty
-                $breadCrumb | Should -Be '--> --> AtlassianPS.Configuration.psm1--> '
+                $breadCrumb | Should -Match '^--> --> AtlassianPS.Configuration.psm1--> '
             }
         }
     }

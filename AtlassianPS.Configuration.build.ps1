@@ -5,7 +5,9 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingEmptyCatchBlock', '')]
 param(
     [String[]]$Tag,
-    [String[]]$ExcludeTag
+    [String[]]$ExcludeTag,
+    [String]$PSGalleryAPIKey,
+    [String]$GithubAccessToken
 )
 
 $WarningPreference = "Continue"
@@ -42,11 +44,11 @@ $shouldDeploy = (
     # only deploy master branch
     ('master' -eq $env:BHBranchName) -and
     # it cannot be a PR
-    ( -not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and
+    # ( -not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and
     # only deploy from AppVeyor
-    ('AppVeyor' -eq $env:BHBuildSystem) -and
+    ('VSTS' -eq $env:BHBuildSystem) -and
     # must be last job of AppVeyor
-    (Test-IsLastJob) -and
+    # (Test-IsLastJob) -and
     # Travis-CI must be finished (if used)
     # TODO: ( -not Test-TravisProgress) -and
     # it cannot have a commit message that contains "skip-deploy"
@@ -137,7 +139,7 @@ task ShowInfo Init, GetNextVersion, {
 
 #region BuildRelease
 # Synopsis: Build a shippable release
-task Build Init, GenerateRelease, UpdateManifest, CompileModule, UploadArtifacts
+task Build Init, GenerateRelease, UpdateManifest, CompileModule
 
 # Synopsis: Generate ./Release structure
 task GenerateRelease GenerateExternalHelp, {
@@ -231,33 +233,6 @@ task Package GenerateRelease, {
     Remove-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction SilentlyContinue
     $null = Compress-Archive -Path "$env:BHBuildOutput\$env:BHProjectName" -DestinationPath "$env:BHBuildOutput\$env:BHProjectName.zip"
 }
-
-# Synopsis: Upload build files as artifacts
-task UploadArtifacts -If ('AppVeyor' -eq $env:BHBuildSystem) {
-    Get-ChildItem $env:BHBuildOutput/$env:BHProjectName -File | % { Push-AppveyorArtifact $_.FullName }
-}
-
-# Synopsis: Download build module from artifacts
-task DownloadArtifacts -If ('AppVeyor' -eq $env:BHBuildSystem) GenerateExternalHelp, {
-    # Setup
-    if (-not (Test-Path "$env:BHBuildOutput/$env:BHProjectName")) {
-        $null = New-Item -Path "$env:BHBuildOutput/$env:BHProjectName" -ItemType Directory
-    }
-
-    Get-AppVeyorArtifact -Job $project.build.jobs[0] |
-        Get-AppVeyorArtifactFile -Job $project.build.jobs[0] -OutPath "$env:BHBuildOutput/$env:BHProjectName"
-
-    # Copy Documentation
-    foreach ($locale in (Get-ChildItem "$env:BHProjectPath/docs" -Attribute Directory)) {
-        Copy-Item -Path "$env:BHModulePath/$locale" -Destination "$env:BHBuildOutput/$env:BHProjectName" -Recurse -Force
-    }
-    # Copy Tests
-    Copy-Item -Path "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" -Destination $env:BHBuildOutput -Force
-    $null = New-Item -Path "$env:BHBuildOutput/Tests" -ItemType Directory -ErrorAction SilentlyContinue
-    Copy-Item -Path "$env:BHProjectPath/Tests" -Destination $env:BHBuildOutput -Recurse -Force
-    # Remove all execptions from PSScriptAnalyzer
-    BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/PSScriptAnalyzerSettings.psd1" -PropertyName ExcludeRules -Value ''
-}
 #endregion BuildRelease
 
 #region Test
@@ -281,7 +256,7 @@ task Test Init, {
             ExcludeTag   = $ExcludeTag
             Show         = "Fails"
             PassThru     = $true
-            OutputFile   = "$env:BHProjectPath/TestResult.xml"
+            OutputFile   = "$env:BHProjectPath/Test-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
             OutputFormat = "NUnitXml"
             # CodeCoverage = $codeCoverageFiles
         }
@@ -305,12 +280,12 @@ task Deploy -If ($shouldDeploy) Init, PublishToGallery, TagReplository, UpdateHo
 
 # Synpsis: Publish the $release to the PSGallery
 task PublishToGallery {
-    Assert-True (-not [String]::IsNullOrEmpty($env:PSGalleryAPIKey)) "No key for the PSGallery"
+    Assert-True (-not [String]::IsNullOrEmpty($PSGalleryAPIKey)) "No key for the PSGallery"
     Assert-True {Get-Module $env:BHProjectName -ListAvailable} "Module $env:BHProjectName is not available"
 
     Remove-Module $env:BHProjectName -ErrorAction Ignore
 
-    Publish-Module -Name $env:BHProjectName -NuGetApiKey $env:PSGalleryAPIKey
+    Publish-Module -Name $env:BHProjectName -NuGetApiKey $PSGalleryAPIKey
 }
 
 # Synopsis: push a tag with the version to the git repository
@@ -328,17 +303,28 @@ task TagReplository GetNextVersion, Package, {
     cmd /c "git push origin v$env:NextBuildVersion 2>&1"
 
     # Publish a release on github for the tag above
-    $releaseResponse = Publish-GithubRelease -ReleaseText $releaseText -NextBuildVersion $env:NextBuildVersion
+    $releaseResponse = Publish-GithubRelease -GITHUB_ACCESS_TOKEN $GithubAccessToken -ReleaseText $releaseText -NextBuildVersion $env:NextBuildVersion
 
     # Upload the package of the version to the release
     $packageFile = Get-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction Stop
     $uploadURI = $releaseResponse.upload_url -replace "\{\?name,label\}", "?name=$($packageFile.Name)"
-    $null = Publish-GithubReleaseArtifact -Uri $uploadURI -Path $packageFile
+    $null = Publish-GithubReleaseArtifact -GITHUB_ACCESS_TOKEN $GithubAccessToken -Uri $uploadURI -Path $packageFile
 }
 
 # Synopsis: Update the version of this module that the homepage uses
 task UpdateHomepage {
     try {
+        Add-Content (Join-Path $Home ".git-credentials") "https://$GithubAccessToken:x-oauth-basic@github.com`n"
+
+        Write-Build Gray "git config --global credential.helper `"store --file ~/.git-credentials`""
+        git config --global credential.helper "store --file ~/.git-credentials"
+
+        Write-Build Gray "git config --global user.email `"support@atlassianps.org`""
+        git config --global user.email "support@atlassianps.org"
+
+        Write-Build Gray "git config --global user.name `"AtlassianPS automation`""
+        git config --global user.name "AtlassianPS automation"
+
         Write-Build Gray "git close .../AtlassianPS.github.io --recursive"
         $null = cmd /c "git clone https://github.com/AtlassianPS/AtlassianPS.github.io --recursive 2>&1"
 
@@ -383,11 +369,6 @@ task RemoveTestResults {
 }
 #endregion
 
-if (('AppVeyor' -eq $env:BHBuildSystem) -and ($env:APPVEYOR_JOB_ID -ne $project.build.jobs[0].JobId)) {
-    task . ShowInfo, Clean, DownloadArtifacts, Test, Deploy
-}
-else {
-    task . ShowInfo, Clean, Build, Test, Deploy
-}
+task . ShowInfo, Clean, Build, Test, Deploy
 
 Remove-Item -Path Env:\BH*
