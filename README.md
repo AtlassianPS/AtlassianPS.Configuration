@@ -4,7 +4,7 @@ permalink: /module/AtlassianPS.Configuration/
 ---
 # [AtlassianPS.Configuration](https://atlassianps.org/module/AtlassianPS.Configuration)
 
-[![GitHub release](https://img.shields.io/github/release/AtlassianPS/AtlassianPS.Configuration.svg)](https://github.com/AtlassianPS/AtlassianPS.Configuration/releases/latest) [![Build status](https://dev.azure.com/AtlassianPS/AtlassianPS.Configuration/_apis/build/status/AtlassianPS.Configuration-Master)](https://dev.azure.com/AtlassianPS/AtlassianPS.Configuration/_build/latest?definitionId=4) [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/AtlassianPS.Configuration.svg)](https://www.powershellgallery.com/packages/AtlassianPS.Configuration) ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+[![GitHub release](https://img.shields.io/github/release/AtlassianPS/AtlassianPS.Configuration.svg)](https://github.com/AtlassianPS/AtlassianPS.Configuration/releases/latest) [![Build status](https://dev.azure.com/AtlassianPS/AtlassianPS.Configuration/_apis/build/status/BuildJob)](https://dev.azure.com/AtlassianPS/AtlassianPS.Configuration/_build/latest?definitionId=5) [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/AtlassianPS.Configuration.svg)](https://www.powershellgallery.com/packages/AtlassianPS.Configuration) ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 AtlassianPS.Configuration is a module that offers a common set of tools to the [AtlassianPS] products to handle user-specific configuration.
 
