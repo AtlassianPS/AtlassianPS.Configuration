@@ -40,7 +40,6 @@ if ('AppVeyor' -eq $env:BHBuildSystem) {
 }
 
 $shouldDeploy = (
-    ($env:ShouldDeploy -eq $true) -and
     # only deploy master branch
     ('master' -eq $env:BHBranchName) -and
     # it cannot be a PR
