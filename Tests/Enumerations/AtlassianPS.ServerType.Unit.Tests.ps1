@@ -1,7 +1,7 @@
 #requires -modules BuildHelpers
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
 
-Describe "[AtlassianPS.ServerData] Tests" -Tag Unit {
+Describe "[AtlassianPS.ServerType] Tests" -Tag Unit {
 
     BeforeAll {
         Remove-Item -Path Env:\BH*
@@ -40,7 +40,7 @@ Describe "[AtlassianPS.ServerData] Tests" -Tag Unit {
     }
 
     It "throws when an invalid string is provided" {
-        { [AtlassianPS.ServerType]"foo" } | Should -Throw 'Cannot convert value "foo" to type "AtlassianPS.ServerType"'
+        { [AtlassianPS.ServerType]"foo" } | Should -Throw -Because "InvalidArgument"
     }
 
     It "has no constructor" {

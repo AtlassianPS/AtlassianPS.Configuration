@@ -1,7 +1,7 @@
 #requires -modules BuildHelpers
 #requires -modules Pester
 
-Describe "Validation of example codes in the documentation" -Tag Documentation, NotImplemented {
+Describe "Validation of example codes in the documentation" -Tag Documentation {
 
     BeforeAll {
         Remove-Item -Path Env:\BH*
@@ -31,7 +31,7 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
         & (Get-Module $env:BHProjectName) {
             $script:previousConfig = $script:Configuration
             $script:Configuration = @{}
-            $script:Configuration.Add("ServerList",[System.Collections.Generic.List[AtlassianPS.ServerData]]::new())
+            $script:Configuration.Add("ServerList", [System.Collections.Generic.List[AtlassianPS.ServerData]]::new())
         }
     }
     AfterAll {
@@ -51,11 +51,15 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
     #region Mocks
     Mock Invoke-WebRequest { }
     Mock Invoke-RestMethod { }
+    Mock Write-DebugMessage { } -ModuleName $env:BHProjectName
+    Mock Write-Verbose { } -ModuleName $env:BHProjectName
     #endregion Mocks
 
-    $functions = Get-Command -Module $env:BHProjectName
-    foreach ($function in $functions) {
+    foreach ($function in (Get-Command -Module $env:BHProjectName)) {
         Context "Examples of $($function.Name)" {
+            $originalErrorActionPreference = $ErrorActionPreference
+            $ErrorActionPreference = "Stop"
+
             $help = Get-Help $function.Name
 
             foreach ($example in $help.examples.example) {
@@ -65,11 +69,12 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
                     {
                         $scriptBlock = [Scriptblock]::Create($example.code)
 
-                        & $scriptBlock 2>$null
+                        & $scriptBlock
                     } | Should -Not -Throw
                 }
             }
 
+            $ErrorActionPreference = $originalErrorActionPreference
         }
     }
 }
