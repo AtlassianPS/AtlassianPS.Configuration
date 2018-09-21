@@ -63,15 +63,20 @@ task InstallDependencies {
 
 # Synopsis: Get the next version for the build
 task GetNextVersion {
-    $currentVersion = [Version](Get-Metadata -Path $env:BHPSModuleManifest)
-    if ($env:BHBuildNumber) {
-        $newRevision = $env:BHBuildNumber
+    $env:CurrentOnlineVersion = [Version](Find-Module -Name $env:BHProjectName).Version
+    $manifestVersion = [Version](Get-Metadata -Path $env:BHPSModuleManifest)
+    $nextOnlineVersion = Get-NextNugetPackageVersion -Name $env:BHProjectName
+
+
+    if ( ($manifestVersion.Major -gt $nextOnlineVersion.Major) -or
+        ($manifestVersion.Minor -gt $nextOnlineVersion.Minor)
+        # -or ($manifestVersion.Build -gt $nextOnlineVersion.Build)
+    ) {
+        $env:NextBuildVersion = [Version]::New($manifestVersion.Major, $manifestVersion.Minor, 0, -1)
     }
     else {
-        $newRevision = 0
+        $env:NextBuildVersion = $nextOnlineVersion
     }
-    $env:NextBuildVersion = [Version]::New($currentVersion.Major, $currentVersion.Minor, $newRevision)
-    $env:CurrentBuildVersion = $currentVersion
 }
 #endregion Setup
 
@@ -104,7 +109,7 @@ task ShowInfo Init, GetNextVersion, {
     Write-Build Gray ('Project name:               {0}' -f $env:BHProjectName)
     Write-Build Gray ('Project root:               {0}' -f $env:BHProjectPath)
     Write-Build Gray ('Build Path:                 {0}' -f $env:BHBuildOutput)
-    Write-Build Gray ('Current Version:            {0}' -f $env:CurrentBuildVersion)
+    Write-Build Gray ('Current (online) Version:   {0}' -f $env:CurrentOnlineVersion)
     Write-Build Gray '-------------------------------------------------------'
     Write-Build Gray
     Write-Build Gray ('Branch:                     {0}' -f $env:BHBranchName)
@@ -272,7 +277,7 @@ task PublishToGallery {
 }
 
 # Synopsis: push a tag with the version to the git repository
-task TagReplository GetNextVersion, Package, {
+task TagReplository GetNextVersion, {
     $releaseText = "Release version $env:NextBuildVersion"
 
     # Push a tag to the repository
