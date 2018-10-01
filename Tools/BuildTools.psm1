@@ -178,8 +178,8 @@ function Publish-GithubRelease {
 function Publish-GithubReleaseArtifact {
     param(
         [Parameter( Mandatory )]
-        [ValidateNotNullOrEmpty]
-        $GITHUB_ACCESS_TOKEN,
+        [ValidateNotNullOrEmpty()]
+        [String]$GITHUB_ACCESS_TOKEN,
         [Uri]$Uri,
         [String]$Path
     )
