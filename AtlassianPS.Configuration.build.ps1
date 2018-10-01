@@ -293,6 +293,8 @@ task PublishToGallery {
 
 # Synopsis: push a tag with the version to the git repository
 task TagReplository GetNextVersion, {
+    Assert-True (-not [String]::IsNullOrEmpty($GithubAccessToken)) "No key for the PSGallery"
+
     $releaseText = "Release version $env:NextBuildVersion"
 
     # Push a tag to the repository

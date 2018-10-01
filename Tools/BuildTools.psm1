@@ -142,8 +142,9 @@ function Test-ShouldDeploy {
 function Publish-GithubRelease {
     param(
         [Parameter( Mandatory )]
-        [ValidateNotNullOrEmpty]
-        $GITHUB_ACCESS_TOKEN,
+        [ValidateNotNullOrEmpty()]
+        [String]$GITHUB_ACCESS_TOKEN,
+        [String]$ProjectOwner = "AtlassianPS",
         [String]$ReleaseText,
         [Object]$NextBuildVersion
     )
@@ -160,7 +161,7 @@ function Publish-GithubRelease {
     } | ConvertTo-Json
 
     $releaseParams = @{
-        Uri         = "https://api.github.com/repos/{0}/releases" -f $env:BHProjectName
+        Uri         = "https://api.github.com/repos/{0}/{1}/releases" -f $ProjectOwner, $env:BHProjectName
         Method      = 'POST'
         Headers     = @{
             Authorization = 'Basic ' + [Convert]::ToBase64String(
