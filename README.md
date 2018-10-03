@@ -5,7 +5,7 @@ permalink: /module/AtlassianPS.Configuration/
 # [AtlassianPS.Configuration](https://atlassianps.org/module/AtlassianPS.Configuration)
 
 [![GitHub release](https://img.shields.io/github/release/AtlassianPS/AtlassianPS.Configuration.svg?style=for-the-badge)](https://github.com/AtlassianPS/AtlassianPS.Configuration/releases/latest)
-[![Build Status](https://img.shields.io/vso/build/AtlassianPS/AtlassianPS.Configuration/5/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/AtlassianPS.Configuration/_build/latest?definitionId=5)
+[![Build Status](https://img.shields.io/vso/build/AtlassianPS/AtlassianPS.Configuration/8/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/AtlassianPS.Configuration/_build/latest?definitionId=8)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/AtlassianPS.Configuration.svg?style=for-the-badge)](https://www.powershellgallery.com/packages/AtlassianPS.Configuration)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)
 
