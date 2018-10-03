@@ -86,7 +86,7 @@ task GetNextVersion {
         ($manifestVersion.Minor -gt $nextOnlineVersion.Minor)
         # -or ($manifestVersion.Build -gt $nextOnlineVersion.Build)
     ) {
-        $env:NextBuildVersion = [Version]::New($manifestVersion.Major, $manifestVersion.Minor, 0, -1)
+        $env:NextBuildVersion = [Version]::New($manifestVersion.Major, $manifestVersion.Minor, 0)
     }
     else {
         $env:NextBuildVersion = $nextOnlineVersion

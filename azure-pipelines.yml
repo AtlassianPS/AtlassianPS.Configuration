@@ -2,6 +2,13 @@ resources:
 - repo: self
   clean: true
 
+trigger:
+  branches:
+    include:
+    - master
+    - "*"
+    exclude:
+    - refs/tag/*
 
 phases:
 - phase: Phase_1
