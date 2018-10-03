@@ -43,7 +43,7 @@ Describe "Validation of build environment" {
         }
 
         foreach ($line in (Get-Content $changelogFile)) {
-            if ($line -match "(?:##|\<h2.*?\>)\s*(?<Version>(\d+\.?){1,2})") {
+            if ($line -match "(?:##|\<h2.*?\>)\s*\[(?<Version>(\d+\.?){1,2})\]") {
                 $changelogVersion = $matches.Version
                 break
             }
