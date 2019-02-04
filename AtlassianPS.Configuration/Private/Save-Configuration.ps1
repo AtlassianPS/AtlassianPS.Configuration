@@ -12,9 +12,6 @@ function Save-Configuration {
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $export = Get-Configuration -AsHashtable
-        $export["ServerList"] |
-            Where-Object { $_.Session } |
-            Foreach-Object { $_.Session = $null }
 
         ExportConfiguration -InputObject $export 3>$null
 
