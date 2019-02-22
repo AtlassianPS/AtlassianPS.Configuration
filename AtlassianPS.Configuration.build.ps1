@@ -41,18 +41,23 @@ task Init { Invoke-Init }
 
 # Synopsis: Get the next version for the build
 task GetNextVersion {
-        $env:CurrentOnlineVersion = [Version](Find-Module -Name $env:BHProjectName).Version
     $manifestVersion = [Version](Get-Metadata -Path $env:BHPSModuleManifest)
+    try {
+        $env:CurrentOnlineVersion = [Version](Find-Module -Name $env:BHProjectName).Version
         $nextOnlineVersion = Get-NextNugetPackageVersion -Name $env:BHProjectName
 
         if ( ($manifestVersion.Major -gt $nextOnlineVersion.Major) -or
-        ($manifestVersion.Minor -gt $nextOnlineVersion.Minor)
-        # -or ($manifestVersion.Build -gt $nextOnlineVersion.Build)
-    ) {
-        $env:NextBuildVersion = [Version]::New($manifestVersion.Major, $manifestVersion.Minor, 0)
+            ($manifestVersion.Minor -gt $nextOnlineVersion.Minor)
+            # -or ($manifestVersion.Build -gt $nextOnlineVersion.Build)
+        ) {
+            $env:NextBuildVersion = [Version]::New($manifestVersion.Major, $manifestVersion.Minor, 0)
+        }
+        else {
+            $env:NextBuildVersion = $nextOnlineVersion
+        }
     }
-    else {
-        $env:NextBuildVersion = $nextOnlineVersion
+    catch {
+        $env:NextBuildVersion = $manifestVersion
     }
 }
 #endregion Setup
@@ -104,10 +109,10 @@ task ShowInfo Init, GetNextVersion, {
 
 #region BuildRelease
 # Synopsis: Build a shippable release
-task Build Init, GenerateRelease, UpdateManifest, CompileModule
+task Build Init, GenerateExternalHelp, CopyModuleFiles, UpdateManifest, CompileModule, PrepareTests
 
 # Synopsis: Generate ./Release structure
-task GenerateRelease GenerateExternalHelp, {
+task CopyModuleFiles {
     # Setup
     if (-not (Test-Path "$env:BHBuildOutput/$env:BHProjectName")) {
         $null = New-Item -Path "$env:BHBuildOutput/$env:BHProjectName" -ItemType Directory
@@ -121,17 +126,19 @@ task GenerateRelease GenerateExternalHelp, {
         "$env:BHProjectPath/LICENSE"
         "$env:BHProjectPath/README.md"
     ) -Destination "$env:BHBuildOutput/$env:BHProjectName" -Force
-    # Copy Tests
-    Copy-Item -Path "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" -Destination $env:BHBuildOutput -Force
+}
+
+# Synopsis: Prepare tests for ./Release
+task PrepareTests Init, {
     $null = New-Item -Path "$env:BHBuildOutput/Tests" -ItemType Directory -ErrorAction SilentlyContinue
     Copy-Item -Path "$env:BHProjectPath/Tests" -Destination $env:BHBuildOutput -Recurse -Force
-    # Remove all execptions from PSScriptAnalyzer
-    BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/PSScriptAnalyzerSettings.psd1" -PropertyName ExcludeRules -Value ''
+    Copy-Item -Path "$env:BHProjectPath/Tools" -Destination $env:BHBuildOutput -Recurse -Force
+    Copy-Item -Path "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" -Destination $env:BHBuildOutput -Force
 }
 
 # Synopsis: Compile all functions into the .psm1 file
-task CompileModule {
-    $regionsToKeep = @('Dependencies', 'ModuleConfig')
+task CompileModule Init, {
+    $regionsToKeep = @('Dependencies', 'Configuration')
 
     $targetFile = "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psm1"
     $content = Get-Content -Encoding UTF8 -LiteralPath $targetFile
@@ -166,7 +173,7 @@ task CompileModule {
 }
 
 # Synopsis: Use PlatyPS to generate External-Help
-task GenerateExternalHelp {
+task GenerateExternalHelp Init, {
     Import-Module platyPS -Force
     foreach ($locale in (Get-ChildItem "$env:BHProjectPath/docs" -Attribute Directory)) {
         New-ExternalHelp -Path "$($locale.FullName)" -OutputPath "$env:BHModulePath/$($locale.Basename)" -Force
@@ -181,9 +188,6 @@ task UpdateManifest GetNextVersion, {
     Import-Module $env:BHPSModuleManifest -Force
     $ModuleAlias = @(Get-Alias | Where-Object {$_.ModuleName -eq "$env:BHProjectName"})
 
-    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-    Import-Module $env:BHProjectName -Force
-
     BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -PropertyName ModuleVersion -Value $env:NextBuildVersion
     # BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -PropertyName FileList -Value (Get-ChildItem "$env:BHBuildOutput/$env:BHProjectName" -Recurse).Name
     BuildHelpers\Set-ModuleFunctions -Name "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -FunctionsToExport ([string[]](Get-ChildItem "$env:BHBuildOutput/$env:BHProjectName/Public/*.ps1").BaseName)
@@ -194,7 +198,9 @@ task UpdateManifest GetNextVersion, {
 }
 
 # Synopsis: Create a ZIP file with this build
-task Package GenerateRelease, {
+task Package Init, {
+    Assert-True { Test-Path "$env:BHBuildOutput\$env:BHProjectName" } "Missing files to package"
+
     Remove-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction SilentlyContinue
     $null = Compress-Archive -Path "$env:BHBuildOutput\$env:BHProjectName" -DestinationPath "$env:BHBuildOutput\$env:BHProjectName.zip"
 }
@@ -206,13 +212,13 @@ task Test Init, {
 
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
 
-    $params = @{
+    <# $params = @{
         Path    = "$env:BHBuildOutput/$env:BHProjectName"
         Include = '*.ps1', '*.psm1'
         Recurse = $True
-        # Exclude = $CodeCoverageExclude
+        Exclude = $CodeCoverageExclude
     }
-    $codeCoverageFiles = Get-ChildItem @params
+    $codeCoverageFiles = Get-ChildItem @params #>
 
     try {
         $parameter = @{
@@ -227,16 +233,12 @@ task Test Init, {
         }
         $testResults = Invoke-Pester @parameter
 
-        if ('AppVeyor' -eq $env:BHBuildSystem) {
-            BuildHelpers\Add-TestResultToAppveyor -TestFile $parameter["OutputFile"]
-        }
-
         Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) Pester test(s) failed."
     }
     catch {
         throw $_
     }
-}, RemoveTestResults, { Init }
+}, { Init }
 #endregion
 
 #region Publish
@@ -255,43 +257,33 @@ task PublishToGallery {
 
 # Synopsis: push a tag with the version to the git repository
 task TagReplository GetNextVersion, Package, {
-    Assert-True (-not [String]::IsNullOrEmpty($GithubAccessToken)) "No key for the PSGallery"
-
     $releaseText = "Release version $env:NextBuildVersion"
 
     # Push a tag to the repository
     Write-Build Gray "git checkout $ENV:BHBranchName"
     cmd /c "git checkout $ENV:BHBranchName 2>&1"
 
-    Write-Build Gray "git tag -a v$env:NextBuildVersion"
-    cmd /c "git tag -a v$env:NextBuildVersion 2>&1 -m `"$releaseText`""
+    Write-Build Gray "git tag -a v$env:NextBuildVersion -m `"$releaseText`""
+    cmd /c "git tag -a v$env:NextBuildVersion -m `"$releaseText`" 2>&1"
 
     Write-Build Gray "git push origin v$env:NextBuildVersion"
     cmd /c "git push origin v$env:NextBuildVersion 2>&1"
 
-    # Publish a release on github for the tag above
-    $releaseResponse = Publish-GithubRelease -GITHUB_ACCESS_TOKEN $GithubAccessToken -ReleaseText $releaseText -NextBuildVersion $env:NextBuildVersion
-
-    # Upload the package of the version to the release
-    $packageFile = Get-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction Stop
-    $uploadURI = $releaseResponse.upload_url -replace "\{\?name,label\}", "?name=$($packageFile.Name)"
-    $null = Publish-GithubReleaseArtifact -GITHUB_ACCESS_TOKEN $GithubAccessToken -Uri $uploadURI -Path $packageFile
+    Write-Build Gray "Publish v$env:NextBuildVersion as a GitHub release"
+    $release = @{
+        AccessToken     = $GithubAccessToken
+        TagName         = "v$env:NextBuildVersion"
+        Name            = "Version $env:NextBuildVersion"
+        ReleaseText     = $releaseText
+        RepositoryOwner = "AtlassianPS"
+        Artifact        = "$env:BHBuildOutput\$env:BHProjectName.zip"
+    }
+    Publish-GithubRelease @release
 }
 
 # Synopsis: Update the version of this module that the homepage uses
 task UpdateHomepage {
     try {
-        Add-Content (Join-Path $Home ".git-credentials") "https://$GithubAccessToken:x-oauth-basic@github.com`n"
-
-        Write-Build Gray "git config --global credential.helper `"store --file ~/.git-credentials`""
-        git config --global credential.helper "store --file ~/.git-credentials"
-
-        Write-Build Gray "git config --global user.email `"support@atlassianps.org`""
-        git config --global user.email "support@atlassianps.org"
-
-        Write-Build Gray "git config --global user.name `"AtlassianPS automation`""
-        git config --global user.name "AtlassianPS automation"
-
         Write-Build Gray "git close .../AtlassianPS.github.io --recursive"
         $null = cmd /c "git clone https://github.com/AtlassianPS/AtlassianPS.github.io --recursive 2>&1"
 
@@ -332,7 +324,7 @@ task RemoveGeneratedFiles {
 
 # Synopsis: Remove Pester results
 task RemoveTestResults {
-    Remove-Item "TestResult.xml" -Force -ErrorAction SilentlyContinue
+    Remove-Item "Test-*.xml" -Force -ErrorAction SilentlyContinue
 }
 #endregion
 
