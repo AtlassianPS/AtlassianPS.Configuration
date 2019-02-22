@@ -1,4 +1,5 @@
-#requires -Modules InvokeBuild
+#requires -modules BuildHelpers
+#requires -modules InvokeBuild
 
 [CmdletBinding()]
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
@@ -29,60 +30,22 @@ catch { }
 Set-StrictMode -Version Latest
 
 Import-Module "$PSScriptRoot/Tools/BuildTools.psm1" -Force -ErrorAction Stop
-Import-Module "$PSScriptRoot/Tools/AppVeyor.psm1" -Force -ErrorAction Stop
+Import-Module BuildHelpers -Force -ErrorAction Stop
 
-if ($BuildTask -notin @("SetUp", "InstallDependencies")) {
-    Import-Module BuildHelpers -Force -ErrorAction Stop
-    Invoke-Init
-}
-if ('AppVeyor' -eq $env:BHBuildSystem) {
-    $project = Get-AppVeyorProject
-}
-
-$shouldDeploy = (
-    # only deploy master branch
-    ('master' -eq $env:BHBranchName) -and
-    # it cannot be a PR
-    # ( -not $env:APPVEYOR_PULL_REQUEST_NUMBER) -and
-    # only deploy from AppVeyor
-    ('VSTS' -eq $env:BHBuildSystem) -and
-    # must be last job of AppVeyor
-    # (Test-IsLastJob) -and
-    # Travis-CI must be finished (if used)
-    # TODO: ( -not Test-TravisProgress) -and
-    # it cannot have a commit message that contains "skip-deploy"
-    ($env:BHCommitMessage -notlike '*skip-deploy*')
-)
 
 #region SetUp
+Invoke-Init
+
 # Synopsis: Proxy task
 task Init { Invoke-Init }
 
-# Synopsis: Create an initial environment for developing on the module
-task SetUp InstallDependencies, Build
-
-# Synopsis: Install all module used for the development of this module
-task InstallDependencies {
-    Install-PSDepend
-    Import-Module PSDepend -Force
-    $parameterPSDepend = @{
-        Path        = "$PSScriptRoot/Tools/build.requirements.psd1"
-        Install     = $true
-        Import      = $false
-        Force       = $true
-        ErrorAction = "Stop"
-    }
-    $null = Invoke-PSDepend @parameterPSDepend
-    Import-Module BuildHelpers -Force
-}
-
 # Synopsis: Get the next version for the build
 task GetNextVersion {
-    $env:CurrentOnlineVersion = [Version](Find-Module -Name $env:BHProjectName).Version
+        $env:CurrentOnlineVersion = [Version](Find-Module -Name $env:BHProjectName).Version
     $manifestVersion = [Version](Get-Metadata -Path $env:BHPSModuleManifest)
-    $nextOnlineVersion = Get-NextNugetPackageVersion -Name $env:BHProjectName
+        $nextOnlineVersion = Get-NextNugetPackageVersion -Name $env:BHProjectName
 
-    if ( ($manifestVersion.Major -gt $nextOnlineVersion.Major) -or
+        if ( ($manifestVersion.Major -gt $nextOnlineVersion.Major) -or
         ($manifestVersion.Minor -gt $nextOnlineVersion.Minor)
         # -or ($manifestVersion.Build -gt $nextOnlineVersion.Build)
     ) {
@@ -130,7 +93,6 @@ task ShowInfo Init, GetNextVersion, {
     Write-Build Gray ('Commit:                     {0}' -f $env:BHCommitMessage)
     Write-Build Gray ('Build #:                    {0}' -f $env:BHBuildNumber)
     Write-Build Gray ('Next Version:               {0}' -f $env:NextBuildVersion)
-    Write-Build Gray ('Will deploy new version?    {0}' -f $shouldDeploy)
     Write-Build Gray '-------------------------------------------------------'
     Write-Build Gray
     Write-Build Gray ('PowerShell version:         {0}' -f $PSVersionTable.PSVersion.ToString())
@@ -279,7 +241,7 @@ task Test Init, {
 
 #region Publish
 # Synopsis: Publish a new release on github and the PSGallery
-task Deploy -If ($shouldDeploy) Init, PublishToGallery, TagReplository, UpdateHomepage
+task Deploy Init, PublishToGallery, TagReplository, UpdateHomepage
 
 # Synpsis: Publish the $release to the PSGallery
 task PublishToGallery {
