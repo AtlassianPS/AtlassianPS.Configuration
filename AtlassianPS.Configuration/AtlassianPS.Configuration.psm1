@@ -24,15 +24,6 @@ Add-MetadataConverter @{
     }
 }
 
-# Load configuration using
-# https://github.com/PoshCode/Configuration
-[Hashtable]$script:Configuration = Import-Configuration -CompanyName "AtlassianPS" -Name "AtlassianPS.Configuration"
-if (-not $script:Configuration) { $script:Configuration = @{} }
-if (-not $script:Configuration.ContainsKey("ServerList")) {
-    $script:Configuration.Add("ServerList",[System.Collections.Generic.List[AtlassianPS.ServerData]]::new())
-}
-#endregion ModuleConfig
-
 #region LoadFunctions
 $PublicFunctions = @( Get-ChildItem -Path "$PSScriptRoot/Public/*.ps1" -ErrorAction SilentlyContinue )
 $PrivateFunctions = @( Get-ChildItem -Path "$PSScriptRoot/Private/*.ps1" -ErrorAction SilentlyContinue )
@@ -55,3 +46,12 @@ foreach ($file in @($PublicFunctions + $PrivateFunctions)) {
 }
 Export-ModuleMember -Function $PublicFunctions.BaseName -Alias *
 #endregion LoadFunctions
+
+# Load configuration using
+# https://github.com/PoshCode/Configuration
+[Hashtable]$script:Configuration = Import-Configuration -CompanyName "AtlassianPS" -Name "AtlassianPS.Configuration"
+if (-not $script:Configuration) { $script:Configuration = @{} }
+if (-not $script:Configuration.ContainsKey("ServerList")) {
+    $script:Configuration.Add("ServerList",[System.Collections.Generic.List[AtlassianPS.ServerData]]::new())
+}
+#endregion ModuleConfig

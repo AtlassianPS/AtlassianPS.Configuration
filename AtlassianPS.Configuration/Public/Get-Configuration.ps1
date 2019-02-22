@@ -42,9 +42,9 @@ function Get-Configuration {
         $data = @{}
 
         foreach ($_name in $Name) {
+            Write-Verbose "Filtering for [name = $_name]"
             foreach ($key in ($script:Configuration.Keys | Where-Object { $_ -like $_name })) {
-                Write-Verbose "Filtering for [name = $key]"
-
+                Write-DebugMessage "Found [key = $key]"
                 $data[$key] = $script:Configuration[$key]
             }
         }
