@@ -1,30 +1,12 @@
 #requires -modules BuildHelpers
 #requires -modules Pester
 
-Describe "Validation of example codes in the documentation" -Tag Documentation {
+Describe "Validation of example codes in the documentation" -Tag Documentation, Build {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+        Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -force
+        Invoke-InitTest $PSScriptRoot
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
 
         # backup current configuration
@@ -41,12 +23,10 @@ Describe "Validation of example codes in the documentation" -Tag Documentation {
             Save-Configuration
         }
 
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+        Invoke-TestCleanup
     }
 
-    Assert-True $script:isBuild "Examples can only be tested in the build environment. Please run `Invoke-Build -Task Build`."
+    Assert-True { $env:BHisBuild } "Examples can only be tested in the build environment. Please run `Invoke-Build -Task Build`."
 
     #region Mocks
     Mock Invoke-WebRequest { }

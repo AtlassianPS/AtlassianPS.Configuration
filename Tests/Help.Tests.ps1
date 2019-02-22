@@ -1,36 +1,16 @@
 #requires -modules BuildHelpers
 #requires -modules Pester
 
-Describe "Help tests" -Tag Documentation {
+Describe "Help tests" -Tag Documentation, Build {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+        Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -force
+        Invoke-InitTest $PSScriptRoot
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
     }
     AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+        Invoke-TestCleanup
     }
 
     $DefaultParams = @(
@@ -61,7 +41,7 @@ Describe "Help tests" -Tag Documentation {
     It "has an About Help for the module" {
         $abouts | Where-Object {$_.Name -eq "about_$env:BHProjectName.md"} | Should -Not -BeNullOrEmpty
 
-        if ($script:isBuild) {
+        if ($env:BHisBuild) {
             Test-Path "$env:BHBuildOutput/$env:BHProjectName/en-US/about_$env:BHProjectName.help.txt" | Should -Be $true
         }
     }
@@ -83,7 +63,7 @@ Describe "Help tests" -Tag Documentation {
                 $markdownFile | Should -FileContentMatch "online version: https://atlassianps.org/docs/$env:BHProjectName*"
             }
 
-            if ($script:isBuild) {
+            if ($env:BHisBuild) {
                 @(Get-Help $about.BaseName).Count | Should -BeGreaterOrEqual 1
             }
         }

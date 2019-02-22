@@ -1,5 +1,5 @@
 @{
     Severity=@('Error','Warning')
     # IncludeRules = @()
-    ExcludeRules = @()
+    # ExcludeRules = @()
 }

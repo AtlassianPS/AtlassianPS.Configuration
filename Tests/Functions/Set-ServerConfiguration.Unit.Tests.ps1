@@ -1,37 +1,16 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
-
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
 
 Describe "Set-ServerConfiguration" -Tag Unit {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
+        Invoke-InitTest $PSScriptRoot
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
     }
     AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+        Invoke-TestCleanup
     }
 
     InModuleScope $env:BHProjectName {
@@ -50,45 +29,38 @@ Describe "Set-ServerConfiguration" -Tag Unit {
 
             $command = Get-Command -Name Set-ServerConfiguration
 
-            It "has a [String] -Name parameter" {
-                $command.Parameters.ContainsKey("Name")
-                $command.Parameters["Name"].ParameterType | Should -Be "String"
+            It "has a mandatory parameter 'Id' of type [UInt32]" {
+                $command | Should -HaveParameter "Id" -Mandatory -Type [UInt32]
             }
 
-            It "has an alias -ServerName for -Name" {
-                $command.Parameters["Name"].Aliases | Should -Contain "ServerName"
+            It "has a parameter 'Name' of type [String]" {
+                $command | Should -HaveParameter "Name" -Type [String]
             }
 
-            It "has an alias -Alias for -name" {
-                $command.Parameters["Name"].Aliases | Should -Contain "Alias"
+            It "has a parameter 'Uri' of type [Uri]" {
+                $command | Should -HaveParameter "Uri" -Type [Uri]
             }
 
-            It "has a [Uri] -Uri parameter" {
-                $command.Parameters.ContainsKey('Uri')
-                $command.Parameters["Uri"].ParameterType | Should -Be "Uri"
+            It "has a parameter 'Type' of type [AtlassianPS.ServerType]" {
+                $command | Should -HaveParameter "Type" -Type [AtlassianPS.ServerType]
             }
 
-            It "has an alias -Address for -Uri" {
-                $command.Parameters["Uri"].Aliases | Should -Contain "Address"
+            It "has a parameter 'Session' of type [Microsoft.PowerShell.Commands.WebRequestSession]" {
+                $command | Should -HaveParameter "Session" -Type [Microsoft.PowerShell.Commands.WebRequestSession]
             }
 
-            It "has an alias Url for -Uri" {
-                $command.Parameters["Uri"].Aliases | Should -Contain "Url"
+            It "has a parameter 'Headers' of type [Hashtable]" {
+                $command | Should -HaveParameter "Headers" -Type [Hashtable]
             }
 
-            It "has a [AtlassianPS.ServerType] -Type parameter" {
-                $command.Parameters.ContainsKey('Type')
-                $command.Parameters["Type"].ParameterType | Should -Be "AtlassianPS.ServerType"
-            }
-
-            It "has a [Microsoft.PowerShell.Commands.WebRequestSession] -Session parameter" {
-                $command.Parameters.ContainsKey('Session')
-                $command.Parameters["Session"].ParameterType | Should -Be "Microsoft.PowerShell.Commands.WebRequestSession"
-            }
-
-            It "has a [Hashtable] -Headers parameter" {
-                $command.Parameters.ContainsKey('Headers')
-                $command.Parameters["Headers"].ParameterType | Should -Be "Hashtable"
+            It "has an alias '<alias>' for parameter '<parameter>'" -TestCases @(
+                @{ParameterName = "Uri"; AliasName = "Address"}
+                @{ParameterName = "Uri"; AliasName = "Url"}
+                @{ParameterName = "Name"; AliasName = "ServerName"}
+                @{ParameterName = "Name"; AliasName = "Alias"}
+            ) {
+                param($ParameterName, $AliasName)
+                $command.Parameters[$ParameterName].Aliases | Should -Contain $AliasName
             }
 
         }
@@ -150,7 +122,7 @@ Describe "Set-ServerConfiguration" -Tag Unit {
             }
 
             It "does not change the number of entries" {
-                @(Get-ServerConfiguration).Count | Should -Be 2
+                Get-ServerConfiguration | Should -HaveCount 2
 
                 Set-ServerConfiguration -Id 1 -Name "New Server"
                 1 | Set-ServerConfiguration -Name "New Server"
@@ -158,7 +130,7 @@ Describe "Set-ServerConfiguration" -Tag Unit {
                     Where-Object Id -eq 1 |
                     Set-ServerConfiguration -Name "New Server"
 
-                @(Get-ServerConfiguration).Count | Should -Be 2
+                Get-ServerConfiguration | Should -HaveCount 2
             }
 
             It "writes an error if the index does not exist" {
@@ -221,7 +193,7 @@ Describe "Set-ServerConfiguration" -Tag Unit {
             }
 
             It "only allowed AtlassianPS server types" {
-                @(Get-ServerConfiguration).Count | Should -Be 2
+                Get-ServerConfiguration | Should -HaveCount 2
 
                 { Set-ServerConfiguration -Id 1 -Name "Bitbucket" -Uri "https://atlassianps.org" -Type Bitbucket } | Should -Not -Throw
                 { Set-ServerConfiguration -Id 1 -Name "Confluence" -Uri "https://atlassianps.org" -Type Confluence } | Should -Not -Throw
@@ -232,7 +204,7 @@ Describe "Set-ServerConfiguration" -Tag Unit {
                 { Set-ServerConfiguration -Id 1 -Name "None" -Uri "https://atlassianps.org" -Type "" } | Should -Throw
                 { Set-ServerConfiguration -Id 1 -Name "Github" -Uri "https://atlassianps.org" -Type Github } | Should -Throw
 
-                @(Get-ServerConfiguration).Count | Should -Be 2
+                Get-ServerConfiguration | Should -HaveCount 2
             }
 
             It "can change the WebSession" {

@@ -1,37 +1,16 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
-
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
 
 Describe "Set-Configuration" -Tag Unit {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
+        Invoke-InitTest $PSScriptRoot
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
     }
     AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+        Invoke-TestCleanup
     }
 
     InModuleScope $env:BHProjectName {
@@ -63,24 +42,20 @@ Describe "Set-Configuration" -Tag Unit {
         Context "Sanity checking" {
             $command = Get-Command -Name Set-Configuration
 
-            It "has a [String] -Name parameter" {
-                $command.Parameters.ContainsKey("Name")
-                $command.Parameters["Name"].ParameterType | Should -Be "String"
+            It "has a mandatory parameter 'Name' of type [String] with ArgumentCompleter" {
+                $command | Should -HaveParameter "Name" -Mandatory -Type [String] -HasArgumentCompleter
             }
 
-            It "has a [Object] -Value parameter" {
-                $command.Parameters.ContainsKey("Value")
-                $command.Parameters["Value"].ParameterType | Should -Be "System.Object"
+            It "has a parameter 'Value' of type [Object]" {
+                $command | Should -HaveParameter "Value" -Type [System.Object]
             }
 
-            It "has a [Switch] -Append parameter" {
-                $command.Parameters.ContainsKey("Append")
-                $command.Parameters["Append"].ParameterType | Should -Be "Switch"
+            It "has a parameter 'Append' of type [Switch]" {
+                $command | Should -HaveParameter "Append" -Type [Switch]
             }
 
-            It "has a [Switch] -Passthru parameter" {
-                $command.Parameters.ContainsKey("Passthru")
-                $command.Parameters["Passthru"].ParameterType | Should -Be "Switch"
+            It "has a parameter 'Passthru' of type [Switch]" {
+                $command | Should -HaveParameter 'Passthru' -Type [Switch]
             }
         }
 
@@ -112,59 +87,59 @@ Describe "Set-Configuration" -Tag Unit {
             #endregion Arrange
 
             It "adds a new entry if it didn't exist before" {
-                @(Get-Configuration).Count | Should -Be 4
+                Get-Configuration | Should -HaveCount 4
                 (Get-Configuration | Where-Object Name -eq "StringValue").Value | Should -BeNullOrEmpty
 
                 Set-Configuration -Name "StringValue" -Value "Lorem Ipsum"
 
-                @(Get-Configuration).Count | Should -Be 5
+                Get-Configuration | Should -HaveCount 5
                 (Get-Configuration | Where-Object Name -eq "StringValue").Value | Should -Not -BeNullOrEmpty
             }
 
             It "overwrite an entry in case in existed before" {
-                @(Get-Configuration).Count | Should -Be 4
+                Get-Configuration | Should -HaveCount 4
                 (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Not -BeNullOrEmpty
 
                 Set-Configuration -Name "Foo" -Value "New Value"
 
-                @(Get-Configuration).Count | Should -Be 4
+                Get-Configuration | Should -HaveCount 4
                 (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Not -BeNullOrEmpty
             }
 
             It "appends a value to an entry" {
-                @(Get-Configuration).Count | Should -Be 4
+                Get-Configuration | Should -HaveCount 4
                 (Get-Configuration | Where-Object Name -eq "Bar").Value | Should -Be 42
 
                 Set-Configuration -Name "Bar" -Value 100 -Append
 
-                @(Get-Configuration).Count | Should -Be 4
+                Get-Configuration | Should -HaveCount 4
                 (Get-Configuration | Where-Object Name -eq "Bar").Value | Should -Contain 42
                 (Get-Configuration | Where-Object Name -eq "Bar").Value | Should -Contain 100
             }
 
             It "allows value to be passed over pipeline for a new entry" {
-                @(Get-Configuration).Count | Should -Be 4
+                Get-Configuration | Should -HaveCount 4
                 (Get-Configuration | Where-Object Name -eq "NewKey").Value | Should -BeNullOrEmpty
                 (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Be "lorem ipsum"
 
                 Get-Configuration -Name "Foo" | Set-Configuration -Name "NewKey"
 
-                @(Get-Configuration).Count | Should -Be 5
+                Get-Configuration | Should -HaveCount 5
                 (Get-Configuration | Where-Object Name -eq "NewKey").Value | Should -Be "lorem ipsum"
             }
 
             It "allows value to be passed over pipeline for an existing entry" {
-                @(Get-Configuration).Count | Should -Be 4
+                Get-Configuration | Should -HaveCount 4
                 (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Be "lorem ipsum"
 
                 Get-Configuration -Name "Foo" | Set-Configuration -Value "New Value"
 
-                @(Get-Configuration).Count | Should -Be 4
+                Get-Configuration | Should -HaveCount 4
                 (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Be "New Value"
             }
 
             It "allows to set the value to null" {
-                @(Get-Configuration).Count | Should -Be 4
+                Get-Configuration | Should -HaveCount 4
                 (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Be "lorem ipsum"
                 (Get-Configuration | Where-Object Name -eq "Bar").Value | Should -Be 42
 

@@ -1,37 +1,16 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
-
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
 
 Describe "Get-ServerConfiguration" -Tag Unit {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
+        Invoke-InitTest $PSScriptRoot
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
     }
     AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+        Invoke-TestCleanup
     }
 
     InModuleScope $env:BHProjectName {
@@ -49,32 +28,23 @@ Describe "Get-ServerConfiguration" -Tag Unit {
 
             $command = Get-Command -Name Get-ServerConfiguration
 
-            It "has a [String[]] -Name parameter" {
-                $command.Parameters.ContainsKey("Name")
-                $command.Parameters["Name"].ParameterType | Should -Be "String[]"
+            It "has a mandatory parameter 'Name' of type [String[]] with ArgumentCompleter" {
+                $command | Should -HaveParameter "Name" -Mandatory -Type [String[]] -HasArgumentCompleter
             }
 
-            It "has an alias -Name for -name" {
-                $command.Parameters["Name"].Aliases | Should -Contain "ServerName"
+            It "has a mandatory parameter 'Uri' of type [Uri] with ArgumentCompleter" {
+                $command | Should -HaveParameter "Uri" -Mandatory -Type [Uri] -HasArgumentCompleter
             }
 
-            It "has an alias -Alias for -name" {
-                $command.Parameters["Name"].Aliases | Should -Contain "Alias"
+            It "has an alias '<alias>' for parameter '<parameter>'" -TestCases @(
+                @{ParameterName = "Uri"; AliasName = "Address"}
+                @{ParameterName = "Uri"; AliasName = "Url"}
+                @{ParameterName = "Name"; AliasName = "ServerName"}
+                @{ParameterName = "Name"; AliasName = "Alias"}
+            ) {
+                param($ParameterName, $AliasName)
+                $command.Parameters[$ParameterName].Aliases | Should -Contain $AliasName
             }
-
-            It "has a [Uri] -Uri parameter" {
-                $command.Parameters.ContainsKey('Uri')
-                $command.Parameters["Uri"].ParameterType | Should -Be "Uri"
-            }
-
-            It "has an alias -Address for -Uri" {
-                $command.Parameters["Uri"].Aliases | Should -Contain "Address"
-            }
-
-            It "has an alias Url for -Uri" {
-                $command.Parameters["Uri"].Aliases | Should -Contain "Url"
-            }
-
         }
 
         Context "Behavior checking" {
@@ -107,7 +77,7 @@ Describe "Get-ServerConfiguration" -Tag Unit {
             It "retrieves all ServerData" {
                 $config = Get-ServerConfiguration -ErrorAction SilentlyContinue
 
-                @($config).Count | Should -Be 2
+                $config | Should -HaveCount 2
                 $config | Should -BeOfType [AtlassianPS.ServerData]
                 $config.Name | Should -Be @("Google", "Google with Session")
                 $config.Uri | Should -Be @("https://google.com/", "https://google.com/")
@@ -120,21 +90,21 @@ Describe "Get-ServerConfiguration" -Tag Unit {
             It "filters the results by ServerName" {
                 $config = Get-ServerConfiguration -Name "Google" -ErrorAction SilentlyContinue
 
-                @($config).Count | Should -Be 1
+                $config | Should -HaveCount 1
                 $config | Should -BeOfType [AtlassianPS.ServerData]
             }
 
             It "filters the results by multiple ServerNames" {
                 $config = Get-ServerConfiguration -Name "Google", "Google with Session" -ErrorAction SilentlyContinue
 
-                @($config).Count | Should -Be 2
+                $config | Should -HaveCount 2
                 $config | Should -BeOfType [AtlassianPS.ServerData]
             }
 
             It "accepts names over the pipeline" {
                 $config = "Google", "Google with Session" | Get-ServerConfiguration -ErrorAction SilentlyContinue
 
-                @($config).Count | Should -Be 2
+                $config | Should -HaveCount 2
                 $config | Should -BeOfType [AtlassianPS.ServerData]
             }
 
@@ -144,33 +114,33 @@ Describe "Get-ServerConfiguration" -Tag Unit {
                 }
                 $config = $objects | Get-ServerConfiguration -ErrorAction SilentlyContinue
 
-                @($config).Count | Should -Be 1
+                $config | Should -HaveCount 1
                 $config | Should -BeOfType [AtlassianPS.ServerData]
             }
 
             It "does not allow for wildcards when filtering by ServerName" {
                 $config = Get-ServerConfiguration -Name "Google*" -ErrorAction SilentlyContinue
 
-                @($config).Count | Should -Be 0
+                $config | Should -HaveCount 0
             }
 
             It "is not case sensitive when filtering by ServerName" {
                 $config = Get-ServerConfiguration -Name "google" -ErrorAction SilentlyContinue
 
-                @($config).Count | Should -Be 1
+                $config | Should -HaveCount 1
             }
 
             It "filters the results by Uri" {
                 $config = Get-ServerConfiguration -Uri "https://google.com" -ErrorAction SilentlyContinue
 
-                @($config).Count | Should -Be 2
+                $config | Should -HaveCount 2
                 $config | Should -BeOfType [AtlassianPS.ServerData]
             }
 
             It "is not case sensitive when filtering by Uri" {
                 $config = Get-ServerConfiguration -Uri "https://GOOGLE.com" -ErrorAction SilentlyContinue
 
-                @($config).Count | Should -Be 2
+                $config | Should -HaveCount 2
                 $config | Should -BeOfType [AtlassianPS.ServerData]
             }
             It "allows for wildcards when filtering by Uri - but not any wildcard" {

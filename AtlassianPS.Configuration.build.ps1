@@ -109,7 +109,7 @@ task ShowInfo Init, GetNextVersion, {
 
 #region BuildRelease
 # Synopsis: Build a shippable release
-task Build Init, GenerateExternalHelp, CopyModuleFiles, UpdateManifest, CompileModule, PrepareTests
+task Build Init, Clean, GenerateExternalHelp, CopyModuleFiles, UpdateManifest, CompileModule, PrepareTests
 
 # Synopsis: Generate ./Release structure
 task CopyModuleFiles {
@@ -138,32 +138,35 @@ task PrepareTests Init, {
 
 # Synopsis: Compile all functions into the .psm1 file
 task CompileModule Init, {
-    $regionsToKeep = @('Dependencies', 'Configuration')
+    $PublicFunctions = @( Get-ChildItem -Path "$env:BHBuildOutput/$env:BHProjectName/Public/*.ps1" -ErrorAction SilentlyContinue )
+    $PrivateFunctions = @( Get-ChildItem -Path "$env:BHBuildOutput/$env:BHProjectName/Private/*.ps1" -ErrorAction SilentlyContinue )
+
 
     $targetFile = "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psm1"
     $content = Get-Content -Encoding UTF8 -LiteralPath $targetFile
-    $capture = $false
+    $capture = $true
     $compiled = ""
 
     foreach ($line in $content) {
-        if ($line -match "^#region ($($regionsToKeep -join "|"))$") {
-            $capture = $true
-        }
-        if (($capture -eq $true) -and ($line -match "^#endregion")) {
+
+        if ($line -eq "#region LoadFunctions") {
             $capture = $false
+
+            $compiled += "#region LoadFunctions`r`n"
+            foreach ($function in @($PublicFunctions + $PrivateFunctions)) {
+                $compiled += "#region $($function.BaseName)`r`n"
+                $compiled += (Get-Content -Path $function.FullName -Raw)
+                $compiled += "#endregion $($function.BaseName)`r`n"
+                $compiled += "`r`n"
+            }
+        }
+        if ($line -eq "#endregion LoadFunctions") {
+            $capture = $true
         }
 
         if ($capture) {
             $compiled += "$line`r`n"
         }
-    }
-
-    $PublicFunctions = @( Get-ChildItem -Path "$env:BHBuildOutput/$env:BHProjectName/Public/*.ps1" -ErrorAction SilentlyContinue )
-    $PrivateFunctions = @( Get-ChildItem -Path "$env:BHBuildOutput/$env:BHProjectName/Private/*.ps1" -ErrorAction SilentlyContinue )
-
-    foreach ($function in @($PublicFunctions + $PrivateFunctions)) {
-        $compiled += (Get-Content -Path $function.FullName -Raw)
-        $compiled += "`r`n"
     }
 
     Set-Content -LiteralPath $targetFile -Value $compiled -Encoding UTF8 -Force

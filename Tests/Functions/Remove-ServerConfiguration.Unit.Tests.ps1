@@ -1,37 +1,16 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
-
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
 
 Describe "Remove-ServerConfiguration" -Tag Unit {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
+        Invoke-InitTest $PSScriptRoot
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
     }
     AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+        Invoke-TestCleanup
     }
 
     InModuleScope $env:BHProjectName {
@@ -49,17 +28,16 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
         Context "Sanity checking" {
             $command = Get-Command -Name Remove-ServerConfiguration
 
-            It "has a [String[]] -Name parameter" {
-                $command.Parameters.ContainsKey("Name")
-                $command.Parameters["Name"].ParameterType | Should -Be "String[]"
+            It "has a mandatory parameter 'Name' of type [String[]] with ArgumentCompleter" {
+                $command | Should -HaveParameter "Name" -Mandatory -Type [String[]] -HasArgumentCompleter
             }
 
-            It "has an alias -ServerName for -Name" {
-                $command.Parameters["Name"].Aliases | Should -Contain "ServerName"
-            }
-
-            It "has an alias -Alias for -Name" {
-                $command.Parameters["Name"].Aliases | Should -Contain "Alias"
+            It "has an alias '<alias>' for parameter '<parameter>'" -TestCases @(
+                @{ParameterName = "Name"; AliasName = "ServerName"}
+                @{ParameterName = "Name"; AliasName = "Alias"}
+            ) {
+                param($ParameterName, $AliasName)
+                $command.Parameters[$ParameterName].Aliases | Should -Contain $AliasName
             }
         }
 
@@ -91,15 +69,15 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
             #endregion Arrange
 
             It "removes one entry of the servers" {
-                @(Get-ServerConfiguration).Count | Should -Be 2
+                Get-ServerConfiguration | Should -HaveCount 2
 
                 Remove-ServerConfiguration -Name "Google"
 
-                @(Get-ServerConfiguration).Count | Should -Be 1
+                Get-ServerConfiguration | Should -HaveCount 1
             }
 
             It "removes multiple entries of the servers" {
-                @(Get-ServerConfiguration).Count | Should -Be 2
+                Get-ServerConfiguration | Should -HaveCount 2
 
                 Remove-ServerConfiguration -Name "Google", "Google with Session"
 
@@ -107,7 +85,7 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
             }
 
             It "accepts an object over the pipeline" {
-                @(Get-ServerConfiguration).Count | Should -Be 2
+                Get-ServerConfiguration | Should -HaveCount 2
                 (Get-ServerConfiguration).Name | Should -Contain "Google"
                 (Get-ServerConfiguration).Name | Should -Contain "Google with Session"
 
@@ -117,7 +95,7 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
             }
 
             It "accepts strings over the pipeline" {
-                @(Get-ServerConfiguration).Count | Should -Be 2
+                Get-ServerConfiguration | Should -HaveCount 2
                 (Get-ServerConfiguration).Name | Should -Contain "Google"
                 (Get-ServerConfiguration).Name | Should -Contain "Google with Session"
 

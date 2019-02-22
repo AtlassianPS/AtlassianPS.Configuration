@@ -1,37 +1,14 @@
 #requires -modules @{ ModuleName = "BuildHelpers"; ModuleVersion = "1.2" }
 #requires -modules Pester
 
-Describe "General project validation" -Tag Unit {
+Describe "General project validation" -Tag Build {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
-
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        # Import-Module $env:BHManifestToTest
+        Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -force
+        Invoke-InitTest $PSScriptRoot
     }
     AfterAll {
-        Remove-Module BuildTools
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+        Invoke-TestCleanup
     }
     AfterEach {
         Get-ChildItem TestDrive:\FunctionCalled* | Remove-Item
@@ -56,22 +33,22 @@ Describe "General project validation" -Tag Unit {
     }
 
     It "uses the correct root module" {
-        Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName RootModule | Should -Be 'AtlassianPS.Configuration.psm1'
+        Get-Metadata -Path $env:BHManifestToTest -PropertyName RootModule | Should -Be 'AtlassianPS.Configuration.psm1'
     }
 
     It "uses the correct guid" {
-        Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName Guid | Should -Be 'f946e1f7-ed4f-43da-aa24-6d57a25117cb'
+        Get-Metadata -Path $env:BHManifestToTest -PropertyName Guid | Should -Be 'f946e1f7-ed4f-43da-aa24-6d57a25117cb'
     }
 
     It "uses a valid version" {
-        [Version](Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -Not -BeNullOrEmpty
-        [Version](Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -BeOfType [Version]
+        [Version](Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -Not -BeNullOrEmpty
+        [Version](Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -BeOfType [Version]
     }
 
     It "requires Configuration" {
         # this workaround will be obsolete with
         # https://github.com/PoshCode/Configuration/pull/20
-        $pureExpression = Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName RequiredModules -Passthru
+        $pureExpression = Get-Metadata -Path $env:BHManifestToTest -PropertyName RequiredModules -Passthru
         [Scriptblock]::Create($pureExpression.Extent.Text).Invoke() | Should -Contain 'Configuration'
     }
 
@@ -94,5 +71,23 @@ Describe "General project validation" -Tag Unit {
         Remove-Item alias:\Import-Configuration -ErrorAction SilentlyContinue
 
         "TestDrive:\FunctionCalled.Import-Configuration.txt" | Should -FileContentMatchExactly "Import-Configuration"
+    }
+
+    It "module is imported with default prefix" {
+        $prefix = Get-Metadata -Path $env:BHManifestToTest -PropertyName DefaultCommandPrefix
+
+        Import-Module $env:BHManifestToTest -Force -ErrorAction Stop
+        (Get-Command -Module $env:BHProjectName).Name | ForEach-Object {
+            $_ | Should -Match "\-$prefix"
+        }
+    }
+
+    It "module is imported with custom prefix" {
+        $prefix = "Test"
+
+        Import-Module $env:BHManifestToTest -Prefix $prefix -Force -ErrorAction Stop
+        (Get-Command -Module $env:BHProjectName).Name | ForEach-Object {
+            $_ | Should -Match "\-$prefix"
+        }
     }
 }

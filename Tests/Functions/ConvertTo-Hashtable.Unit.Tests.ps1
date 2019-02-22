@@ -1,37 +1,16 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
-
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
 
 Describe "ConvertTo-Hashtable" -Tag Unit {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
+        Invoke-InitTest $PSScriptRoot
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
     }
     AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+        Invoke-TestCleanup
     }
 
     InModuleScope $env:BHProjectName {
@@ -53,9 +32,8 @@ Describe "ConvertTo-Hashtable" -Tag Unit {
         Context "Sanity checking" {
             $command = Get-Command -Name ConvertTo-Hashtable
 
-            It "has a [PSObject] -InputObject parameter" {
-                $command.Parameters.ContainsKey("InputObject")
-                $command.Parameters["InputObject"].ParameterType | Should -Be "PSObject"
+            It "has a mandatory parameter 'InputObject' of type [PSObject]" {
+                $command | Should -HaveParameter "InputObject" -Mandatory -Type [PSObject]
             }
         }
 
@@ -70,7 +48,7 @@ Describe "ConvertTo-Hashtable" -Tag Unit {
 
                 $hashtable.Keys | Should -BeIn @("a", "b", "c", "d", "e", "f")
 
-                @($hashtable.Keys).Count | Should -Be 6
+                $hashtable.Keys | Should -HaveCount 6
                 @($hashtable.PSObject.Properties).Count | Should -BeGreaterOrEqual 6
 
                 $pscustomobject.PSObject.Properties.Name | Should -BeIn $hashtable.Keys

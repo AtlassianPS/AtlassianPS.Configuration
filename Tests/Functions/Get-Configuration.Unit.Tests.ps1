@@ -1,37 +1,16 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.3.1" }
-
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
 
 Describe "Get-Configuration" -Tag Unit {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
+        Invoke-InitTest $PSScriptRoot
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
     }
     AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+        Invoke-TestCleanup
     }
 
     InModuleScope $env:BHProjectName {
@@ -45,19 +24,16 @@ Describe "Get-Configuration" -Tag Unit {
 
             $command = Get-Command -Name Get-Configuration
 
-            It "has a [String[]] -Name parameter" {
-                $command.Parameters.ContainsKey("Name")
-                $command.Parameters["Name"].ParameterType | Should -Be "String[]"
+            It "has a parameter 'Name' of type [String[]] with ArgumentCompleter and a default value '*'" {
+                $command | Should -HaveParameter "Name" -Type [String[]] -HasArgumentCompleter -DefaultValue "*"
             }
 
-            It "has a [Switch] -ValueOnly parameter" {
-                $command.Parameters.ContainsKey("ValueOnly")
-                $command.Parameters["ValueOnly"].ParameterType | Should -Be "Switch"
+            It "has a parameter 'ValueOnly' of type [Switch]" {
+                $command | Should -HaveParameter "ValueOnly" -Type [Switch]
             }
 
-            It "has a [Switch] -AsHashtable parameter" {
-                $command.Parameters.ContainsKey("AsHashtable")
-                $command.Parameters["AsHashtable"].ParameterType | Should -Be "Switch"
+            It "has a parameter 'AsHashtable' of type[Switch]" {
+                $command | Should -HaveParameter "AsHashtable" -Type [Switch]
             }
         }
 
@@ -91,7 +67,7 @@ Describe "Get-Configuration" -Tag Unit {
             It "retrieves all keys" {
                 $config = Get-Configuration -ErrorAction Stop
 
-                @($config).Count | Should -Be 4
+                $config | Should -HaveCount 4
                 ($config | Where-Object Name -eq "Foo").Value | Should -Not -BeNullOrEmpty
                 ($config | Where-Object Name -eq "Foo").Value | Should -BeOfType [String]
                 ($config | Where-Object Name -eq "Bar").Value | Should -Not -BeNullOrEmpty
@@ -107,14 +83,14 @@ Describe "Get-Configuration" -Tag Unit {
             It "filters the results by name of the configuration" {
                 $config = Get-Configuration -Name "Foo" -ErrorAction Stop
 
-                @($config).Count | Should -Be 1
+                $config | Should -HaveCount 1
                 ($config | Where-Object Name -eq "Foo").Value | Should -Not -BeNullOrEmpty
             }
 
             It "filters the results by multiple names of configuration" {
                 $config = Get-Configuration -Name "Foo", "Bar" -ErrorAction Stop
 
-                @($config).Count | Should -Be 2
+                $config | Should -HaveCount 2
                 ($config | Where-Object Name -eq "Foo").Value | Should -Not -BeNullOrEmpty
                 ($config | Where-Object Name -eq "Bar").Value | Should -Not -BeNullOrEmpty
             }
@@ -122,7 +98,7 @@ Describe "Get-Configuration" -Tag Unit {
             It "allows for wildcards when filtering" {
                 $config = Get-Configuration -Name "B*" -ErrorAction Stop
 
-                @($config).Count | Should -Be 2
+                $config | Should -HaveCount 2
                 ($config | Where-Object Name -eq "Bar").Value | Should -Not -BeNullOrEmpty
                 ($config | Where-Object Name -eq "Baz").Value | Should -Not -BeNullOrEmpty
             }
@@ -130,12 +106,12 @@ Describe "Get-Configuration" -Tag Unit {
             It "returns only the value when -ValueOnly is provided" {
                 $config = Get-Configuration -Name "Bar" -ValueOnly -ErrorAction Stop
 
-                @($config).Count | Should -Be 1
+                $config | Should -HaveCount 1
                 $config | Should -Not -BeNullOrEmpty
                 $config | Should -BeOfType [Int]
 
                 $config = Get-Configuration -Name "Foo" -ValueOnly -ErrorAction Stop
-                @($config).Count | Should -Be 1
+                $config | Should -HaveCount 1
                 $config | Should -Not -BeNullOrEmpty
                 $config | Should -BeOfType [String]
             }
