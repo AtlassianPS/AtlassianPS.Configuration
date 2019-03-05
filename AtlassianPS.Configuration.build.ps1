@@ -6,7 +6,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingEmptyCatchBlock', '')]
 param(
     [String[]]$Tag,
-    [String[]]$ExcludeTag,
+    [String[]]$ExcludeTag = "NotImplemented",
     [String]$PSGalleryAPIKey,
     [String]$GithubAccessToken
 )
