@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Management.Automation;
 using Microsoft.PowerShell.Commands;
+using System.Security.Cryptography.X509Certificates;
 
 namespace AtlassianPS
 {
@@ -82,6 +83,9 @@ namespace AtlassianPS
                     case "session":
                         Session = Table[key];
                         break;
+                    case "certificate":
+                        Certificate = (X509Certificate)Table[key];
+                        break;
                     case "headers":
                         Headers = (Hashtable)Table[key];
                         break;
@@ -99,6 +103,7 @@ namespace AtlassianPS
         public ServerType Type { get; set; }
         // public Boolean IsCloudServer { get; set; }
         public Object Session { get; set; }
+        public X509Certificate Certificate { get; set; }
         public Hashtable Headers { get; set; }
 
         public override String ToString()
