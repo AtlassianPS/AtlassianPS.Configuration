@@ -14,10 +14,16 @@ Describe "[AtlassianPS.ServerData] Tests" -Tag Unit {
     }
 
     # ARRANGE
+    $testPath = (Get-PsDrive TestDrive).Root
+    if (Get-Command openssl -ErrorAction SilentlyContinue) {
+        openssl req -x509 -newkey rsa:4096 -sha256 -keyout "$testPath/openssl.key" -out "$testPath/openssl.crt" -subj "/CN=company.co.nz" -days 600 -passout pass:"hunter2"
+        $certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 -ArgumentList "$testPath/openssl.crt"
+    } else {
+        $certificate = Get-ChildItem -Path "Cert:\LocalMachine\" -Recurse |
+            Where-Object { $_.GetType().Name -eq "X509Certificate2" } |
+            Select-Object -First 1
+    }
     $session = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
-    $certificate = Get-ChildItem -Path "Cert:\LocalMachine\" -Recurse |
-        Where-Object { $_.GetType().Name -eq "X509Certificate2" } |
-        Select-Object -First 1
 
     It "does not allow for an empty object" {
         { [AtlassianPS.ServerData]::new() } | Should -Throw
