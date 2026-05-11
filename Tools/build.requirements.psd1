@@ -1,5 +1,5 @@
 @(
-    @{ ModuleName = "InvokeBuild"; RequiredVersion = "5.4.2" }
+    @{ ModuleName = "InvokeBuild"; RequiredVersion = "5.14.23" }
     @{ ModuleName = "BuildHelpers"; RequiredVersion = "2.0.7" }
     @{ ModuleName = "Configuration"; RequiredVersion = "1.3.1" }
     @{ ModuleName = "Pester"; RequiredVersion = "4.6.0" }
