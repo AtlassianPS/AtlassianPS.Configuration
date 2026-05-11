@@ -8,12 +8,26 @@ on:
   pull_request:
     branches: [master]
     paths-ignore: &paths-ignore
+      # Documentation (NOT docs/** - that's PlatyPS source!)
+      - "CHANGELOG.md"
+      - "LICENSE"
+      # AI assistant instruction files
       - "AGENTS.md"
+      - "CLAUDE.md"
+      - "GEMINI.md"
       - ".cursor/**"
+      - ".github/copilot-instructions.md"
+      - ".github/ai-context/**"
+      - ".github/instructions/**"
+      # GitHub/editor meta files
       - ".github/*.md"
       - ".github/ISSUE_TEMPLATE/**"
       - ".github/PULL_REQUEST_TEMPLATE/**"
       - ".vscode/**"
+      - ".editorconfig"
+      - ".spelling"
+      # Untracked regenerated docs (kept in case they ever land)
+      - "docs-regenerated/**"
   push:
     branches: [master]
     paths-ignore: *paths-ignore
@@ -24,7 +38,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: AtlassianPS/.github/actions/setup-powershell@master
 
       - name: Style and analyzer checks
@@ -37,7 +51,7 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: AtlassianPS/.github/actions/setup-powershell@master
 
       - name: Build
@@ -45,7 +59,7 @@ jobs:
         run: |
           Invoke-Build -Task Clean, Build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Release
           path: ./Release/
@@ -55,13 +69,15 @@ jobs:
     needs: build
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: AtlassianPS/.github/actions/setup-powershell@master
         with:
           ps-version: "5"
+          # Setup is run below in the powershell (PS 5.1) shell instead of pwsh,
+          # so the Windows PowerShell module path is populated.
           skip-setup: "true"
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: Release
           path: ./Release/
@@ -77,10 +93,10 @@ jobs:
         run: |
           Invoke-Build -Task Test
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: Windows-PS5-Tests
+          name: Windows-PS5-Unit-Tests
           path: Test*.xml
 
   test_pwsh:
@@ -95,10 +111,10 @@ jobs:
           - { os: ubuntu-latest, name: "Ubuntu" }
           - { os: macos-latest, name: "macOS" }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: AtlassianPS/.github/actions/setup-powershell@master
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: Release
           path: ./Release/
@@ -108,10 +124,10 @@ jobs:
         run: |
           Invoke-Build -Task Test
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: ${{ matrix.name }}-Tests
+          name: ${{ matrix.name }}-Unit-Tests
           path: Test*.xml
 
   ci-required:
