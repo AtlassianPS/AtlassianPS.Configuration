@@ -25,6 +25,7 @@ Describe "Help tests" -Tag Documentation, Build {
         'OutVariable'
         'OutBuffer'
         'PipelineVariable'
+        'ProgressAction'
         'WhatIf'
         'Confirm'
     )
