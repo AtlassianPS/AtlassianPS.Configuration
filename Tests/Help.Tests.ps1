@@ -25,13 +25,18 @@ Describe "Help tests" -Tag Documentation, Build {
         'OutVariable'
         'OutBuffer'
         'PipelineVariable'
+        'ProgressAction'
         'WhatIf'
         'Confirm'
     )
 
     $module = Get-Module $env:BHProjectName
     $abouts = Get-ChildItem "$env:BHProjectPath/docs/en-US/about*.md"
-    $commands = Get-Command -Module $module -CommandType Cmdlet, Function, Workflow  # Not alias
+    $commandTypes = @('Cmdlet', 'Function')
+    if ($PSVersionTable.PSEdition -eq 'Desktop') {
+        $commandTypes += 'Workflow'
+    }
+    $commands = Get-Command -Module $module -CommandType $commandTypes  # Not alias
     $classes = Get-ChildItem "$env:BHProjectPath/docs/en-US/classes/*"
     $enums = Get-ChildItem "$env:BHProjectPath/docs/en-US/enumerations/*"
     $loadedNamespace = [AtlassianPS.ServerData].Assembly.GetTypes() |
