@@ -5,8 +5,7 @@ function Remove-ServerConfiguration {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
-        [ArgumentCompleter(
-            {
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
                 $commandName = (Get-Command -Module "AtlassianPS.Configuration" -Name "Get-*ServerConfiguration").Name
                 & $commandName |
@@ -33,11 +32,11 @@ function Remove-ServerConfiguration {
             if ($serverToRemove -notin $serverList.Name) {
                 $writeErrorSplat = @{
                     ExceptionType = "System.ApplicationException"
-                    ErrorId      = "AtlassianPS.ServerData.ServerNotFound"
-                    Category     = "ObjectNotFound"
-                    Message      = "No server '$serverToRemove' could be found."
-                    TargetObject = $serverToRemove
-                    Cmdlet       = $PSCmdlet
+                    ErrorId       = "AtlassianPS.ServerData.ServerNotFound"
+                    Category      = "ObjectNotFound"
+                    Message       = "No server '$serverToRemove' could be found."
+                    TargetObject  = $serverToRemove
+                    Cmdlet        = $PSCmdlet
                 }
                 WriteError @writeErrorSplat
             }

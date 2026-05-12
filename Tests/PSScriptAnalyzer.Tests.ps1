@@ -1,6 +1,6 @@
 #requires -modules BuildHelpers
 #requires -modules Pester
-#requires -modules PSScriptAnalyzer
+#requires -modules @{ ModuleName = 'PSScriptAnalyzer'; ModuleVersion = '1.25.0' }
 
 Describe "PSScriptAnalyzer Tests" -Tag Build {
 

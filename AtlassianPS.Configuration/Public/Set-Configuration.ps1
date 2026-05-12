@@ -6,12 +6,11 @@ function Set-Configuration {
     param(
         [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
-        [ArgumentCompleter(
-            {
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
                 $command = "Get-Configuration"
-                $module = (Get-command -Name $commandName).Module
-                $commandName = $module.ExportedCommands.Keys | Where-Object {$_ -like ($command -replace "-", "-$($module.Prefix)")}
+                $module = (Get-Command -Name $commandName).Module
+                $commandName = $module.ExportedCommands.Keys | Where-Object { $_ -like ($command -replace "-", "-$($module.Prefix)") }
                 & $commandName |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Name, $_.Name, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Name ) }
@@ -42,7 +41,7 @@ function Set-Configuration {
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        If ($Append) {
+        if ($Append) {
             Write-Verbose "Appending to existing value"
             $oldValue = (Get-Configuration -Name $Name -ValueOnly)
             try {
