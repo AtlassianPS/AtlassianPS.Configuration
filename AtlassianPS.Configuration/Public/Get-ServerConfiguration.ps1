@@ -8,8 +8,8 @@ function Get-ServerConfiguration {
             {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
                 $command = "Get-ServerConfiguration"
-                $module = (Get-command -Name $commandName).Module
-                $commandName = $module.ExportedCommands.Keys | Where-Object {$_ -like ($command -replace "-", "-$($module.Prefix)")}
+                $module = (Get-Command -Name $commandName).Module
+                $commandName = $module.ExportedCommands.Keys | Where-Object { $_ -like ($command -replace "-", "-$($module.Prefix)") }
                 & $commandName |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Name, $_.Name, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Name ) }
@@ -24,8 +24,8 @@ function Get-ServerConfiguration {
             {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
                 $command = "Get-ServerConfiguration"
-                $module = (Get-command -Name $commandName).Module
-                $commandName = $module.ExportedCommands.Keys | Where-Object {$_ -like ($command -replace "-", "-$($module.Prefix)")}
+                $module = (Get-Command -Name $commandName).Module
+                $commandName = $module.ExportedCommands.Keys | Where-Object { $_ -like ($command -replace "-", "-$($module.Prefix)") }
                 & $commandName |
                     Where-Object { $_.Uri -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new( $_.Name, $_.Name, [System.Management.Automation.CompletionResultType]::ParameterValue, $_.Name ) }

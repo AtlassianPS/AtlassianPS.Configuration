@@ -61,7 +61,7 @@ function Set-ServerConfiguration {
 
         $serverEntry = Get-ServerConfiguration | Where-Object { $_.Id -eq $Id }
         if ($serverEntry) {
-            foreach ($property in ($PSBoundParameters.Keys | Where-Object { $_ -notin $parametersToIgnore} )) {
+            foreach ($property in ($PSBoundParameters.Keys | Where-Object { $_ -notin $parametersToIgnore } )) {
                 Write-Verbose "Changing [$property] of entry #$Id"
 
                 $serverEntry.$property = Get-Variable $property -ValueOnly
