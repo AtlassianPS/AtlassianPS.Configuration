@@ -1,14 +1,11 @@
 #requires -modules BuildHelpers
 #requires -modules Pester
-#requires -modules PSScriptAnalyzer
+#requires -modules @{ ModuleName = 'PSScriptAnalyzer'; ModuleVersion = '1.25.0' }
 
 Describe "PSScriptAnalyzer Tests" -Tag Build {
 
     BeforeAll {
         Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -force
-        # Keep analyzer behavior deterministic across runners.
-        Remove-Module PSScriptAnalyzer -ErrorAction SilentlyContinue
-        Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
         Invoke-InitTest $PSScriptRoot
     }
     AfterAll {
