@@ -6,6 +6,9 @@ Describe "PSScriptAnalyzer Tests" -Tag Build {
 
     BeforeAll {
         Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -force
+        # Keep analyzer behavior deterministic across runners.
+        Remove-Module PSScriptAnalyzer -ErrorAction SilentlyContinue
+        Import-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Force
         Invoke-InitTest $PSScriptRoot
     }
     AfterAll {
