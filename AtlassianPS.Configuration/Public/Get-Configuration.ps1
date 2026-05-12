@@ -8,8 +8,7 @@ function Get-Configuration {
         [Parameter( ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [SupportsWildcards()]
-        [ArgumentCompleter(
-            {
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
                 $command = "Get-Configuration"
                 $module = (Get-Command -Name $commandName).Module

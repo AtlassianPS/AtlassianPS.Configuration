@@ -6,8 +6,7 @@ function Remove-Configuration {
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
-        [ArgumentCompleter(
-            {
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
                 $command = "Get-Configuration"
                 $module = (Get-Command -Name $commandName).Module

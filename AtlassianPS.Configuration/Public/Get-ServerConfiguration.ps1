@@ -4,8 +4,7 @@ function Get-ServerConfiguration {
     [OutputType( [AtlassianPS.ServerData] )]
     param(
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ServerDataByUri' )]
-        [ArgumentCompleter(
-            {
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
                 $command = "Get-ServerConfiguration"
                 $module = (Get-Command -Name $commandName).Module
@@ -20,8 +19,7 @@ function Get-ServerConfiguration {
         $Uri,
 
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'ServerDataByName' )]
-        [ArgumentCompleter(
-            {
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
                 $command = "Get-ServerConfiguration"
                 $module = (Get-Command -Name $commandName).Module

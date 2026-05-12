@@ -5,8 +5,7 @@ function Remove-ServerConfiguration {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
-        [ArgumentCompleter(
-            {
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
                 $commandName = (Get-Command -Module "AtlassianPS.Configuration" -Name "Get-*ServerConfiguration").Name
                 & $commandName |
