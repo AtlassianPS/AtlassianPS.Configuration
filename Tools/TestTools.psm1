@@ -24,12 +24,16 @@ function Invoke-InitTest {
     }
 
     Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    if ($env:BHProjectName) {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    }
 }
 
 function Invoke-TestCleanup {
     param()
-    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    if ($env:BHProjectName) {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    }
     Remove-Module BuildHelpers -ErrorAction SilentlyContinue
     Remove-Item -Path Env:\BH*
 }
