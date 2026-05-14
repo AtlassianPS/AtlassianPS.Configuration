@@ -66,10 +66,8 @@ $builtManifestPath = "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.p
 
 
 #region SetUp
-Invoke-Init
-
 # Synopsis: Proxy task
-task Init { Invoke-Init }
+task Init { }
 
 # Synopsis: Get the next version for the build
 task GetNextVersion {
@@ -533,7 +531,7 @@ task Test Init, {
     $testResults = Invoke-Pester -Configuration $pesterConfig
 
     Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) Pester test(s) failed."
-}, { Init }
+}
 #endregion
 
 #region Publish

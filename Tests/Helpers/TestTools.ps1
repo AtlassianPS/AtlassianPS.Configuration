@@ -37,8 +37,10 @@ function Initialize-TestEnvironment {
             Measure-Object -Maximum
     ).Maximum
 
-    $loaded = Get-Module AtlassianPS.Configuration
-    if ($loaded -and $loaded.ModuleBase -eq $moduleDir) {
+    $loaded = Get-Module AtlassianPS.Configuration |
+        Where-Object { $_.ModuleBase -eq $moduleDir } |
+        Select-Object -First 1
+    if ($loaded) {
         $cached = & $loaded { $script:__TestImportFingerprint }
         if ($cached -eq $fingerprint) {
             return $manifestPath
@@ -85,7 +87,13 @@ function Initialize-TestEnvironment {
 
     Clear-TestConfigurationCache
     Import-Module $manifestPath -Force -ErrorAction Stop
-    & (Get-Module AtlassianPS.Configuration) { param($fp) $script:__TestImportFingerprint = $fp } $fingerprint
+    $loaded = Get-Module AtlassianPS.Configuration |
+        Where-Object { $_.ModuleBase -eq $moduleDir } |
+        Select-Object -First 1
+    if (-not $loaded) {
+        throw "Failed to load module from manifest: $manifestPath"
+    }
+    & $loaded { param($fp) $script:__TestImportFingerprint = $fp } $fingerprint
 
     return $manifestPath
 }
@@ -126,6 +134,14 @@ function Resolve-ProjectRoot {
     return $projectRoot
 }
 
+function global:LogCall {
+    if (-not (Test-Path TestDrive:\)) {
+        throw "This function only works inside pester"
+    }
+
+    Set-Content -Value "$($MyInvocation.InvocationName) $($MyInvocation.UnBoundArguments -join ' ')" -Path "TestDrive:\FunctionCalled.$($MyInvocation.InvocationName).txt" -Force
+}
+
 # Compatibility wrapper used by existing tests.
 function Invoke-InitTest {
     [CmdletBinding()]
@@ -144,6 +160,12 @@ function Invoke-TestCleanup {
 
     if ($env:BHProjectName) {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    }
+    if (Get-Alias -Name Import-Configuration -ErrorAction SilentlyContinue) {
+        $importConfigurationAlias = Get-Alias -Name Import-Configuration -ErrorAction SilentlyContinue
+        if ($importConfigurationAlias -and $importConfigurationAlias.Definition -eq 'LogCall') {
+            Remove-Item -Path Alias:\Import-Configuration -ErrorAction SilentlyContinue
+        }
     }
     Clear-TestConfigurationCache
 }
