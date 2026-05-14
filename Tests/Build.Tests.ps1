@@ -1,43 +1,52 @@
-#requires -modules BuildHelpers
-#requires -modules Configuration
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+
+BeforeDiscovery {
+    Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -Force
+    Invoke-InitTest $PSScriptRoot
+}
 
 Describe "Validation of build environment" -Tag Build {
-
     BeforeAll {
-        Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -force
+        Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -Force
         Invoke-InitTest $PSScriptRoot
+        $script:manifestData = Import-PowerShellDataFile -Path $env:BHManifestToTest
     }
+
     AfterAll {
         Invoke-TestCleanup
     }
 
     Context "CHANGELOG" {
-        $changelogFile = if ($env:BHisBuild) {
-            "$env:BHBuildOutput/$env:BHProjectName/CHANGELOG.md"
-        }
-        else {
-            "$env:BHProjectPath/CHANGELOG.md"
-        }
+        BeforeAll {
+            $script:changelogFile = if ($env:BHisBuild) {
+                "$env:BHBuildOutput/$env:BHProjectName/CHANGELOG.md"
+            }
+            else {
+                "$env:BHProjectPath/CHANGELOG.md"
+            }
 
-        foreach ($line in (Get-Content $changelogFile)) {
-            if ($line -match "(?:##|\<h2.*?\>)\s*\[(?<Version>(\d+\.?){1,2})\]") {
-                $changelogVersion = $matches.Version
-                break
+            $script:changelogVersion = $null
+            if (Test-Path $script:changelogFile) {
+                foreach ($line in (Get-Content $script:changelogFile)) {
+                    if ($line -match "(?:##|\<h2.*?\>)\s*\[(?<Version>(\d+\.?){1,2})\]") {
+                        $script:changelogVersion = $matches.Version
+                        break
+                    }
+                }
             }
         }
 
         It "has a changelog file" {
-            $changelogFile | Should -Exist
+            $script:changelogFile | Should -Exist
         }
 
         It "has a valid version in the changelog" {
-            $changelogVersion            | Should -Not -BeNullOrEmpty
-            [Version]($changelogVersion)  | Should -BeOfType [Version]
+            $script:changelogVersion | Should -Not -BeNullOrEmpty
+            [Version]($script:changelogVersion) | Should -BeOfType [Version]
         }
 
         It "has a version changelog that matches the manifest version" {
-            Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion | Should -BeLike "$changelogVersion*"
+            $manifestData.ModuleVersion.ToString() | Should -BeLike "$script:changelogVersion*"
         }
     }
 
@@ -90,7 +99,7 @@ Describe "Validation of build environment" -Tag Build {
         }
 
         It "has a version for appveyor that matches the manifest version" {
-            Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion | Should -BeLike "$appveyorVersion*"
+            $manifestData.ModuleVersion.ToString() | Should -BeLike "$appveyorVersion*"
         }
     } #>
 }

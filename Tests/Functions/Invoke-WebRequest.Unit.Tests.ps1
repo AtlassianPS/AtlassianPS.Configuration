@@ -1,5 +1,10 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+
+BeforeDiscovery {
+    Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -Force
+    Invoke-InitTest $PSScriptRoot
+    Import-Module $env:BHManifestToTest -Force
+}
 
 Describe "Invoke-WebRequest" -Tag Unit {
 
@@ -13,7 +18,7 @@ Describe "Invoke-WebRequest" -Tag Unit {
         Invoke-TestCleanup
     }
 
-    InModuleScope $env:BHProjectName {
+    InModuleScope "AtlassianPS.Configuration" {
 
         #region Mocking
         #endregion Mocking
@@ -22,7 +27,9 @@ Describe "Invoke-WebRequest" -Tag Unit {
         #endregion Arrange
 
         Context "Sanity checking" {
-            $command = Get-Command -Name Invoke-WebRequest
+            BeforeAll {
+                $script:command = Get-Command -Name Invoke-WebRequest
+            }
 
 
         }

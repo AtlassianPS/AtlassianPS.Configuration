@@ -1,5 +1,10 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+
+BeforeDiscovery {
+    Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -Force
+    Invoke-InitTest $PSScriptRoot
+    Import-Module $env:BHManifestToTest -Force
+}
 
 Describe "Import-MqcnAlias" -Tag Unit {
 
@@ -13,7 +18,7 @@ Describe "Import-MqcnAlias" -Tag Unit {
         Invoke-TestCleanup
     }
 
-    InModuleScope $env:BHProjectName {
+    InModuleScope "AtlassianPS.Configuration" {
 
         #region Mocking
         #endregion Mocking
@@ -22,7 +27,9 @@ Describe "Import-MqcnAlias" -Tag Unit {
         #endregion Arrange
 
         Context "Sanity checking" {
-            $command = Get-Command -Name Import-MqcnAlias
+            BeforeAll {
+                $script:command = Get-Command -Name Import-MqcnAlias
+            }
 
             It "has a mandatory parameter 'Alias' of type [String]" {
                 $command | Should -HaveParameter "Alias" -Mandatory -Type [String]
@@ -38,14 +45,14 @@ Describe "Import-MqcnAlias" -Tag Unit {
             It "creates an alias in the module's scope" {
                 Import-MqcnAlias -Alias "aa" -Command "Microsoft.PowerShell.Management\Get-Item"
 
-                Get-Alias -Name "aa" -Scope "Local" -ErrorAction Ignore | Should Be $true
+                Get-Alias -Name "aa" -Scope "Local" -ErrorAction Ignore | Should -Be $true
             }
 
             It "does not make the alias available outside of the module" {
                 Import-MqcnAlias -Alias "ab" -Command "Microsoft.PowerShell.Management\Get-Item"
 
-                Get-Alias -Name "ab" -Scope "Global" -ErrorAction Ignore | Should BeNullOrEmpty
-                Get-Alias -Name "ab" -Scope "Script" -ErrorAction Ignore | Should BeNullOrEmpty
+                Get-Alias -Name "ab" -Scope "Global" -ErrorAction Ignore | Should -BeNullOrEmpty
+                Get-Alias -Name "ab" -Scope "Script" -ErrorAction Ignore | Should -BeNullOrEmpty
             }
         }
     }

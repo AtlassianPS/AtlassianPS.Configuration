@@ -1,5 +1,10 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+
+BeforeDiscovery {
+    Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -Force
+    Invoke-InitTest $PSScriptRoot
+    Import-Module $env:BHManifestToTest -Force
+}
 
 Describe "Write-DebugMessage" -Tag Unit {
 
@@ -13,7 +18,7 @@ Describe "Write-DebugMessage" -Tag Unit {
         Invoke-TestCleanup
     }
 
-    InModuleScope $env:BHProjectName {
+    InModuleScope "AtlassianPS.Configuration" {
 
         #region Mocking
         #endregion Mocking
@@ -22,21 +27,23 @@ Describe "Write-DebugMessage" -Tag Unit {
         #endregion Arrange
 
         Context "Sanity checking" {
-            $command = Get-Command -Name Write-DebugMessage
+            BeforeAll {
+                $script:command = Get-Command -Name Write-DebugMessage
+            }
 
             It "has a [String] -Message parameter" {
                 $command.Parameters.ContainsKey("Message")
-                $command.Parameters["Message"].ParameterType | Should Be "String"
+                $command.Parameters["Message"].ParameterType | Should -Be "String"
             }
 
             It "has a [Switch] -BreakPoint parameter" {
                 $command.Parameters.ContainsKey("BreakPoint")
-                $command.Parameters["BreakPoint"].ParameterType | Should Be "Switch"
+                $command.Parameters["BreakPoint"].ParameterType | Should -Be "Switch"
             }
 
             It "has a [System.Management.Automation.PSCmdlet] -Cmdlet parameter" {
                 $command.Parameters.ContainsKey("Cmdlet")
-                $command.Parameters["Cmdlet"].ParameterType | Should Be "System.Management.Automation.PSCmdlet"
+                $command.Parameters["Cmdlet"].ParameterType | Should -Be "System.Management.Automation.PSCmdlet"
             }
         }
 

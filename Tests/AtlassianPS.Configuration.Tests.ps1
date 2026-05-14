@@ -1,11 +1,14 @@
-#requires -modules @{ ModuleName = "BuildHelpers"; ModuleVersion = "1.2" }
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "General project validation" -Tag Build {
 
     BeforeAll {
         Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -force
         Invoke-InitTest $PSScriptRoot
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+
+        $script:manifest = Test-ModuleManifest -Path $env:BHManifestToTest -ErrorAction Stop -WarningAction SilentlyContinue
+        $script:manifestData = Import-PowerShellDataFile -Path $env:BHManifestToTest
     }
     AfterAll {
         Invoke-TestCleanup
@@ -23,7 +26,7 @@ Describe "General project validation" -Tag Build {
 
         $module = Get-Module $env:BHProjectName
 
-        $module | Should BeOfType [PSModuleInfo]
+        $module | Should -BeOfType [PSModuleInfo]
     }
 
     It "has public functions" {
@@ -33,23 +36,37 @@ Describe "General project validation" -Tag Build {
     }
 
     It "uses the correct root module" {
-        Get-Metadata -Path $env:BHManifestToTest -PropertyName RootModule | Should -Be 'AtlassianPS.Configuration.psm1'
+        $manifest.RootModule | Should -Be 'AtlassianPS.Configuration.psm1'
     }
 
     It "uses the correct guid" {
-        Get-Metadata -Path $env:BHManifestToTest -PropertyName Guid | Should -Be 'f946e1f7-ed4f-43da-aa24-6d57a25117cb'
+        $manifest.Guid | Should -Be 'f946e1f7-ed4f-43da-aa24-6d57a25117cb'
     }
 
     It "uses a valid version" {
-        [Version](Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -Not -BeNullOrEmpty
-        [Version](Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -BeOfType [Version]
+        $manifest.Version | Should -Not -BeNullOrEmpty
+        [Version]$manifest.Version | Should -BeOfType [Version]
     }
 
     It "requires Configuration" {
-        # this workaround will be obsolete with
-        # https://github.com/PoshCode/Configuration/pull/20
-        $pureExpression = Get-Metadata -Path $env:BHManifestToTest -PropertyName RequiredModules -Passthru
-        [Scriptblock]::Create($pureExpression.Extent.Text).Invoke() | Should -Contain 'Configuration'
+        $requiredModules = @(
+            foreach ($requiredModule in @($manifestData.RequiredModules)) {
+                if ($requiredModule -is [string]) {
+                    $requiredModule
+                    continue
+                }
+
+                if ($requiredModule -is [hashtable]) {
+                    $requiredModule.ModuleName
+                    continue
+                }
+
+                if ($requiredModule.PSObject.Properties.Name -contains 'ModuleName') {
+                    $requiredModule.ModuleName
+                }
+            }
+        )
+        $requiredModules | Should -Contain 'Configuration'
     }
 
     It "loads Configuration into the global scope" {
@@ -74,10 +91,10 @@ Describe "General project validation" -Tag Build {
     }
 
     It "module is imported with default prefix" {
-        $prefix = Get-Metadata -Path $env:BHManifestToTest -PropertyName DefaultCommandPrefix
+        $prefix = $manifestData.DefaultCommandPrefix
 
         Import-Module $env:BHManifestToTest -Force -ErrorAction Stop
-        (Get-Command -Module $env:BHProjectName).Name | ForEach-Object {
+        (Get-Command -Module $env:BHProjectName -CommandType Function).Name | Where-Object { $_ -match "-" } | ForEach-Object {
             $_ | Should -Match "\-$prefix"
         }
     }
@@ -86,7 +103,7 @@ Describe "General project validation" -Tag Build {
         $prefix = "Test"
 
         Import-Module $env:BHManifestToTest -Prefix $prefix -Force -ErrorAction Stop
-        (Get-Command -Module $env:BHProjectName).Name | ForEach-Object {
+        (Get-Command -Module $env:BHProjectName -CommandType Function).Name | Where-Object { $_ -match "-" } | ForEach-Object {
             $_ | Should -Match "\-$prefix"
         }
     }

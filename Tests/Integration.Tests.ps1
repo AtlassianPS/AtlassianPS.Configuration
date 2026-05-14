@@ -1,5 +1,4 @@
-#requires -modules BuildHelpers
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Validation of example codes in the documentation" -Tag Integration, NotImplemented {
 

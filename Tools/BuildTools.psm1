@@ -1,5 +1,3 @@
-#requires -Modules @{ModuleName='PowerShellGet';ModuleVersion='1.6.0'}
-
 [CmdletBinding()]
 param()
 
@@ -8,7 +6,25 @@ function Invoke-Init {
     [CmdletBinding()]
     param()
     begin {
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
+        if (-not $env:BHProjectPath) {
+            $env:BHProjectPath = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+        }
+        if (-not $env:BHProjectName) {
+            $env:BHProjectName = Split-Path -Path $env:BHProjectPath -Leaf
+        }
+        if (-not $env:BHModulePath) {
+            $env:BHModulePath = Join-Path $env:BHProjectPath $env:BHProjectName
+        }
+        if (-not $env:BHPSModulePath) {
+            $env:BHPSModulePath = $env:BHModulePath
+        }
+        if (-not $env:BHPSModuleManifest) {
+            $env:BHPSModuleManifest = Join-Path $env:BHModulePath "$($env:BHProjectName).psd1"
+        }
+        if (-not $env:BHBuildOutput) {
+            $env:BHBuildOutput = Join-Path $env:BHProjectPath 'Release'
+        }
+
         Add-ToModulePath -Path $env:BHBuildOutput
 
         # github's PAT is stored to ~\.git-credentials within the Release Pipeline

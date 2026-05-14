@@ -86,7 +86,7 @@ jobs:
         shell: powershell
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
 
       - name: Test
         shell: powershell

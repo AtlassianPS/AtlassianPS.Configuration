@@ -1,29 +1,33 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "[AtlassianPS.ServerData] Tests" -Tag Unit {
+
+    $certificate = $null
+    $session = $null
 
     BeforeAll {
         Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
         Invoke-InitTest $PSScriptRoot
 
         Import-Module $env:BHManifestToTest
+
+        # ARRANGE
+        $testPath = (Get-PsDrive TestDrive).Root
+        if (Get-Command openssl -ErrorAction SilentlyContinue) {
+            openssl req -x509 -newkey rsa:4096 -sha256 -keyout "$testPath/openssl.key" -out "$testPath/openssl.crt" -subj "/CN=company.co.nz" -days 600 -passout pass:"hunter2"
+            $certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 -ArgumentList "$testPath/openssl.crt"
+        }
+        else {
+            $certificate = Get-ChildItem -Path "Cert:\LocalMachine\" -Recurse |
+                Where-Object { $_.GetType().Name -eq "X509Certificate2" } |
+                Select-Object -First 1
+        }
+
+        $session = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
     }
     AfterAll {
         Invoke-TestCleanup
     }
-
-    # ARRANGE
-    $testPath = (Get-PsDrive TestDrive).Root
-    if (Get-Command openssl -ErrorAction SilentlyContinue) {
-        openssl req -x509 -newkey rsa:4096 -sha256 -keyout "$testPath/openssl.key" -out "$testPath/openssl.crt" -subj "/CN=company.co.nz" -days 600 -passout pass:"hunter2"
-        $certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 -ArgumentList "$testPath/openssl.crt"
-    } else {
-        $certificate = Get-ChildItem -Path "Cert:\LocalMachine\" -Recurse |
-            Where-Object { $_.GetType().Name -eq "X509Certificate2" } |
-            Select-Object -First 1
-    }
-    $session = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
 
     It "does not allow for an empty object" {
         { [AtlassianPS.ServerData]::new() } | Should -Throw
@@ -32,7 +36,7 @@ Describe "[AtlassianPS.ServerData] Tests" -Tag Unit {
     }
 
     It "throws an error if incomplete data is provided" {
-        $message = "Must contain Id, Name, Uri and Type."
+        $message = "*Must contain Id, Name, Uri and Type.*"
 
         { [AtlassianPS.ServerData]@{ } } | Should -Throw $message
         { [AtlassianPS.ServerData]@{ Id = 1 } } | Should -Throw $message
@@ -63,14 +67,16 @@ Describe "[AtlassianPS.ServerData] Tests" -Tag Unit {
     }
 
     Context "Types of properties" {
-        $object = [AtlassianPS.ServerData]@{
-            Id = 1
-            Name = "Name"
-            Uri = "https://google.com"
-            Type = "Jira"
-            Session = $session
-            Certificate = [System.Security.Cryptography.X509Certificates.X509Certificate]$certificate
-            Headers = @{ }
+        BeforeAll {
+            $script:object = [AtlassianPS.ServerData]@{
+                Id = 1
+                Name = "Name"
+                Uri = "https://google.com"
+                Type = "Jira"
+                Session = $session
+                Certificate = [System.Security.Cryptography.X509Certificates.X509Certificate]$certificate
+                Headers = @{ }
+            }
         }
 
         It "has a Id of type UInt32" {

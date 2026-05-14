@@ -1,18 +1,17 @@
-#requires -modules BuildHelpers
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Validation of code styling" -Tag Build {
 
     BeforeAll {
         Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -force
         Invoke-InitTest $PSScriptRoot
+
+        $script:docFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.md -Recurse
+        $script:codeFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.ps1, *.psm1 -Recurse
     }
     AfterAll {
         Invoke-TestCleanup
     }
-
-    $docFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.md -Recurse
-    $codeFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.ps1, *.psm1 -Recurse
 
     It "has no trailing whitespace in code files" {
         $badLines = @(
