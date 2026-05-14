@@ -3,9 +3,8 @@
 Describe "Validation of code styling" -Tag Build {
 
     BeforeAll {
-        Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
+    . "$PSScriptRoot/Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
         $script:docFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.md -Recurse
         $script:codeFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.ps1, *.psm1 -Recurse
     }

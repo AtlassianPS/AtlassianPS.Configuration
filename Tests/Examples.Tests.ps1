@@ -1,10 +1,9 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
-    Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -Force
-    Invoke-InitTest $PSScriptRoot
-    Import-Module $env:BHManifestToTest -Force
-
+    . "$PSScriptRoot/Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
+    Import-Module $script:moduleToTest -Force
     $script:moduleName = $env:BHProjectName
     $script:modulePrefix = (Import-PowerShellDataFile -Path $env:BHManifestToTest).DefaultCommandPrefix
     $publicFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1" -File).BaseName
@@ -57,10 +56,9 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
     $moduleName = $script:moduleName
 
     BeforeAll {
-        Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -Force
-        Invoke-InitTest $PSScriptRoot
-        Import-Module $env:BHManifestToTest -Force
-
+    . "$PSScriptRoot/Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
+    Import-Module $script:moduleToTest -Force
         Assert-True {
             if ($null -eq $env:BHisBuild -or $env:BHisBuild -eq '') { return $false }
             [System.Convert]::ToBoolean($env:BHisBuild)

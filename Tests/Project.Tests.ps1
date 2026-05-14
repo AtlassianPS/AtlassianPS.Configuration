@@ -1,10 +1,9 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
-    Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -Force
-    Invoke-InitTest $PSScriptRoot
-    Import-Module $env:BHManifestToTest -Force
-
+    . "$PSScriptRoot/Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
+    Import-Module $script:moduleToTest -Force
     $script:module = Get-Module $env:BHProjectName
     $script:modulePrefix = (Import-PowerShellDataFile -Path $env:BHManifestToTest).DefaultCommandPrefix
     $script:testFiles = Get-ChildItem $PSScriptRoot -Include "*.Tests.ps1" -Recurse
@@ -15,9 +14,9 @@ BeforeDiscovery {
 
 Describe "General project validation" -Tag Build {
     BeforeAll {
-        Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -Force
-        Invoke-InitTest $PSScriptRoot
-        Import-Module $env:BHManifestToTest -Force
+    . "$PSScriptRoot/Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
+    Import-Module $script:moduleToTest -Force
     }
 
     AfterAll {

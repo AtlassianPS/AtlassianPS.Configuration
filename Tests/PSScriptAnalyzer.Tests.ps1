@@ -3,9 +3,8 @@
 
 Describe "PSScriptAnalyzer Tests" -Tag Build {
     BeforeAll {
-        Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -Force
-        Invoke-InitTest $PSScriptRoot
-
+    . "$PSScriptRoot/Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
         $projectRoot = if ($env:BHisBuild) { $env:BHBuildOutput } else { $env:BHProjectPath }
         $modulePath = Join-Path $projectRoot "AtlassianPS.Configuration"
         $settingsPath = Join-Path $projectRoot "PSScriptAnalyzerSettings.psd1"

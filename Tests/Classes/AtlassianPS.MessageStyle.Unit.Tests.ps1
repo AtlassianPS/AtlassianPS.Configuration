@@ -3,10 +3,9 @@
 Describe "[AtlassianPS.MessageStyle] Tests" -Tag Unit {
 
     BeforeAll {
-        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
-        Import-Module $env:BHManifestToTest
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
+        Import-Module $script:moduleToTest
     }
     AfterAll {
         Invoke-TestCleanup

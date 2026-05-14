@@ -6,11 +6,9 @@ Describe "[AtlassianPS.ServerData] Tests" -Tag Unit {
     $session = $null
 
     BeforeAll {
-        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
-        Import-Module $env:BHManifestToTest
-
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
+        Import-Module $script:moduleToTest
         # ARRANGE
         $testPath = (Get-PsDrive TestDrive).Root
         if (Get-Command openssl -ErrorAction SilentlyContinue) {

@@ -1,18 +1,17 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
-    Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -Force
-    Invoke-InitTest $PSScriptRoot
-    Import-Module $env:BHManifestToTest -Force
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
+    Import-Module $script:moduleToTest -Force
 }
 
 Describe "Get-ServerConfiguration" -Tag Unit {
 
     BeforeAll {
-        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
-        Import-Module $env:BHManifestToTest
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
+        Import-Module $script:moduleToTest
     }
     AfterAll {
         Invoke-TestCleanup

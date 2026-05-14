@@ -3,8 +3,8 @@
 Describe "General project validation" -Tag Build {
 
     BeforeAll {
-        Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
+    . "$PSScriptRoot/Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
 
         $script:manifest = Test-ModuleManifest -Path $env:BHManifestToTest -ErrorAction Stop -WarningAction SilentlyContinue
@@ -22,16 +22,14 @@ Describe "General project validation" -Tag Build {
     }
 
     It "imports '$env:BHProjectName' cleanly" {
-        Import-Module $env:BHManifestToTest
-
+        Import-Module $script:moduleToTest
         $module = Get-Module $env:BHProjectName
 
         $module | Should -BeOfType [PSModuleInfo]
     }
 
     It "has public functions" {
-        Import-Module $env:BHManifestToTest
-
+        Import-Module $script:moduleToTest
         (Get-Command -Module $env:BHProjectName | Measure-Object).Count | Should -BeGreaterThan 0
     }
 
@@ -72,9 +70,7 @@ Describe "General project validation" -Tag Build {
     It "loads Configuration into the global scope" {
         Remove-Module Configuration -Force -ErrorAction SilentlyContinue
         (Get-Module).Name | Should -Not -Contain Configuration
-
-        Import-Module $env:BHManifestToTest -Force
-
+    Import-Module $script:moduleToTest -Force
         (Get-Module).Name | Should -Contain Configuration
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
@@ -84,7 +80,7 @@ Describe "General project validation" -Tag Build {
         Test-Path "TestDrive:\FunctionCalled.Import-Configuration.txt" | Should -Be $false
 
         New-Alias -Name Import-Configuration -Value LogCall -Scope Global
-        Import-Module $env:BHManifestToTest
+        Import-Module $script:moduleToTest
         Remove-Item alias:\Import-Configuration -ErrorAction SilentlyContinue
 
         "TestDrive:\FunctionCalled.Import-Configuration.txt" | Should -FileContentMatchExactly "Import-Configuration"

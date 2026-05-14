@@ -143,6 +143,26 @@ task ShowInfo Init, GetNextVersion, {
 task ShowDebugInfo ShowInfo
 #endregion DebugInformation
 
+# Synopsis: Run build-tag validation tests over the assembled Release/ output.
+task Lint Build, {
+    $pesterConfigHash = @{
+        Run    = @{
+            PassThru = $true
+            Path     = "$env:BHBuildOutput/Tests"
+        }
+        Output = @{
+            Verbosity = $PesterVerbosity
+        }
+        Filter = @{
+            Tag = @('Build')
+        }
+    }
+
+    $pesterConfig = New-PesterConfiguration -Hashtable $pesterConfigHash
+    $testResults = Invoke-Pester -Configuration $pesterConfig
+    Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) lint test(s) failed."
+}
+
 #region BuildRelease
 # Synopsis: Build a shippable release
 task Build Init, Clean, {

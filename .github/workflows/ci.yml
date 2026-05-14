@@ -44,7 +44,7 @@ jobs:
       - name: Style and analyzer checks
         shell: pwsh
         run: |
-          Invoke-Build -Task Clean, Build, Test -Tag Build
+          Invoke-Build -Task Lint
 
   build:
     name: Build Module

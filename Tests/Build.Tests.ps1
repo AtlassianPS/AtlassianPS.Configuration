@@ -1,14 +1,14 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
-    Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -Force
-    Invoke-InitTest $PSScriptRoot
+    . "$PSScriptRoot/Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
 }
 
 Describe "Validation of build environment" -Tag Build {
     BeforeAll {
-        Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -Force
-        Invoke-InitTest $PSScriptRoot
+    . "$PSScriptRoot/Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
         $script:manifestData = Import-PowerShellDataFile -Path $env:BHManifestToTest
     }
 
