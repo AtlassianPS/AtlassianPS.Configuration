@@ -1,4 +1,4 @@
-﻿---
+---
 Module Name: AtlassianPS.Configuration
 online version: https://atlassianps.org/docs/AtlassianPS.Configuration/about/implemented-keys.html
 locale: en-US

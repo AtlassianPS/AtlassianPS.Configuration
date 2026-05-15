@@ -4,6 +4,7 @@ BeforeDiscovery {
     . "$PSScriptRoot/Helpers/TestTools.ps1"
     $script:moduleToTest = Initialize-TestEnvironment
     Import-Module $script:moduleToTest -Force
+    $script:isBuildEnvironment = [string]::Equals($env:BHisBuild, 'True', [System.StringComparison]::OrdinalIgnoreCase)
     $script:moduleName = $env:BHProjectName
     $script:modulePrefix = (Import-PowerShellDataFile -Path $env:BHManifestToTest).DefaultCommandPrefix
     $publicFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1" -File).BaseName
@@ -52,17 +53,13 @@ BeforeDiscovery {
     )
 }
 
-Describe "Validation of example codes in the documentation" -Tag Documentation, Build {
+Describe "Validation of example codes in the documentation" -Tag Documentation, Build -Skip:(-not $script:isBuildEnvironment) {
     $moduleName = $script:moduleName
 
     BeforeAll {
     . "$PSScriptRoot/Helpers/TestTools.ps1"
     $script:moduleToTest = Initialize-TestEnvironment
     Import-Module $script:moduleToTest -Force
-        Assert-True {
-            if ($null -eq $env:BHisBuild -or $env:BHisBuild -eq '') { return $false }
-            [System.Convert]::ToBoolean($env:BHisBuild)
-        } "Examples can only be tested in the build environment. Please run `Invoke-Build -Task Build`."
 
         # backup current configuration
         & (Get-Module $moduleName) {

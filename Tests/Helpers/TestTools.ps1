@@ -58,7 +58,7 @@ function Initialize-TestEnvironment {
     $env:BHPSModuleManifest = Join-Path $env:BHModulePath "$projectName.psd1"
     $env:BHBuildOutput = $buildOutput
     $env:BHManifestToTest = $manifestPath
-    $env:BHisBuild = $script:_TestToolsDir -match '[\\/]{1}Release[\\/]{1}'
+    $env:BHisBuild = if ($script:_TestToolsDir -match '[\\/]{1}Release[\\/]{1}') { 'True' } else { '' }
 
     $buildToolsModule = Join-Path $projectRoot 'Tools/BuildTools.psm1'
     if (Test-Path $buildToolsModule) {
