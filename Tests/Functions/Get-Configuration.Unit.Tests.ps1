@@ -66,39 +66,39 @@ Describe "Get-Configuration" -Tag Unit {
                 $config = Get-Configuration -ErrorAction Stop
 
                 $config | Should -HaveCount 4
-                ($config | Where-Object Name -EQ "Foo").Value | Should -Not -BeNullOrEmpty
-                ($config | Where-Object Name -EQ "Foo").Value | Should -BeOfType [String]
-                ($config | Where-Object Name -EQ "Bar").Value | Should -Not -BeNullOrEmpty
-                ($config | Where-Object Name -EQ "Bar").Value | Should -BeOfType [Int]
-                ($config | Where-Object Name -EQ "Baz").Value | Should -Not -BeNullOrEmpty
-                ($config | Where-Object Name -EQ "Baz").Value | Should -BeOfType [DateTime]
-                ($config | Where-Object Name -EQ "ServerList").Value | Should -Not -BeNullOrEmpty
-                ($config | Where-Object Name -EQ "ServerList").Value | Should -BeOfType [AtlassianPS.ServerData]
-                ($config | Where-Object Name -EQ "ServerList").Value.Session[0] | Should -BeNullOrEmpty
-                ($config | Where-Object Name -EQ "ServerList").Value.Session[1] | Should -Not -BeNullOrEmpty
+                ($config | Where-Object Name -eq "Foo").Value | Should -Not -BeNullOrEmpty
+                ($config | Where-Object Name -eq "Foo").Value | Should -BeOfType [String]
+                ($config | Where-Object Name -eq "Bar").Value | Should -Not -BeNullOrEmpty
+                ($config | Where-Object Name -eq "Bar").Value | Should -BeOfType [Int]
+                ($config | Where-Object Name -eq "Baz").Value | Should -Not -BeNullOrEmpty
+                ($config | Where-Object Name -eq "Baz").Value | Should -BeOfType [DateTime]
+                ($config | Where-Object Name -eq "ServerList").Value | Should -Not -BeNullOrEmpty
+                ($config | Where-Object Name -eq "ServerList").Value | Should -BeOfType [AtlassianPS.ServerData]
+                ($config | Where-Object Name -eq "ServerList").Value.Session[0] | Should -BeNullOrEmpty
+                ($config | Where-Object Name -eq "ServerList").Value.Session[1] | Should -Not -BeNullOrEmpty
             }
 
             It "filters the results by name of the configuration" {
                 $config = Get-Configuration -Name "Foo" -ErrorAction Stop
 
                 $config | Should -HaveCount 1
-                ($config | Where-Object Name -EQ "Foo").Value | Should -Not -BeNullOrEmpty
+                ($config | Where-Object Name -eq "Foo").Value | Should -Not -BeNullOrEmpty
             }
 
             It "filters the results by multiple names of configuration" {
                 $config = Get-Configuration -Name "Foo", "Bar" -ErrorAction Stop
 
                 $config | Should -HaveCount 2
-                ($config | Where-Object Name -EQ "Foo").Value | Should -Not -BeNullOrEmpty
-                ($config | Where-Object Name -EQ "Bar").Value | Should -Not -BeNullOrEmpty
+                ($config | Where-Object Name -eq "Foo").Value | Should -Not -BeNullOrEmpty
+                ($config | Where-Object Name -eq "Bar").Value | Should -Not -BeNullOrEmpty
             }
 
             It "allows for wildcards when filtering" {
                 $config = Get-Configuration -Name "B*" -ErrorAction Stop
 
                 $config | Should -HaveCount 2
-                ($config | Where-Object Name -EQ "Bar").Value | Should -Not -BeNullOrEmpty
-                ($config | Where-Object Name -EQ "Baz").Value | Should -Not -BeNullOrEmpty
+                ($config | Where-Object Name -eq "Bar").Value | Should -Not -BeNullOrEmpty
+                ($config | Where-Object Name -eq "Baz").Value | Should -Not -BeNullOrEmpty
             }
 
             It "returns only the value when -ValueOnly is provided" {

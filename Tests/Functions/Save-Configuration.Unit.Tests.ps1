@@ -81,7 +81,7 @@ Describe "Save-Configuration" -Tag Unit {
                 $after["Foo"] | Should -BeOfType [String]
                 $after["Bar"] | Should -BeOfType [Int]
                 ($before["ServerList"] | Where-Object Session | Select-Object -First 1).Session.UserAgent | Should -Not -BeNullOrEmpty
-                ($after["ServerList"] | Where-Object Name -EQ "Google with Session" | Select-Object -First 1).Session | Should -BeNullOrEmpty
+                ($after["ServerList"] | Where-Object Name -eq "Google with Session" | Select-Object -First 1).Session | Should -BeNullOrEmpty
             }
         }
     }

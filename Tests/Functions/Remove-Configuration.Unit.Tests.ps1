@@ -65,28 +65,28 @@ Describe "Remove-Configuration" -Tag Unit {
 
             It "removes one entry of the configuration" {
                 Get-Configuration | Should -HaveCount 4
-                Get-Configuration | Where-Object Name -EQ "Foo" | Should -Not -BeNullOrEmpty
-                Get-Configuration | Where-Object Name -EQ "Bar" | Should -Not -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Foo" | Should -Not -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Bar" | Should -Not -BeNullOrEmpty
 
                 Remove-Configuration -Name "Foo"
 
                 Get-Configuration | Should -HaveCount 3
-                Get-Configuration | Where-Object Name -EQ "Foo" | Should -BeNullOrEmpty
-                Get-Configuration | Where-Object Name -EQ "Bar" | Should -Not -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Foo" | Should -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Bar" | Should -Not -BeNullOrEmpty
             }
 
             It "removes multiple entries at once" {
                 Get-Configuration | Should -HaveCount 4
-                Get-Configuration | Where-Object Name -EQ "Foo" | Should -Not -BeNullOrEmpty
-                Get-Configuration | Where-Object Name -EQ "Bar" | Should -Not -BeNullOrEmpty
-                Get-Configuration | Where-Object Name -EQ "Baz" | Should -Not -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Foo" | Should -Not -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Bar" | Should -Not -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Baz" | Should -Not -BeNullOrEmpty
 
                 Remove-Configuration -Name "Foo", "Bar"
 
                 Get-Configuration | Should -HaveCount 2
-                Get-Configuration | Where-Object Name -EQ "Foo" | Should -BeNullOrEmpty
-                Get-Configuration | Where-Object Name -EQ "Bar" | Should -BeNullOrEmpty
-                Get-Configuration | Where-Object Name -EQ "Baz" | Should -Not -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Foo" | Should -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Bar" | Should -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Baz" | Should -Not -BeNullOrEmpty
             }
 
             It "accepts an object over the pipeline" {
@@ -107,14 +107,14 @@ Describe "Remove-Configuration" -Tag Unit {
 
             It "is not case sensitive" {
                 Get-Configuration | Should -HaveCount 4
-                Get-Configuration | Where-Object Name -EQ "Foo" | Should -Not -BeNullOrEmpty
-                Get-Configuration | Where-Object Name -EQ "Bar" | Should -Not -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Foo" | Should -Not -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Bar" | Should -Not -BeNullOrEmpty
 
                 Remove-Configuration -Name "foo"
 
                 Get-Configuration | Should -HaveCount 3
-                Get-Configuration | Where-Object Name -EQ "Foo" | Should -BeNullOrEmpty
-                Get-Configuration | Where-Object Name -EQ "Bar" | Should -Not -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Foo" | Should -BeNullOrEmpty
+                Get-Configuration | Where-Object Name -eq "Bar" | Should -Not -BeNullOrEmpty
             }
         }
     }

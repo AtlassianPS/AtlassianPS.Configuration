@@ -255,7 +255,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                     BeforeAll {
                         $script:parameterName = $_
                         $script:parameterCode = $command.Parameters[$parameterName]
-                        $script:parameterHelp = @($help.Parameters.Parameter | Where-Object Name -EQ $parameterName)
+                        $script:parameterHelp = @($help.Parameters.Parameter | Where-Object Name -eq $parameterName)
                     }
 
                     It "has a description" {

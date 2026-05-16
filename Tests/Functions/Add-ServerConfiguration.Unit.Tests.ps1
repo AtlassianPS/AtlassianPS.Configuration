@@ -112,7 +112,7 @@ Describe "Add-ServerConfiguration" -Tag Unit {
                 (Get-ServerConfiguration).Name | Should -Not -Contain "New Server"
 
                 Get-ServerConfiguration |
-                    Where-Object Id -EQ 1 |
+                    Where-Object Id -eq 1 |
                     Add-ServerConfiguration -Name "New Server"
 
                 Get-ServerConfiguration | Should -HaveCount 3
@@ -237,8 +237,8 @@ Describe "Add-ServerConfiguration" -Tag Unit {
 
                 Get-ServerConfiguration | Should -HaveCount 3
                 (Get-ServerConfiguration).Name | Should -Contain "New Server"
-                (Get-ServerConfiguration | Where-Object Name -EQ "New Server").Session | Should -Not -BeNullOrEmpty
-                (Get-ServerConfiguration | Where-Object Name -EQ "New Server").Session.UserAgent | Should -Be "Test Value"
+                (Get-ServerConfiguration | Where-Object Name -eq "New Server").Session | Should -Not -BeNullOrEmpty
+                (Get-ServerConfiguration | Where-Object Name -eq "New Server").Session.UserAgent | Should -Be "Test Value"
             }
 
             It "adds a server with the minimum set of parameters + Name + Session + Headers" {
@@ -253,10 +253,10 @@ Describe "Add-ServerConfiguration" -Tag Unit {
 
                 Get-ServerConfiguration | Should -HaveCount 3
                 (Get-ServerConfiguration).Name | Should -Contain "New Server"
-                (Get-ServerConfiguration | Where-Object Name -EQ "New Server").Session | Should -Not -BeNullOrEmpty
-                (Get-ServerConfiguration | Where-Object Name -EQ "New Server").Session.UserAgent | Should -Be "Test Value"
-                (Get-ServerConfiguration | Where-Object Name -EQ "New Server").Headers | Should -BeOfType [Hashtable]
-                (Get-ServerConfiguration | Where-Object Name -EQ "New Server").Headers.Authorization | Should -Be "Basic ABCDEF"
+                (Get-ServerConfiguration | Where-Object Name -eq "New Server").Session | Should -Not -BeNullOrEmpty
+                (Get-ServerConfiguration | Where-Object Name -eq "New Server").Session.UserAgent | Should -Be "Test Value"
+                (Get-ServerConfiguration | Where-Object Name -eq "New Server").Headers | Should -BeOfType [Hashtable]
+                (Get-ServerConfiguration | Where-Object Name -eq "New Server").Headers.Authorization | Should -Be "Basic ABCDEF"
 
             }
         }
