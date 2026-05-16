@@ -1,14 +1,13 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Get-BreadCrumb" -Tag Unit {
-
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
-    InModuleScope "AtlassianPS.Configuration" {
 
+    InModuleScope "AtlassianPS.Configuration" {
         #region Arrange
         #endregion Arrange
 
@@ -23,7 +22,6 @@ Describe "Get-BreadCrumb" -Tag Unit {
         }
 
         Context "Behavior checking" {
-
             It "tracks the call stack" {
                 $breadCrumb = & {
                     function function1 { function2 }

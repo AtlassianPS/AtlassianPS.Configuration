@@ -1,14 +1,13 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Save-Configuration" -Tag Unit {
-
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
-    InModuleScope "AtlassianPS.Configuration" {
 
+    InModuleScope "AtlassianPS.Configuration" {
         BeforeEach {
             #region Mocking
             Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
@@ -51,7 +50,6 @@ Describe "Save-Configuration" -Tag Unit {
         Context "Sanity checking" { }
 
         Context "Behavior checking" {
-
             It "does not fail on invocation" {
                 { Save-Configuration } | Should -Not -Throw
             }

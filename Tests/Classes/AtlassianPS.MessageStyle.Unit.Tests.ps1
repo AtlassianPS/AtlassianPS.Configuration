@@ -1,12 +1,12 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "[AtlassianPS.MessageStyle] Tests" -Tag Unit {
-
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
+    
     It "allows for an empty object" {
         { [AtlassianPS.MessageStyle]::new() } | Should -Not -Throw
         { [AtlassianPS.MessageStyle]@{} } | Should -Not -Throw

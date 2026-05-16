@@ -1,14 +1,13 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Set-Configuration" -Tag Unit {
-
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
-    InModuleScope "AtlassianPS.Configuration" {
 
+    InModuleScope "AtlassianPS.Configuration" {
         #region Mocking
         Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
         Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
@@ -56,7 +55,6 @@ Describe "Set-Configuration" -Tag Unit {
         }
 
         Context "Behavior checking" {
-
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{

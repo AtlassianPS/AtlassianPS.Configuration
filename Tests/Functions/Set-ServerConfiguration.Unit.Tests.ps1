@@ -1,14 +1,13 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Set-ServerConfiguration" -Tag Unit {
-
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
-    InModuleScope "AtlassianPS.Configuration" {
 
+    InModuleScope "AtlassianPS.Configuration" {
         BeforeEach {
             #region Mocking
             Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
@@ -22,11 +21,8 @@ Describe "Set-ServerConfiguration" -Tag Unit {
         }
 
         Context "Sanity checking" {
-
             BeforeAll {
-
                 $script:command = Get-Command -Name Set-ServerConfiguration
-
             }
 
             It "has a mandatory parameter 'Id' of type [UInt32]" {
@@ -62,11 +58,9 @@ Describe "Set-ServerConfiguration" -Tag Unit {
                 param($ParameterName, $AliasName)
                 $command.Parameters[$ParameterName].Aliases | Should -Contain $AliasName
             }
-
         }
 
         Context "Behavior checking" {
-
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{
@@ -142,7 +136,6 @@ Describe "Set-ServerConfiguration" -Tag Unit {
         }
 
         Context "Parameter checking" {
-
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{

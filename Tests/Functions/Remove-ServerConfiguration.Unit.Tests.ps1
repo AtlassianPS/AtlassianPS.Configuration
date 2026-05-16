@@ -1,14 +1,13 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Remove-ServerConfiguration" -Tag Unit {
-
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
-    InModuleScope "AtlassianPS.Configuration" {
 
+    InModuleScope "AtlassianPS.Configuration" {
         #region Mocking
         Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
         Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
@@ -38,7 +37,6 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
         }
 
         Context "Behavior checking" {
-
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{

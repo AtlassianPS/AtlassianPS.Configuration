@@ -2,7 +2,6 @@
 
 BeforeDiscovery {
     . "$PSScriptRoot/Helpers/TestTools.ps1"
-
     $script:moduleToTest = Initialize-TestEnvironment
 
     $script:module = Get-Module $env:BHProjectName

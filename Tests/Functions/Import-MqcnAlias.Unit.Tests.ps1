@@ -1,14 +1,13 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Import-MqcnAlias" -Tag Unit {
-
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
-    InModuleScope "AtlassianPS.Configuration" {
 
+    InModuleScope "AtlassianPS.Configuration" {
         #region Mocking
         #endregion Mocking
 
@@ -30,7 +29,6 @@ Describe "Import-MqcnAlias" -Tag Unit {
         }
 
         Context "Behavior checking" {
-
             It "creates an alias in the module's scope" {
                 Import-MqcnAlias -Alias "aa" -Command "Microsoft.PowerShell.Management\Get-Item"
 

@@ -1,11 +1,11 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Validation of example codes in the documentation" -Tag Integration, NotImplemented {
-
     BeforeAll {
         . "$PSScriptRoot/Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
+
         # backup current configuration
         & (Get-Module $env:BHProjectName) {
             $script:previousConfig = $script:Configuration
