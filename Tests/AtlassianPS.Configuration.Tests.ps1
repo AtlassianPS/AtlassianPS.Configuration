@@ -87,7 +87,7 @@ Describe "General project validation" -Tag Build {
         $prefix = $manifestData.DefaultCommandPrefix
 
         Import-Module $env:BHManifestToTest -Force -ErrorAction Stop
-        (Get-Command -Module $env:BHProjectName -CommandType Function).Name | Where-Object { $_ -match "-" } | ForEach-Object {
+        (Get-Command -Module $env:BHProjectName -CommandType Function).Name | ForEach-Object {
             $_ | Should -Match "\-$prefix"
         }
     }
@@ -96,7 +96,7 @@ Describe "General project validation" -Tag Build {
         $prefix = "Test"
 
         Import-Module $env:BHManifestToTest -Prefix $prefix -Force -ErrorAction Stop
-        (Get-Command -Module $env:BHProjectName -CommandType Function).Name | Where-Object { $_ -match "-" } | ForEach-Object {
+        (Get-Command -Module $env:BHProjectName -CommandType Function).Name | ForEach-Object {
             $_ | Should -Match "\-$prefix"
         }
     }
