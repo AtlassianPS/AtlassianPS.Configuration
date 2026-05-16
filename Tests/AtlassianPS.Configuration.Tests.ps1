@@ -10,9 +10,6 @@ Describe "General project validation" -Tag Build {
 
         $script:manifestData = Import-PowerShellDataFile -Path $env:BHManifestToTest
     }
-    AfterAll {
-        Invoke-TestCleanup
-    }
     AfterEach {
         Get-ChildItem TestDrive:\FunctionCalled* | Remove-Item
     }

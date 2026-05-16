@@ -7,10 +7,6 @@ Describe "[AtlassianPS.ServerType] Tests" -Tag Unit {
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
-    AfterAll {
-        Invoke-TestCleanup
-    }
-
     It "creates an [AtlassianPS.ServerType] from a string" {
         { [AtlassianPS.ServerType]"bitbucket" } | Should -Not -Throw
         { [AtlassianPS.ServerType]"confluence" } | Should -Not -Throw

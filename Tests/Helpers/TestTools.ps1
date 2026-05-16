@@ -334,19 +334,3 @@ function Invoke-InitTest {
     Initialize-TestEnvironment
 }
 
-# Compatibility wrapper used by existing tests.
-function Invoke-TestCleanup {
-    [CmdletBinding()]
-    param()
-
-    if ($env:BHProjectName) {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-    }
-    if (Get-Alias -Name Import-Configuration -ErrorAction SilentlyContinue) {
-        $importConfigurationAlias = Get-Alias -Name Import-Configuration -ErrorAction SilentlyContinue
-        if ($importConfigurationAlias -and $importConfigurationAlias.Definition -eq 'LogCall') {
-            Remove-Item -Path Alias:\Import-Configuration -ErrorAction SilentlyContinue
-        }
-    }
-    Clear-TestConfigurationCache
-}

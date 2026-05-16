@@ -23,10 +23,6 @@ Describe "[AtlassianPS.ServerData] Tests" -Tag Unit {
 
         $script:session = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
     }
-    AfterAll {
-        Invoke-TestCleanup
-    }
-
     It "does not allow for an empty object" {
         { [AtlassianPS.ServerData]::new() } | Should -Throw
         { [AtlassianPS.ServerData]@{} } | Should -Throw

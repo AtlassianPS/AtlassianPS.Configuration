@@ -13,10 +13,6 @@ Describe "Save-Configuration" -Tag Unit {
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
-    AfterAll {
-        Invoke-TestCleanup
-    }
-
     InModuleScope "AtlassianPS.Configuration" {
 
         BeforeEach {

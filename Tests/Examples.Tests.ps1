@@ -95,8 +95,6 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
             $script:Configuration = $script:previousConfig
             Save-Configuration
         }
-
-        Invoke-TestCleanup
     }
 
     It "has no syntactically invalid examples" {

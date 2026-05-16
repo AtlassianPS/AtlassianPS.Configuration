@@ -22,10 +22,6 @@ Describe "PSScriptAnalyzer Tests" -Tag Build {
         $script:scriptWarnings = Invoke-ScriptAnalyzer @params -ErrorVariable +script:analyzerErrors
     }
 
-    AfterAll {
-        Invoke-TestCleanup
-    }
-
     It "has no rule violations" {
         $scriptWarnings | Should -BeNullOrEmpty
     }

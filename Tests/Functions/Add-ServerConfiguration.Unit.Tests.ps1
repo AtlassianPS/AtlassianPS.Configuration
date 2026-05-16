@@ -1,10 +1,5 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-BeforeDiscovery {
-    . "$PSScriptRoot/../Helpers/TestTools.ps1"
-    $script:moduleToTest = Initialize-TestEnvironment
-}
-
 Describe "Add-ServerConfiguration" -Tag Unit {
 
     BeforeAll {
@@ -12,10 +7,6 @@ Describe "Add-ServerConfiguration" -Tag Unit {
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
-    AfterAll {
-        Invoke-TestCleanup
-    }
-
     InModuleScope "AtlassianPS.Configuration" {
 
         BeforeEach {

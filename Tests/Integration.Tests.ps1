@@ -19,8 +19,6 @@ Describe "Validation of example codes in the documentation" -Tag Integration, No
             $script:Configuration = $script:previousConfig
             Save-Configuration
         }
-
-        Invoke-TestCleanup
     }
 
     #region Mocks

@@ -7,10 +7,6 @@ Describe "[AtlassianPS.MessageStyle] Tests" -Tag Unit {
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
-    AfterAll {
-        Invoke-TestCleanup
-    }
-
     It "allows for an empty object" {
         { [AtlassianPS.MessageStyle]::new() } | Should -Not -Throw
         { [AtlassianPS.MessageStyle]@{} } | Should -Not -Throw

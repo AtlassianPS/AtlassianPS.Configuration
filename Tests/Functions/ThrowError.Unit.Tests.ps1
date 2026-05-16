@@ -13,10 +13,6 @@ Describe "ThrowError" -Tag Unit {
         $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
-    AfterAll {
-        Invoke-TestCleanup
-    }
-
     InModuleScope "AtlassianPS.Configuration" {
 
         #region Mocking
