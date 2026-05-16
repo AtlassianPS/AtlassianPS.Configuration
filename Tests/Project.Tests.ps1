@@ -4,7 +4,6 @@ BeforeDiscovery {
     . "$PSScriptRoot/Helpers/TestTools.ps1"
 
     $script:moduleToTest = Initialize-TestEnvironment
-    Import-Module $script:moduleToTest -Force
 
     $script:module = Get-Module $env:BHProjectName
     $script:modulePrefix = (Import-PowerShellDataFile -Path $env:BHManifestToTest).DefaultCommandPrefix
