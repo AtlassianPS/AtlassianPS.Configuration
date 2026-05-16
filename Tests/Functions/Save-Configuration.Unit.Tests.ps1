@@ -1,4 +1,4 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/../Helpers/TestTools.ps1"
@@ -9,8 +9,8 @@ BeforeDiscovery {
 Describe "Save-Configuration" -Tag Unit {
 
     BeforeAll {
-    . "$PSScriptRoot/../Helpers/TestTools.ps1"
-    $script:moduleToTest = Initialize-TestEnvironment
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
     AfterAll {
@@ -36,8 +36,8 @@ Describe "Save-Configuration" -Tag Unit {
 
             Mock Get-Configuration -ModuleName "AtlassianPS.Configuration" {
                 @{
-                    Foo = "lorem ipsum"
-                    Bar = 42
+                    Foo        = "lorem ipsum"
+                    Bar        = 42
                     ServerList = @(
                         [AtlassianPS.ServerData]@{
                             Id   = 1
@@ -91,7 +91,7 @@ Describe "Save-Configuration" -Tag Unit {
                 $after["Foo"] | Should -BeOfType [String]
                 $after["Bar"] | Should -BeOfType [Int]
                 ($before["ServerList"] | Where-Object Session | Select-Object -First 1).Session.UserAgent | Should -Not -BeNullOrEmpty
-                ($after["ServerList"] | Where-Object Name -eq "Google with Session" | Select-Object -First 1).Session | Should -BeNullOrEmpty
+                ($after["ServerList"] | Where-Object Name -EQ "Google with Session" | Select-Object -First 1).Session | Should -BeNullOrEmpty
             }
         }
     }

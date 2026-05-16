@@ -1,4 +1,4 @@
-#requires -Module PowerShellGet
+﻿#requires -Module PowerShellGet
 
 [CmdletBinding()]
 param()
@@ -24,8 +24,8 @@ function Get-LatestModuleVersion {
     }
 }
 
-function Update-DependencyRequirements {
-    [CmdletBinding()]
+function Update-DependencyRequirement {
+    [CmdletBinding(SupportsShouldProcess)]
     param()
 
     if (-not (Test-Path -Path $requirementsPath)) {
@@ -58,11 +58,13 @@ function Update-DependencyRequirements {
     $outputLines += ')'
 
     $fileContent = ($outputLines -join "`r`n") + "`r`n"
-    [System.IO.File]::WriteAllText($requirementsPath, $fileContent, [System.Text.UTF8Encoding]::new($false))
+    if ($PSCmdlet.ShouldProcess($requirementsPath, 'Update dependency requirements')) {
+        [System.IO.File]::WriteAllText($requirementsPath, $fileContent, [System.Text.UTF8Encoding]::new($false))
+    }
 }
 
 function Update-PinnedPSScriptAnalyzerSettingsUri {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param()
 
     $settingsFilePath = 'standards/PSScriptAnalyzerSettings.psd1'
@@ -97,10 +99,12 @@ function Update-PinnedPSScriptAnalyzerSettingsUri {
         return
     }
 
-    $updatedContent = $updatedContent -replace "`r?`n", "`r`n"
-    [System.IO.File]::WriteAllText($setupScriptPath, $updatedContent, [System.Text.UTF8Encoding]::new($false))
-    Write-Output "Updated pinned PSScriptAnalyzer URI to commit $latestCommit"
+    if ($PSCmdlet.ShouldProcess($setupScriptPath, 'Update pinned PSScriptAnalyzer settings URI')) {
+        $updatedContent = $updatedContent -replace "`r?`n", "`r`n"
+        [System.IO.File]::WriteAllText($setupScriptPath, $updatedContent, [System.Text.UTF8Encoding]::new($false))
+        Write-Output "Updated pinned PSScriptAnalyzer URI to commit $latestCommit"
+    }
 }
 
-Update-DependencyRequirements
+Update-DependencyRequirement
 Update-PinnedPSScriptAnalyzerSettingsUri

@@ -113,7 +113,7 @@ For more information, see about_CommonParameters
 
 ## OUTPUTS
 
-### [AtlassianPS.ServerData]
+### AtlassianPS.ServerData
 
 ## NOTES
 

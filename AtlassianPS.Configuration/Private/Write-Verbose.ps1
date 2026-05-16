@@ -1,4 +1,4 @@
-function Write-Verbose {
+﻿function Write-Verbose {
     <#
     .SYNOPSIS
         Write a verbose message

@@ -1,4 +1,4 @@
-#requires -modules InvokeBuild
+﻿#requires -modules InvokeBuild
 
 [CmdletBinding()]
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
@@ -141,24 +141,79 @@ task ShowInfo Init, GetNextVersion, {
 task ShowDebugInfo ShowInfo
 #endregion DebugInformation
 
-# Synopsis: Run build-tag validation tests over the assembled Release/ output.
-task Lint Build, {
+# Synopsis: Run style and script analyzer validation over source roots.
+task Lint {
+    $isGitHubActions = [bool]$env:GITHUB_ACTIONS
+    $failures = [System.Collections.Generic.List[String]]::new()
+
+    Write-Build Gray "Running style tests..."
+
     $pesterConfigHash = @{
         Run    = @{
             PassThru = $true
-            Path     = "$env:BHBuildOutput/Tests"
+            Path     = "$env:BHProjectPath/Tests/Style.Tests.ps1"
         }
         Output = @{
             Verbosity = $PesterVerbosity
-        }
-        Filter = @{
-            Tag = @('Build')
         }
     }
 
     $pesterConfig = New-PesterConfiguration -Hashtable $pesterConfigHash
     $testResults = Invoke-Pester -Configuration $pesterConfig
-    Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) lint test(s) failed."
+    if ($testResults.FailedCount -gt 0) {
+        $failures.Add("$($testResults.FailedCount) style test(s) failed.")
+    }
+    else {
+        Write-Build Green "Style tests: passed."
+    }
+
+    Write-Build Gray "Running PSScriptAnalyzer..."
+
+    # Explicit source roots so PSSA does not recurse into Release/.
+    $analyzerPaths = @(
+        "$env:BHProjectPath/$env:BHProjectName"
+        "$env:BHProjectPath/Tests"
+        "$env:BHProjectPath/Tools"
+        "$env:BHProjectPath/$env:BHProjectName.build.ps1"
+    )
+
+    $analyzerParams = @{
+        Settings = "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
+        Severity = @('Error', 'Warning')
+        Recurse  = $true
+    }
+
+    # -Path is single-valued, so invoke per root and concatenate.
+    $results = @(
+        foreach ($path in $analyzerPaths) {
+            Invoke-ScriptAnalyzer -Path $path @analyzerParams
+        }
+    )
+
+    if ($results.Count -gt 0) {
+        foreach ($result in $results) {
+            $color = if ($result.Severity -eq 'Error') { 'Red' } else { 'Yellow' }
+            $location = if ($result.ScriptName) { $result.ScriptName } else { '<unknown>' }
+            Write-Build $color "[$($result.Severity)] ${location}:$($result.Line) - $($result.RuleName): $($result.Message)"
+
+            if ($isGitHubActions -and $result.ScriptPath) {
+                $level = if ($result.Severity -eq 'Error') { 'error' } else { 'warning' }
+                $relPath = [System.IO.Path]::GetRelativePath($env:BHProjectPath, $result.ScriptPath)
+                # Workflow command escaping per
+                # https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions
+                $msg = ($result.Message -replace '%', '%25' -replace "`r", '%0D' -replace "`n", '%0A')
+                Write-WorkflowCommand "::${level} file=$relPath,line=$($result.Line),col=$($result.Column),title=$($result.RuleName)::$msg"
+            }
+        }
+        $failures.Add("$($results.Count) PSScriptAnalyzer issue(s) found.")
+    }
+    else {
+        Write-Build Green "PSScriptAnalyzer: no issues found."
+    }
+
+    if ($failures.Count -gt 0) {
+        throw ("Lint failed:`n  - " + ($failures -join "`n  - "))
+    }
 }
 
 #region BuildRelease
@@ -217,8 +272,8 @@ task CompileModule Init, {
         }
     }
 
-    Set-Content -LiteralPath $targetFile -Value $compiled -Encoding UTF8 -Force
-    Remove-Utf8Bom -Path $targetFile
+    $utf8Bom = [System.Text.UTF8Encoding]::new($true)
+    [System.IO.File]::WriteAllText($targetFile, $compiled, $utf8Bom)
 
     "Private", "Public" | Foreach-Object { Remove-Item -Path "$env:BHBuildOutput/$env:BHProjectName/$_" -Recurse -Force }
 }

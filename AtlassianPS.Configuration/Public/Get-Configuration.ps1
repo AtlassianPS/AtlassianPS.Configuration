@@ -1,4 +1,4 @@
-function Get-Configuration {
+﻿function Get-Configuration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding( DefaultParameterSetName = 'asObject' )]
     [OutputType( [PSCustomObject], ParameterSetName = 'asObject' )]

@@ -1,4 +1,4 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/../Helpers/TestTools.ps1"
@@ -9,8 +9,8 @@ BeforeDiscovery {
 Describe "Invoke-WebRequest" -Tag Unit {
 
     BeforeAll {
-    . "$PSScriptRoot/../Helpers/TestTools.ps1"
-    $script:moduleToTest = Initialize-TestEnvironment
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
     AfterAll {

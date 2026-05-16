@@ -172,9 +172,9 @@ For more information, see about_CommonParameters
 
 ## OUTPUTS
 
-### [System.Management.Automation.PSObject]
+### System.Management.Automation.PSObject
 
-### [System.Hashtable]
+### System.Hashtable
 
 ## NOTES
 

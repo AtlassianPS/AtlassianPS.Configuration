@@ -7,8 +7,8 @@ concurrency:
 on:
   pull_request:
     branches: [master]
-    paths-ignore: &paths-ignore
-      # Documentation (NOT docs/** - that's PlatyPS source!)
+    paths-ignore:
+      &paths-ignore # Documentation (NOT docs/** - that's PlatyPS source!)
       - "CHANGELOG.md"
       - "LICENSE"
       # AI assistant instruction files
@@ -41,10 +41,8 @@ jobs:
       - uses: actions/checkout@v6
       - uses: AtlassianPS/.github/actions/setup-powershell@master
 
-      - name: Style and analyzer checks
+      - run: Invoke-Build -Task Lint
         shell: pwsh
-        run: |
-          Invoke-Build -Task Lint
 
   build:
     name: Build Module
@@ -54,10 +52,8 @@ jobs:
       - uses: actions/checkout@v6
       - uses: AtlassianPS/.github/actions/setup-powershell@master
 
-      - name: Build
+      - run: Invoke-Build -Task Clean, Build
         shell: pwsh
-        run: |
-          Invoke-Build -Task Clean, Build
 
       - uses: actions/upload-artifact@v7
         with:
@@ -88,10 +84,8 @@ jobs:
           ./Tools/setup.ps1
           Invoke-Build -Task ShowDebugInfo
 
-      - name: Test
+      - run: Invoke-Build -Task Test
         shell: powershell
-        run: |
-          Invoke-Build -Task Test
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -119,10 +113,8 @@ jobs:
           name: Release
           path: ./Release/
 
-      - name: Test
+      - run: Invoke-Build -Task Test
         shell: pwsh
-        run: |
-          Invoke-Build -Task Test
 
       - uses: actions/upload-artifact@v7
         if: always()

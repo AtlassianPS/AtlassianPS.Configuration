@@ -1,4 +1,4 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/../Helpers/TestTools.ps1"
@@ -9,8 +9,8 @@ BeforeDiscovery {
 Describe "Get-ServerConfiguration" -Tag Unit {
 
     BeforeAll {
-    . "$PSScriptRoot/../Helpers/TestTools.ps1"
-    $script:moduleToTest = Initialize-TestEnvironment
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
     AfterAll {
@@ -45,10 +45,10 @@ Describe "Get-ServerConfiguration" -Tag Unit {
             }
 
             It "has an alias '<alias>' for parameter '<parameter>'" -TestCases @(
-                @{ParameterName = "Uri"; AliasName = "Address"}
-                @{ParameterName = "Uri"; AliasName = "Url"}
-                @{ParameterName = "Name"; AliasName = "ServerName"}
-                @{ParameterName = "Name"; AliasName = "Alias"}
+                @{ParameterName = "Uri"; AliasName = "Address" }
+                @{ParameterName = "Uri"; AliasName = "Url" }
+                @{ParameterName = "Name"; AliasName = "ServerName" }
+                @{ParameterName = "Name"; AliasName = "Alias" }
             ) {
                 param($ParameterName, $AliasName)
                 $command.Parameters[$ParameterName].Aliases | Should -Contain $AliasName

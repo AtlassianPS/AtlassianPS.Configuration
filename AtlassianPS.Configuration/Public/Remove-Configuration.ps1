@@ -1,4 +1,4 @@
-function Remove-Configuration {
+﻿function Remove-Configuration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
     [OutputType( [void] )]

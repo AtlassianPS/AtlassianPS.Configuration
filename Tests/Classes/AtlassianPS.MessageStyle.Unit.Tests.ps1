@@ -1,10 +1,10 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "[AtlassianPS.MessageStyle] Tests" -Tag Unit {
 
     BeforeAll {
-    . "$PSScriptRoot/../Helpers/TestTools.ps1"
-    $script:moduleToTest = Initialize-TestEnvironment
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
     AfterAll {
@@ -18,8 +18,6 @@ Describe "[AtlassianPS.MessageStyle] Tests" -Tag Unit {
     }
 
     It "converts a [Hashtable] to [AtlassianPS.MessageStyle]" {
-        $session = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
-
         { [AtlassianPS.MessageStyle]@{ Indent = 0 } } | Should -Not -Throw
         { [AtlassianPS.MessageStyle]@{ Indent = 0; TimeStamp = $true; } } | Should -Not -Throw
         { [AtlassianPS.MessageStyle]@{ Indent = 0; TimeStamp = $true; BreadCrumbs = $true } } | Should -Not -Throw

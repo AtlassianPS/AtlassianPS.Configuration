@@ -1,4 +1,4 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/../Helpers/TestTools.ps1"
@@ -9,8 +9,8 @@ BeforeDiscovery {
 Describe "Set-ServerConfiguration" -Tag Unit {
 
     BeforeAll {
-    . "$PSScriptRoot/../Helpers/TestTools.ps1"
-    $script:moduleToTest = Initialize-TestEnvironment
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
     AfterAll {
@@ -64,10 +64,10 @@ Describe "Set-ServerConfiguration" -Tag Unit {
             }
 
             It "has an alias '<alias>' for parameter '<parameter>'" -TestCases @(
-                @{ParameterName = "Uri"; AliasName = "Address"}
-                @{ParameterName = "Uri"; AliasName = "Url"}
-                @{ParameterName = "Name"; AliasName = "ServerName"}
-                @{ParameterName = "Name"; AliasName = "Alias"}
+                @{ParameterName = "Uri"; AliasName = "Address" }
+                @{ParameterName = "Uri"; AliasName = "Url" }
+                @{ParameterName = "Name"; AliasName = "ServerName" }
+                @{ParameterName = "Name"; AliasName = "Alias" }
             ) {
                 param($ParameterName, $AliasName)
                 $command.Parameters[$ParameterName].Aliases | Should -Contain $AliasName
@@ -108,7 +108,7 @@ Describe "Set-ServerConfiguration" -Tag Unit {
                 Set-ServerConfiguration -Id 1 -Name "New Server"
 
                 (Get-ServerConfiguration).Name | Should -Contain "New Server"
-                (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "New Server"
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Name | Should -Be "New Server"
             }
 
             It "accepts the Id over the pipeline" {
@@ -117,18 +117,18 @@ Describe "Set-ServerConfiguration" -Tag Unit {
                 1 | Set-ServerConfiguration -Name "New Server"
 
                 (Get-ServerConfiguration).Name | Should -Contain "New Server"
-                (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "New Server"
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Name | Should -Be "New Server"
             }
 
             It "accepts the Id over the pipeline as a property" {
                 (Get-ServerConfiguration).Name | Should -Not -Contain "New Server"
 
                 Get-ServerConfiguration |
-                    Where-Object Id -eq 1 |
+                    Where-Object Id -EQ 1 |
                     Set-ServerConfiguration -Name "New Server"
 
                 (Get-ServerConfiguration).Name | Should -Contain "New Server"
-                (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "New Server"
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Name | Should -Be "New Server"
             }
 
             It "does not change the number of entries" {
@@ -137,7 +137,7 @@ Describe "Set-ServerConfiguration" -Tag Unit {
                 Set-ServerConfiguration -Id 1 -Name "New Server"
                 1 | Set-ServerConfiguration -Name "New Server"
                 Get-ServerConfiguration |
-                    Where-Object Id -eq 1 |
+                    Where-Object Id -EQ 1 |
                     Set-ServerConfiguration -Name "New Server"
 
                 Get-ServerConfiguration | Should -HaveCount 2
@@ -179,27 +179,27 @@ Describe "Set-ServerConfiguration" -Tag Unit {
             #endregion Arrange
 
             It "can change the Name" {
-                (Get-ServerConfiguration | Where Id -eq 1).Name | Should -Be "Google"
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Name | Should -Be "Google"
 
                 Set-ServerConfiguration -Id 1 -Name "https://atlassianps.org"
 
-                (Get-ServerConfiguration | Where Id -eq 1).Name | Should -Be "https://atlassianps.org"
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Name | Should -Be "https://atlassianps.org"
             }
 
             It "can change the Uri" {
-                (Get-ServerConfiguration | Where Id -eq 1).Uri | Should -Be "https://google.com/"
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Uri | Should -Be "https://google.com/"
 
                 Set-ServerConfiguration -Id 1 -Uri "https://atlassian.net"
 
-                (Get-ServerConfiguration | Where Id -eq 1).Uri | Should -Be "https://atlassian.net/"
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Uri | Should -Be "https://atlassian.net/"
             }
 
             It "can change the Type" {
-                (Get-ServerConfiguration | Where Id -eq 1).Type | Should -Be "Jira"
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Type | Should -Be "Jira"
 
                 Set-ServerConfiguration -Id 1 -Type Bitbucket
 
-                (Get-ServerConfiguration | Where Id -eq 1).Type | Should -Be "Bitbucket"
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Type | Should -Be "Bitbucket"
             }
 
             It "only allowed AtlassianPS server types" {
@@ -218,23 +218,23 @@ Describe "Set-ServerConfiguration" -Tag Unit {
             }
 
             It "can change the WebSession" {
-                (Get-ServerConfiguration | Where Id -eq 1).Session | Should -BeNullOrEmpty
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Session | Should -BeNullOrEmpty
 
                 $webSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
                 $webSession.UserAgent = "Test Value"
                 Set-ServerConfiguration -Id 1 -Session $webSession
 
-                (Get-ServerConfiguration | Where Id -eq 1).Session | Should -Not -BeNullOrEmpty
-                (Get-ServerConfiguration | Where Id -eq 1).Session.UserAgent | Should -Be "Test Value"
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Session | Should -Not -BeNullOrEmpty
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Session.UserAgent | Should -Be "Test Value"
             }
 
             It "can change the Headers" {
-                (Get-ServerConfiguration | Where Id -eq 1).Headers | Should -BeNullOrEmpty
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Headers | Should -BeNullOrEmpty
 
                 Set-ServerConfiguration -Id 1 -Headers @{ Authorization = "Basic ABCDEF" }
 
-                (Get-ServerConfiguration | Where Id -eq 1).Headers | Should -BeOfType [Hashtable]
-                (Get-ServerConfiguration | Where Id -eq 1).Headers.Authorization | Should -Be "Basic ABCDEF"
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Headers | Should -BeOfType [Hashtable]
+                (Get-ServerConfiguration | Where-Object Id -EQ 1).Headers.Authorization | Should -Be "Basic ABCDEF"
             }
         }
     }

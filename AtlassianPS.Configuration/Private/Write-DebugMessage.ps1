@@ -1,4 +1,4 @@
-function Write-DebugMessage {
+﻿function Write-DebugMessage {
     <#
     .SYNOPSIS
         Write a message to the debug stream without creating a breakpoint

@@ -1,16 +1,15 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/../Helpers/TestTools.ps1"
     $script:moduleToTest = Initialize-TestEnvironment
-    Import-Module $script:moduleToTest -Force
 }
 
 Describe "Add-ServerConfiguration" -Tag Unit {
 
     BeforeAll {
-    . "$PSScriptRoot/../Helpers/TestTools.ps1"
-    $script:moduleToTest = Initialize-TestEnvironment
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
     AfterAll {
@@ -60,10 +59,10 @@ Describe "Add-ServerConfiguration" -Tag Unit {
             }
 
             It "has an alias '<AliasName>' for parameter '<ParameterName>'" -TestCases @(
-                @{ParameterName = "Uri"; AliasName = "Address"}
-                @{ParameterName = "Uri"; AliasName = "Url"}
-                @{ParameterName = "Name"; AliasName = "ServerName"}
-                @{ParameterName = "Name"; AliasName = "Alias"}
+                @{ParameterName = "Uri"; AliasName = "Address" }
+                @{ParameterName = "Uri"; AliasName = "Url" }
+                @{ParameterName = "Name"; AliasName = "ServerName" }
+                @{ParameterName = "Name"; AliasName = "Alias" }
             ) {
                 param($ParameterName, $AliasName)
                 $command.Parameters[$ParameterName].Aliases | Should -Contain $AliasName
@@ -122,7 +121,7 @@ Describe "Add-ServerConfiguration" -Tag Unit {
                 (Get-ServerConfiguration).Name | Should -Not -Contain "New Server"
 
                 Get-ServerConfiguration |
-                    Where-Object Id -eq 1 |
+                    Where-Object Id -EQ 1 |
                     Add-ServerConfiguration -Name "New Server"
 
                 Get-ServerConfiguration | Should -HaveCount 3
@@ -147,7 +146,7 @@ Describe "Add-ServerConfiguration" -Tag Unit {
                 Get-ServerConfiguration | Should -HaveCount 2
                 (Get-ServerConfiguration).Id | Should -Be @(1, 2)
 
-                1..8 | Foreach-Object {
+                1..8 | ForEach-Object {
                     Add-ServerConfiguration -Name "New Server $_" -Uri "https://atlassianps.org" -Type Jira
                 }
 
@@ -247,8 +246,8 @@ Describe "Add-ServerConfiguration" -Tag Unit {
 
                 Get-ServerConfiguration | Should -HaveCount 3
                 (Get-ServerConfiguration).Name | Should -Contain "New Server"
-                (Get-ServerConfiguration | Where-Object Name -eq "New Server").Session | Should -Not -BeNullOrEmpty
-                (Get-ServerConfiguration | Where-Object Name -eq "New Server").Session.UserAgent | Should -Be "Test Value"
+                (Get-ServerConfiguration | Where-Object Name -EQ "New Server").Session | Should -Not -BeNullOrEmpty
+                (Get-ServerConfiguration | Where-Object Name -EQ "New Server").Session.UserAgent | Should -Be "Test Value"
             }
 
             It "adds a server with the minimum set of parameters + Name + Session + Headers" {
@@ -263,10 +262,10 @@ Describe "Add-ServerConfiguration" -Tag Unit {
 
                 Get-ServerConfiguration | Should -HaveCount 3
                 (Get-ServerConfiguration).Name | Should -Contain "New Server"
-                (Get-ServerConfiguration | Where-Object Name -eq "New Server").Session | Should -Not -BeNullOrEmpty
-                (Get-ServerConfiguration | Where-Object Name -eq "New Server").Session.UserAgent | Should -Be "Test Value"
-                (Get-ServerConfiguration | Where-Object Name -eq "New Server").Headers | Should -BeOfType [Hashtable]
-                (Get-ServerConfiguration | Where-Object Name -eq "New Server").Headers.Authorization | Should -Be "Basic ABCDEF"
+                (Get-ServerConfiguration | Where-Object Name -EQ "New Server").Session | Should -Not -BeNullOrEmpty
+                (Get-ServerConfiguration | Where-Object Name -EQ "New Server").Session.UserAgent | Should -Be "Test Value"
+                (Get-ServerConfiguration | Where-Object Name -EQ "New Server").Headers | Should -BeOfType [Hashtable]
+                (Get-ServerConfiguration | Where-Object Name -EQ "New Server").Headers.Authorization | Should -Be "Basic ABCDEF"
 
             }
         }

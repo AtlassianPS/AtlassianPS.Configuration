@@ -1,4 +1,4 @@
-function Save-Configuration {
+﻿function Save-Configuration {
     [CmdletBinding()]
     param()
 

@@ -1,4 +1,4 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/../Helpers/TestTools.ps1"
@@ -9,8 +9,8 @@ BeforeDiscovery {
 Describe "Set-Configuration" -Tag Unit {
 
     BeforeAll {
-    . "$PSScriptRoot/../Helpers/TestTools.ps1"
-    $script:moduleToTest = Initialize-TestEnvironment
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
     AfterAll {
@@ -28,13 +28,13 @@ Describe "Set-Configuration" -Tag Unit {
             $tempConfig = $script:Configuration.Clone()
             $return = $tempConfig.Keys |
                 ForEach-Object {
-                [PSCustomObject]@{
-                    Name  = $_
-                    Value = $tempConfig[$_]
+                    [PSCustomObject]@{
+                        Name  = $_
+                        Value = $tempConfig[$_]
+                    }
                 }
-            }
             if ($Name) {
-                $return = $return | Where-Object Name -eq $Name
+                $return = $return | Where-Object Name -EQ $Name
             }
             if ($ValueOnly) {
                 $return = $return.Value
@@ -94,66 +94,66 @@ Describe "Set-Configuration" -Tag Unit {
 
             It "adds a new entry if it didn't exist before" {
                 Get-Configuration | Should -HaveCount 4
-                (Get-Configuration | Where-Object Name -eq "StringValue").Value | Should -BeNullOrEmpty
+                (Get-Configuration | Where-Object Name -EQ "StringValue").Value | Should -BeNullOrEmpty
 
                 Set-Configuration -Name "StringValue" -Value "Lorem Ipsum"
 
                 Get-Configuration | Should -HaveCount 5
-                (Get-Configuration | Where-Object Name -eq "StringValue").Value | Should -Not -BeNullOrEmpty
+                (Get-Configuration | Where-Object Name -EQ "StringValue").Value | Should -Not -BeNullOrEmpty
             }
 
             It "overwrite an entry in case in existed before" {
                 Get-Configuration | Should -HaveCount 4
-                (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Not -BeNullOrEmpty
+                (Get-Configuration | Where-Object Name -EQ "Foo").Value | Should -Not -BeNullOrEmpty
 
                 Set-Configuration -Name "Foo" -Value "New Value"
 
                 Get-Configuration | Should -HaveCount 4
-                (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Not -BeNullOrEmpty
+                (Get-Configuration | Where-Object Name -EQ "Foo").Value | Should -Not -BeNullOrEmpty
             }
 
             It "appends a value to an entry" {
                 Get-Configuration | Should -HaveCount 4
-                (Get-Configuration | Where-Object Name -eq "Bar").Value | Should -Be 42
+                (Get-Configuration | Where-Object Name -EQ "Bar").Value | Should -Be 42
 
                 Set-Configuration -Name "Bar" -Value 100 -Append
 
                 Get-Configuration | Should -HaveCount 4
-                (Get-Configuration | Where-Object Name -eq "Bar").Value | Should -Contain 42
-                (Get-Configuration | Where-Object Name -eq "Bar").Value | Should -Contain 100
+                (Get-Configuration | Where-Object Name -EQ "Bar").Value | Should -Contain 42
+                (Get-Configuration | Where-Object Name -EQ "Bar").Value | Should -Contain 100
             }
 
             It "allows value to be passed over pipeline for a new entry" {
                 Get-Configuration | Should -HaveCount 4
-                (Get-Configuration | Where-Object Name -eq "NewKey").Value | Should -BeNullOrEmpty
-                (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Be "lorem ipsum"
+                (Get-Configuration | Where-Object Name -EQ "NewKey").Value | Should -BeNullOrEmpty
+                (Get-Configuration | Where-Object Name -EQ "Foo").Value | Should -Be "lorem ipsum"
 
                 Get-Configuration -Name "Foo" | Set-Configuration -Name "NewKey"
 
                 Get-Configuration | Should -HaveCount 5
-                (Get-Configuration | Where-Object Name -eq "NewKey").Value | Should -Be "lorem ipsum"
+                (Get-Configuration | Where-Object Name -EQ "NewKey").Value | Should -Be "lorem ipsum"
             }
 
             It "allows value to be passed over pipeline for an existing entry" {
                 Get-Configuration | Should -HaveCount 4
-                (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Be "lorem ipsum"
+                (Get-Configuration | Where-Object Name -EQ "Foo").Value | Should -Be "lorem ipsum"
 
                 Get-Configuration -Name "Foo" | Set-Configuration -Value "New Value"
 
                 Get-Configuration | Should -HaveCount 4
-                (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Be "New Value"
+                (Get-Configuration | Where-Object Name -EQ "Foo").Value | Should -Be "New Value"
             }
 
             It "allows to set the value to null" {
                 Get-Configuration | Should -HaveCount 4
-                (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Be "lorem ipsum"
-                (Get-Configuration | Where-Object Name -eq "Bar").Value | Should -Be 42
+                (Get-Configuration | Where-Object Name -EQ "Foo").Value | Should -Be "lorem ipsum"
+                (Get-Configuration | Where-Object Name -EQ "Bar").Value | Should -Be 42
 
                 Set-Configuration -Name "Foo" -Value ""
                 Set-Configuration -Name "Bar" -Value $null
 
-                (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -BeNullOrEmpty
-                (Get-Configuration | Where-Object Name -eq "Bar").Value | Should -BeNullOrEmpty
+                (Get-Configuration | Where-Object Name -EQ "Foo").Value | Should -BeNullOrEmpty
+                (Get-Configuration | Where-Object Name -EQ "Bar").Value | Should -BeNullOrEmpty
             }
         }
     }

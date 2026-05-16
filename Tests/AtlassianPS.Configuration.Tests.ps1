@@ -1,13 +1,13 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "General project validation" -Tag Build {
-
     BeforeAll {
-    . "$PSScriptRoot/Helpers/TestTools.ps1"
-    $script:moduleToTest = Initialize-TestEnvironment
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        . "$PSScriptRoot/Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
 
-        $script:manifest = Test-ModuleManifest -Path $env:BHManifestToTest -ErrorAction Stop -WarningAction SilentlyContinue
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        $script:manifest = Test-ModuleManifest -Path $script:moduleToTest -ErrorAction Stop -WarningAction SilentlyContinue
+
         $script:manifestData = Import-PowerShellDataFile -Path $env:BHManifestToTest
     }
     AfterAll {
@@ -22,9 +22,9 @@ Describe "General project validation" -Tag Build {
     }
 
     It "imports '$env:BHProjectName' cleanly" {
-        Import-Module $script:moduleToTest
-        $module = Get-Module $env:BHProjectName
+        { Import-Module $script:moduleToTest -ErrorAction Stop } | Should -Not -Throw
 
+        $module = Get-Module $env:BHProjectName
         $module | Should -BeOfType [PSModuleInfo]
     }
 
@@ -70,7 +70,7 @@ Describe "General project validation" -Tag Build {
     It "loads Configuration into the global scope" {
         Remove-Module Configuration -Force -ErrorAction SilentlyContinue
         (Get-Module).Name | Should -Not -Contain Configuration
-    Import-Module $script:moduleToTest -Force
+        Import-Module $script:moduleToTest -Force
         (Get-Module).Name | Should -Contain Configuration
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue

@@ -1,4 +1,4 @@
-function Get-ServerConfiguration {
+﻿function Get-ServerConfiguration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     [OutputType( [AtlassianPS.ServerData] )]

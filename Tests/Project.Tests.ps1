@@ -1,109 +1,132 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/Helpers/TestTools.ps1"
+
     $script:moduleToTest = Initialize-TestEnvironment
     Import-Module $script:moduleToTest -Force
+
     $script:module = Get-Module $env:BHProjectName
     $script:modulePrefix = (Import-PowerShellDataFile -Path $env:BHManifestToTest).DefaultCommandPrefix
     $script:testFiles = Get-ChildItem $PSScriptRoot -Include "*.Tests.ps1" -Recurse
-    $script:loadedNamespace = [AtlassianPS.ServerData].Assembly.GetTypes() | Where-Object IsPublic
-    $script:publicFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1").BaseName
-    $script:privateFunctions = (Get-ChildItem "$env:BHModulePath/Private/*.ps1").BaseName
+    $script:loadedNamespace = [AtlassianPS.ServerData].Assembly.GetTypes() | Where-Object {
+        $_.IsPublic -and $_.Namespace -eq 'AtlassianPS'
+    }
+    $script:publicFunctionFiles = (Get-ChildItem "$env:BHModulePath/Public/*.ps1" -File).BaseName
+    $script:privateFunctionFiles = (Get-ChildItem "$env:BHModulePath/Private/*.ps1" -File).BaseName
+    $script:exportedFunctionNames = @($script:module.ExportedFunctions.Keys)
+    $script:normalizedExportedFunctions = foreach ($functionName in $script:exportedFunctionNames) {
+        if ($script:modulePrefix -and $functionName -like "*-$script:modulePrefix*") {
+            $functionName -replace "-$script:modulePrefix", '-'
+        }
+        else {
+            $functionName
+        }
+    }
 }
 
-Describe "General project validation" -Tag Build {
-    BeforeAll {
-    . "$PSScriptRoot/Helpers/TestTools.ps1"
-    $script:moduleToTest = Initialize-TestEnvironment
-    Import-Module $script:moduleToTest -Force
-    }
-
-    AfterAll {
-        Invoke-TestCleanup
-    }
-
-    Context "Public function <_>" -ForEach $publicFunctions {
-        It "has a test file" {
-            $expectedTestFile = "$_.Unit.Tests.ps1"
-            $testFiles.Name | Should -Contain $expectedTestFile
-        }
-
-        It "is exported by module manifest" {
-            $expectedFunctionName = if ($modulePrefix) {
-                $_ -replace "-", "-$modulePrefix"
+Describe "General project validation" -Tag Unit {
+    Describe "Public functions" {
+        Context "Function <_>" -ForEach $publicFunctionFiles {
+            BeforeAll {
+                $script:functionName = $_
             }
-            else {
-                $_
+
+            It "has a test file" {
+                $expectedTestFile = "$functionName.Unit.Tests.ps1"
+                $testFiles.Name | Should -Contain $expectedTestFile
             }
-            $module.ExportedFunctions.Keys | Should -Contain $expectedFunctionName
+
+            It "is exported" {
+                $normalizedExportedFunctions | Should -Contain $functionName
+            }
         }
     }
 
-    Context "Private function <_>" -ForEach $privateFunctions {
-        It "has a test file" {
-            $expectedTestFile = "$_.Unit.Tests.ps1"
-            $testFiles.Name | Should -Contain $expectedTestFile
+    Describe "Private functions" {
+        It "has private functions" {
+            $privateFunctionFiles.Count | Should -BeGreaterThan 0
         }
 
-        It "is not exported by module manifest" {
-            $module.ExportedFunctions.Keys | Should -Not -Contain $_
+        Context "Function <_>" -ForEach $privateFunctionFiles {
+            BeforeAll {
+                $script:functionName = $_
+            }
+
+            It "has a test file" {
+                $expectedTestFile = "$functionName.Unit.Tests.ps1"
+                $testFiles.Name | Should -Contain $expectedTestFile
+            }
+
+            It "is loaded in the module" {
+                $commandInModule = $module.Invoke({ Get-Command -Name $args[0] -ErrorAction SilentlyContinue }, $functionName)
+                $commandInModule | Should -Not -BeNullOrEmpty -Because "private function '$functionName' should be loaded"
+            }
+
+            It "is not exported" {
+                $normalizedExportedFunctions | Should -Not -Contain $functionName
+            }
         }
     }
 
-    Context "Class <_>" -ForEach ($loadedNamespace | Where-Object IsClass) {
-        It "has a test file" {
-            $expectedTestFile = "$_.Unit.Tests.ps1"
-            $testFiles.Name | Should -Contain $expectedTestFile
+    Describe "Classes" {
+        Context "Class <_>" -ForEach ($loadedNamespace | Where-Object IsClass | ForEach-Object FullName) {
+            BeforeAll {
+                $script:className = $_
+            }
+
+            It "has a test file" {
+                $expectedTestFile = "$className.Unit.Tests.ps1"
+                $testFiles.Name | Should -Contain $expectedTestFile
+            }
         }
     }
 
-    Context "Enumeration <_>" -ForEach ($loadedNamespace | Where-Object IsEnum) {
-        It "has a test file" {
-            $expectedTestFile = "$_.Unit.Tests.ps1"
-            $testFiles.Name | Should -Contain $expectedTestFile
+    Describe "Enumerations" {
+        Context "Enum <_>" -ForEach ($loadedNamespace | Where-Object IsEnum | ForEach-Object FullName) {
+            BeforeAll {
+                $script:enumName = $_
+            }
+
+            It "has a test file" {
+                $expectedTestFile = "$enumName.Unit.Tests.ps1"
+                $testFiles.Name | Should -Contain $expectedTestFile
+            }
         }
     }
 
-    Context "Project stucture" {
+    Describe "Project structure" {
         It "has a README" {
-            Test-Path "$env:BHProjectPath/README.md" | Should -Be $true
+            Test-Path "$env:BHProjectPath/README.md" | Should -BeTrue
         }
 
-        It "defines the homepage's frontmatter in the README" {
-            Get-Content "$env:BHProjectPath/README.md" | Should -Not -BeNullOrEmpty
+        It "defines the homepage frontmatter in the README" {
             "$env:BHProjectPath/README.md" | Should -FileContentMatchExactly "layout: module"
             "$env:BHProjectPath/README.md" | Should -FileContentMatchExactly "permalink: /module/$env:BHProjectName/"
         }
 
         It "uses the MIT license" {
-            Test-Path "$env:BHProjectPath/LICENSE" | Should -Be $true
-            Get-Content "$env:BHProjectPath/LICENSE" | Should -Not -BeNullOrEmpty
+            Test-Path "$env:BHProjectPath/LICENSE" | Should -BeTrue
             "$env:BHProjectPath/LICENSE" | Should -FileContentMatchExactly "MIT License"
             "$env:BHProjectPath/LICENSE" | Should -FileContentMatch "Copyright \(c\) 20\d{2} AtlassianPS"
-
         }
 
         It "has a .gitignore" {
-            Test-Path "$env:BHProjectPath/.gitignore" | Should -Be $true
+            Test-Path "$env:BHProjectPath/.gitignore" | Should -BeTrue
         }
 
         It "has a .gitattributes" {
-            Test-Path "$env:BHProjectPath/.gitattributes" | Should -Be $true
+            Test-Path "$env:BHProjectPath/.gitattributes" | Should -BeTrue
+        }
+
+        It "only exports functions from the Public folder" {
+            foreach ($exportedFunctionName in $normalizedExportedFunctions) {
+                $publicFunctionFiles | Should -Contain $exportedFunctionName -Because "exported function '$exportedFunctionName' should have a corresponding file in Public/"
+            }
         }
 
         It "exports every public function file" {
-            $exportedFunctionNames = @((Get-Module -Name $env:BHProjectName).ExportedFunctions.Keys)
-            $normalizedExportedFunctions = foreach ($functionName in $exportedFunctionNames) {
-                if ($modulePrefix -and $functionName -like "*-$modulePrefix*") {
-                    $functionName -replace "-$modulePrefix", '-'
-                }
-                else {
-                    $functionName
-                }
-            }
-
-            foreach ($publicFunction in (Get-ChildItem "$env:BHModulePath/Public/*.ps1" -File).BaseName) {
+            foreach ($publicFunction in $publicFunctionFiles) {
                 $normalizedExportedFunctions | Should -Contain $publicFunction
             }
         }

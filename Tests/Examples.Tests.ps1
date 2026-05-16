@@ -1,89 +1,130 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/Helpers/TestTools.ps1"
+
     $script:moduleToTest = Initialize-TestEnvironment
-    Import-Module $script:moduleToTest -Force
-    $script:isBuildEnvironment = [string]::Equals($env:BHisBuild, 'True', [System.StringComparison]::OrdinalIgnoreCase)
     $script:moduleName = $env:BHProjectName
     $script:modulePrefix = (Import-PowerShellDataFile -Path $env:BHManifestToTest).DefaultCommandPrefix
+
     $publicFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1" -File).BaseName
-    $functions = foreach ($publicFunction in $publicFunctions) {
-        $exportedCommandName = if ($script:modulePrefix) {
-            $publicFunction -replace "-", "-$script:modulePrefix"
-        }
-        else {
-            $publicFunction
-        }
-
-        Get-Command -Name $exportedCommandName -Module $script:moduleName -ErrorAction Stop
-    }
-
-    $script:exampleCases = @(
-        foreach ($function in $functions) {
-            $help = Get-Help $function.Name
-            $exampleItems = @()
-            if ($help -and ($help.PSObject.Properties.Name -contains 'Examples') -and $help.Examples) {
-                $exampleItems = @($help.Examples.Example)
+    $script:commands = @(
+        foreach ($publicFunction in $publicFunctions) {
+            $exportedCommandName = if ($script:modulePrefix) {
+                $publicFunction -replace "-", "-$script:modulePrefix"
+            }
+            else {
+                $publicFunction
             }
 
-            foreach ($example in $exampleItems) {
-                $code = $example.Code
-                if ([string]::IsNullOrWhiteSpace($code)) { continue }
-
-                try {
-                    [void][ScriptBlock]::Create($code)
-                }
-                catch {
-                    continue
-                }
-
-                $title = ($example.Title -replace "-").Trim()
-                if ([string]::IsNullOrWhiteSpace($title)) {
-                    $title = "Example"
-                }
-
-                @{
-                    CommandName = $function.Name
-                    Title       = $title
-                    Code        = $code
-                }
-            }
+            Get-Command -Name $exportedCommandName -Module $script:moduleName -ErrorAction Stop
         }
     )
-}
 
-Describe "Validation of example codes in the documentation" -Tag Documentation, Build -Skip:(-not $script:isBuildEnvironment) {
-    $moduleName = $script:moduleName
+    $normalizeExampleTitle = {
+        param([string]$Title)
 
-    BeforeAll {
-    . "$PSScriptRoot/Helpers/TestTools.ps1"
-    $script:moduleToTest = Initialize-TestEnvironment
-    Import-Module $script:moduleToTest -Force
-
-        # backup current configuration
-        & (Get-Module $moduleName) {
-            $script:previousConfig = $script:Configuration
-            $script:Configuration = @{}
-            $script:Configuration.Add("ServerList", [System.Collections.Generic.List[AtlassianPS.ServerData]]::new())
+        if ([string]::IsNullOrWhiteSpace($Title)) {
+            return "Example"
         }
 
-        #region Mocks
-        Mock Invoke-WebRequest { }
-        Mock Invoke-RestMethod { }
-        Mock Write-DebugMessage { } -ModuleName $moduleName
-        Mock Write-Verbose { } -ModuleName $moduleName
-        #endregion Mocks
+        return ($Title -replace '^-+', '').Trim()
+    }
+
+    $exampleCases = [System.Collections.Generic.List[hashtable]]::new()
+    $exampleParseErrors = [System.Collections.Generic.List[hashtable]]::new()
+
+    foreach ($command in $commands) {
+        $help = Get-Help $command.Name -ErrorAction SilentlyContinue
+        if (-not $help -or -not $help.Examples) { continue }
+
+        foreach ($example in @($help.Examples.Example)) {
+            $code = $example.Code -as [string]
+            if ([string]::IsNullOrWhiteSpace($code)) { continue }
+
+            $title = & $normalizeExampleTitle ($example.Title -as [string])
+
+            try {
+                [void][ScriptBlock]::Create($code)
+            }
+            catch {
+                $exampleParseErrors.Add(@{
+                        CommandName = $command.Name
+                        Title       = $title
+                        Error       = $_.Exception.Message
+                    })
+                continue
+            }
+
+            $exampleCases.Add(@{
+                    CommandName = $command.Name
+                    Title       = $title
+                    Code        = $code
+                })
+        }
+    }
+
+    $script:exampleCases = @($exampleCases)
+    $script:exampleParseErrors = @($exampleParseErrors)
+}
+
+Describe "Validation of example codes in the documentation" -Tag Documentation, Build {
+    BeforeAll {
+        . "$PSScriptRoot/Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
+        $script:moduleName = $env:BHProjectName
+        $script:modulePrefix = (Import-PowerShellDataFile -Path $env:BHManifestToTest).DefaultCommandPrefix
+        Import-Module $script:moduleToTest -Force -ErrorAction Stop
+        $script:module = Get-Module $script:moduleName
+
+        & $script:module {
+            $script:previousConfig = $script:Configuration
+            $script:Configuration = @{
+                ServerList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
+            }
+        }
+
+        Mock Invoke-WebRequest { } -ModuleName $script:moduleName
+        Mock Invoke-RestMethod { } -ModuleName $script:moduleName
+        Mock Write-DebugMessage { } -ModuleName $script:moduleName
+        Mock Write-Verbose { } -ModuleName $script:moduleName
     }
 
     AfterAll {
-        #restore previous configuration
-        & (Get-Module $moduleName) {
+        & $script:module {
             $script:Configuration = $script:previousConfig
             Save-Configuration
         }
 
         Invoke-TestCleanup
+    }
+
+    It "has no syntactically invalid examples" {
+        if ($exampleParseErrors.Count -gt 0) {
+            $details = $exampleParseErrors |
+                ForEach-Object { "$($_.CommandName) [$($_.Title)]: $($_.Error)" } |
+                Sort-Object
+            throw "The following examples are not valid PowerShell code:`n  $($details -join "`n  ")"
+        }
+    }
+
+    It "has executable examples for every public command" {
+        $commandsWithExamples = @($exampleCases | ForEach-Object CommandName | Sort-Object -Unique)
+        $publicFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1" -File).BaseName
+        $expectedCommands = @(
+            foreach ($publicFunction in $publicFunctions) {
+                if ($script:modulePrefix) {
+                    $publicFunction -replace "-", "-$script:modulePrefix"
+                }
+                else {
+                    $publicFunction
+                }
+            }
+        )
+
+        foreach ($commandName in $expectedCommands) {
+            $commandsWithExamples | Should -Contain $commandName
+        }
     }
 
     Context "Example <_.Title> for <_.CommandName>" -ForEach $exampleCases {

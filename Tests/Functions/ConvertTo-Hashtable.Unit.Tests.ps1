@@ -1,4 +1,4 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/../Helpers/TestTools.ps1"
@@ -9,8 +9,8 @@ BeforeDiscovery {
 Describe "ConvertTo-Hashtable" -Tag Unit {
 
     BeforeAll {
-    . "$PSScriptRoot/../Helpers/TestTools.ps1"
-    $script:moduleToTest = Initialize-TestEnvironment
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
         Import-Module $script:moduleToTest
     }
     AfterAll {
@@ -64,7 +64,7 @@ Describe "ConvertTo-Hashtable" -Tag Unit {
             }
 
             It "casts InputObject implicitly to PSCustomObject" {
-                $hash = @{ lorem = "ipsum"}
+                $hash = @{ lorem = "ipsum" }
                 ConvertTo-Hashtable -InputObject $hash | Should -BeOfType [Hashtable]
                 (ConvertTo-Hashtable -InputObject $hash).Keys | Should -Contain "lorem"
 
