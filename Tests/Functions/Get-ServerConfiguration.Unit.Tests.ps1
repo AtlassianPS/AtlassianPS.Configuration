@@ -1,23 +1,16 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Get-ServerConfiguration" -Tag Unit {
-
     BeforeAll {
-        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Invoke-TestCleanup
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
+        Import-Module $script:moduleToTest
     }
 
-    InModuleScope $env:BHProjectName {
-
+    InModuleScope "AtlassianPS.Configuration" {
         #region Mocking
-        Mock Write-DebugMessage -ModuleName $env:BHProjectName {}
-        Mock Write-Verbose -ModuleName $env:BHProjectName {}
+        Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
+        Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
 
         Mock Get-Configuration {
             $script:Configuration["ServerList"]
@@ -25,8 +18,9 @@ Describe "Get-ServerConfiguration" -Tag Unit {
         #endregion Mocking
 
         Context "Sanity checking" {
-
-            $command = Get-Command -Name Get-ServerConfiguration
+            BeforeAll {
+                $script:command = Get-Command -Name Get-ServerConfiguration
+            }
 
             It "has a mandatory parameter 'Name' of type [String[]] with ArgumentCompleter" {
                 $command | Should -HaveParameter "Name" -Mandatory -Type [String[]] -HasArgumentCompleter
@@ -37,10 +31,10 @@ Describe "Get-ServerConfiguration" -Tag Unit {
             }
 
             It "has an alias '<alias>' for parameter '<parameter>'" -TestCases @(
-                @{ParameterName = "Uri"; AliasName = "Address"}
-                @{ParameterName = "Uri"; AliasName = "Url"}
-                @{ParameterName = "Name"; AliasName = "ServerName"}
-                @{ParameterName = "Name"; AliasName = "Alias"}
+                @{ParameterName = "Uri"; AliasName = "Address" }
+                @{ParameterName = "Uri"; AliasName = "Url" }
+                @{ParameterName = "Name"; AliasName = "ServerName" }
+                @{ParameterName = "Name"; AliasName = "Alias" }
             ) {
                 param($ParameterName, $AliasName)
                 $command.Parameters[$ParameterName].Aliases | Should -Contain $AliasName
@@ -48,7 +42,6 @@ Describe "Get-ServerConfiguration" -Tag Unit {
         }
 
         Context "Behavior checking" {
-
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{

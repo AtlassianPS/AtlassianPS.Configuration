@@ -1,33 +1,29 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Add-ServerConfiguration" -Tag Unit {
-
     BeforeAll {
-        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Invoke-TestCleanup
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
+        Import-Module $script:moduleToTest
     }
 
-    InModuleScope $env:BHProjectName {
+    InModuleScope "AtlassianPS.Configuration" {
+        BeforeEach {
+            #region Mocking
+            Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
+            Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
+            Mock Save-Configuration -ModuleName "AtlassianPS.Configuration" {}
 
-        #region Mocking
-        Mock Write-DebugMessage -ModuleName $env:BHProjectName {}
-        Mock Write-Verbose -ModuleName $env:BHProjectName {}
-        Mock Save-Configuration -ModuleName $env:BHProjectName {}
-
-        Mock Get-ServerConfiguration -Module $env:BHProjectName {
-            $script:Configuration["ServerList"]
+            Mock Get-ServerConfiguration -ModuleName "AtlassianPS.Configuration" {
+                $script:Configuration["ServerList"]
+            }
+            #endregion Mocking
         }
-        #endregion Mocking
 
         Context "Sanity checking" {
-
-            $command = Get-Command -Name Add-ServerConfiguration
+            BeforeAll {
+                $script:command = Get-Command -Name Add-ServerConfiguration
+            }
 
             It "has a mandatory parameter 'Uri' of type [Uri]" {
                 $command | Should -HaveParameter "Uri" -Mandatory -Type [Uri]
@@ -49,11 +45,11 @@ Describe "Add-ServerConfiguration" -Tag Unit {
                 $command | Should -HaveParameter "Headers" -Type [Hashtable]
             }
 
-            It "has an alias '<alias>' for parameter '<parameter>'" -TestCases @(
-                @{ParameterName = "Uri"; AliasName = "Address"}
-                @{ParameterName = "Uri"; AliasName = "Url"}
-                @{ParameterName = "Name"; AliasName = "ServerName"}
-                @{ParameterName = "Name"; AliasName = "Alias"}
+            It "has an alias '<AliasName>' for parameter '<ParameterName>'" -TestCases @(
+                @{ParameterName = "Uri"; AliasName = "Address" }
+                @{ParameterName = "Uri"; AliasName = "Url" }
+                @{ParameterName = "Name"; AliasName = "ServerName" }
+                @{ParameterName = "Name"; AliasName = "Alias" }
             ) {
                 param($ParameterName, $AliasName)
                 $command.Parameters[$ParameterName].Aliases | Should -Contain $AliasName
@@ -61,7 +57,6 @@ Describe "Add-ServerConfiguration" -Tag Unit {
         }
 
         Context "Behavior checking" {
-
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{
@@ -137,7 +132,7 @@ Describe "Add-ServerConfiguration" -Tag Unit {
                 Get-ServerConfiguration | Should -HaveCount 2
                 (Get-ServerConfiguration).Id | Should -Be @(1, 2)
 
-                1..8 | Foreach-Object {
+                1..8 | ForEach-Object {
                     Add-ServerConfiguration -Name "New Server $_" -Uri "https://atlassianps.org" -Type Jira
                 }
 
@@ -150,7 +145,15 @@ Describe "Add-ServerConfiguration" -Tag Unit {
                 (Get-ServerConfiguration).Name | Should -Contain "Google"
                 (Get-ServerConfiguration).Uri | Should -Not -Contain "https://atlassianps.org/"
 
-                { Add-ServerConfiguration -Name "Google" -Uri "https://atlassianps.org/" -Type Jira -ErrorAction Stop } | Should -Throw "An entry with name [Google] already exists"
+                {
+                    Add-ServerConfiguration -Name "Google" -Uri "https://atlassianps.org/" -Type Jira -ErrorAction Stop
+                } | Should -Throw
+                try {
+                    Add-ServerConfiguration -Name "Google" -Uri "https://atlassianps.org/" -Type Jira -ErrorAction Stop
+                }
+                catch {
+                    $_.Exception.Message | Should -Be "An entry with name [Google] already exists"
+                }
                 { Add-ServerConfiguration -Name "Google" -Uri "https://atlassianps.org/" -Type Jira -ErrorAction SilentlyContinue } | Should -Not -Throw
 
                 Get-ServerConfiguration | Should -HaveCount 2
@@ -158,7 +161,6 @@ Describe "Add-ServerConfiguration" -Tag Unit {
         }
 
         Context "Parameter checking" {
-
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{

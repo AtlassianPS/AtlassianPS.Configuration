@@ -1,4 +1,4 @@
-function Get-BreadCrumb {
+﻿function Get-BreadCrumb {
     param(
         [String]$Delimiter = " > "
     )

@@ -1,4 +1,4 @@
-#region Dependencies
+﻿#region Dependencies
 # Load the Module's namespace from C#
 if (-not("AtlassianPS.ServerData" -as [Type])) {
     $assemblyReferences = @(

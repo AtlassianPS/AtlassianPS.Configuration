@@ -1,57 +1,55 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Save-Configuration" -Tag Unit {
-
     BeforeAll {
-        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Invoke-TestCleanup
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
+        Import-Module $script:moduleToTest
     }
 
-    InModuleScope $env:BHProjectName {
+    InModuleScope "AtlassianPS.Configuration" {
+        BeforeEach {
+            #region Mocking
+            Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
+            Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
 
-        #region Mocking
-        Mock Write-DebugMessage -ModuleName $env:BHProjectName {}
-        Mock Write-Verbose -ModuleName $env:BHProjectName {}
-        Mock Import-MqcnAlias -ModuleName $env:BHProjectName {}
-
-        function ExportConfiguration($InputObject) {}
-        Mock ExportConfiguration {
-            $InputObject
-        }
-
-        Mock Get-Configuration {
-            @{
-                Foo = "lorem ipsum"
-                Bar = 42
-                ServerList = @(
-                    [AtlassianPS.ServerData]@{
-                        Id   = 1
-                        Name = "Google"
-                        Uri  = "https://google.com"
-                        Type = "Jira"
-                    }
-                    [AtlassianPS.ServerData]@{
-                        Id      = 2
-                        Name    = "Google with Session"
-                        Uri     = "https://google.com"
-                        Type    = "Jira"
-                        Session = (New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession)
-                    }
-                )
+            function ExportConfiguration {
+                param($InputObject)
+                $InputObject
             }
+            Mock Import-MqcnAlias -ModuleName "AtlassianPS.Configuration" {}
+            Mock ExportConfiguration -ModuleName "AtlassianPS.Configuration" {
+                param($InputObject)
+                $InputObject
+            }
+
+            Mock Get-Configuration -ModuleName "AtlassianPS.Configuration" {
+                @{
+                    Foo        = "lorem ipsum"
+                    Bar        = 42
+                    ServerList = @(
+                        [AtlassianPS.ServerData]@{
+                            Id   = 1
+                            Name = "Google"
+                            Uri  = "https://google.com"
+                            Type = "Jira"
+                        }
+                        [AtlassianPS.ServerData]@{
+                            Id      = 2
+                            Name    = "Google with Session"
+                            Uri     = "https://google.com"
+                            Type    = "Jira"
+                            Session = (New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession)
+                        }
+                    )
+                }
+            }
+            #endregion Mocking
         }
-        #endregion Mocking
 
         Context "Sanity checking" { }
 
         Context "Behavior checking" {
-
             It "does not fail on invocation" {
                 { Save-Configuration } | Should -Not -Throw
             }
@@ -59,7 +57,7 @@ Describe "Save-Configuration" -Tag Unit {
             It "uses the Configuration module to export the data" {
                 Save-Configuration
 
-                Assert-MockCalled -CommandName "ExportConfiguration" -ModuleName $env:BHProjectName -Exactly -Times 1 -Scope It
+                Should -Invoke "ExportConfiguration" -ModuleName "AtlassianPS.Configuration" -Exactly -Times 1 -Scope It
             }
 
             It "exports all keys in the configuration" {
@@ -70,7 +68,7 @@ Describe "Save-Configuration" -Tag Unit {
                 $after["Bar"] | Should -Not -BeNullOrEmpty
                 $after["Bar"] | Should -BeOfType [Int]
                 $after["ServerList"] | Should -Not -BeNullOrEmpty
-                $after["ServerList"] | Should -BeOfType [AtlassianPS.ServerData]
+                ($after["ServerList"] | Select-Object -First 1) | Should -BeOfType [AtlassianPS.ServerData]
                 $after["ServerList"] | Should -HaveCount 2
             }
 
@@ -80,8 +78,8 @@ Describe "Save-Configuration" -Tag Unit {
 
                 $after["Foo"] | Should -BeOfType [String]
                 $after["Bar"] | Should -BeOfType [Int]
-                $before["ServerList"].Session.UserAgent | Should -Not -BeNullOrEmpty
-                $after.ServerList.Session.UserAgent | Should -BeNullOrEmpty
+                ($before["ServerList"] | Where-Object Session | Select-Object -First 1).Session.UserAgent | Should -Not -BeNullOrEmpty
+                ($after["ServerList"] | Where-Object Name -eq "Google with Session" | Select-Object -First 1).Session | Should -BeNullOrEmpty
             }
         }
     }

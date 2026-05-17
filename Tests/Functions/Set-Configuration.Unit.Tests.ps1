@@ -1,34 +1,27 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Set-Configuration" -Tag Unit {
-
     BeforeAll {
-        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Invoke-TestCleanup
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
+        Import-Module $script:moduleToTest
     }
 
-    InModuleScope $env:BHProjectName {
-
+    InModuleScope "AtlassianPS.Configuration" {
         #region Mocking
-        Mock Write-DebugMessage -ModuleName $env:BHProjectName {}
-        Mock Write-Verbose -ModuleName $env:BHProjectName {}
-        Mock Save-Configuration -ModuleName $env:BHProjectName {}
+        Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
+        Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
+        Mock Save-Configuration -ModuleName "AtlassianPS.Configuration" {}
 
         Mock Get-Configuration {
             $tempConfig = $script:Configuration.Clone()
             $return = $tempConfig.Keys |
                 ForEach-Object {
-                [PSCustomObject]@{
-                    Name  = $_
-                    Value = $tempConfig[$_]
+                    [PSCustomObject]@{
+                        Name  = $_
+                        Value = $tempConfig[$_]
+                    }
                 }
-            }
             if ($Name) {
                 $return = $return | Where-Object Name -eq $Name
             }
@@ -40,7 +33,9 @@ Describe "Set-Configuration" -Tag Unit {
         #endregion Mocking
 
         Context "Sanity checking" {
-            $command = Get-Command -Name Set-Configuration
+            BeforeAll {
+                $script:command = Get-Command -Name Set-Configuration
+            }
 
             It "has a mandatory parameter 'Name' of type [String] with ArgumentCompleter" {
                 $command | Should -HaveParameter "Name" -Mandatory -Type [String] -HasArgumentCompleter
@@ -60,7 +55,6 @@ Describe "Set-Configuration" -Tag Unit {
         }
 
         Context "Behavior checking" {
-
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{

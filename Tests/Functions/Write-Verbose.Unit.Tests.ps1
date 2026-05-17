@@ -1,20 +1,13 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Write-Verbose" -Tag Unit {
-
     BeforeAll {
-        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Invoke-TestCleanup
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
+        Import-Module $script:moduleToTest
     }
 
-    InModuleScope $env:BHProjectName {
-
+    InModuleScope "AtlassianPS.Configuration" {
         #region Mocking
         #endregion Mocking
 
@@ -22,16 +15,18 @@ Describe "Write-Verbose" -Tag Unit {
         #endregion Arrange
 
         Context "Sanity checking" {
-            $command = Get-Command -Name Write-Verbose
+            BeforeAll {
+                $script:command = Get-Command -Name Write-Verbose
+            }
 
             It "has a [String] -Message parameter" {
                 $command.Parameters.ContainsKey("Message")
-                $command.Parameters["Message"].ParameterType | Should Be "String"
+                $command.Parameters["Message"].ParameterType | Should -Be "String"
             }
 
             It "has a [System.Management.Automation.PSCmdlet] -Cmdlet parameter" {
                 $command.Parameters.ContainsKey("Cmdlet")
-                $command.Parameters["Cmdlet"].ParameterType | Should Be "System.Management.Automation.PSCmdlet"
+                $command.Parameters["Cmdlet"].ParameterType | Should -Be "System.Management.Automation.PSCmdlet"
             }
         }
 

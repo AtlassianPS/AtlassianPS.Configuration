@@ -1,36 +1,20 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "ConvertTo-Hashtable" -Tag Unit {
-
     BeforeAll {
-        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Invoke-TestCleanup
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
+        Import-Module $script:moduleToTest
     }
 
-    InModuleScope $env:BHProjectName {
-
+    InModuleScope "AtlassianPS.Configuration" {
         #region Mocking
         #endregion Mocking
 
-        #region Arrange
-        $pscustomobject = [PSCustomObject]@{
-            a = 1
-            b = 2
-            c = 3
-            d = 4
-            e = 5
-            f = 6
-        }
-        #endregion Arrange
-
         Context "Sanity checking" {
-            $command = Get-Command -Name ConvertTo-Hashtable
+            BeforeAll {
+                $script:command = Get-Command -Name ConvertTo-Hashtable
+            }
 
             It "has a mandatory parameter 'InputObject' of type [PSObject]" {
                 $command | Should -HaveParameter "InputObject" -Mandatory -Type [PSObject]
@@ -38,6 +22,16 @@ Describe "ConvertTo-Hashtable" -Tag Unit {
         }
 
         Context "Behavior checking" {
+            BeforeAll {
+                $script:pscustomobject = [PSCustomObject]@{
+                    a = 1
+                    b = 2
+                    c = 3
+                    d = 4
+                    e = 5
+                    f = 6
+                }
+            }
 
             It "converts an [PSCustomObject] to a Hashtable" {
                 ConvertTo-Hashtable -InputObject $pscustomobject | Should -BeOfType [Hashtable]
@@ -59,7 +53,7 @@ Describe "ConvertTo-Hashtable" -Tag Unit {
             }
 
             It "casts InputObject implicitly to PSCustomObject" {
-                $hash = @{ lorem = "ipsum"}
+                $hash = @{ lorem = "ipsum" }
                 ConvertTo-Hashtable -InputObject $hash | Should -BeOfType [Hashtable]
                 (ConvertTo-Hashtable -InputObject $hash).Keys | Should -Contain "lorem"
 

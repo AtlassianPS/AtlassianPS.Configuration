@@ -1,65 +1,32 @@
-#requires -modules BuildHelpers
-#requires -modules Pester
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 #requires -modules @{ ModuleName = 'PSScriptAnalyzer'; ModuleVersion = '1.25.0' }
 
 Describe "PSScriptAnalyzer Tests" -Tag Build {
-
     BeforeAll {
-        Import-Module "$PSScriptRoot/../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-    }
-    AfterAll {
-        Invoke-TestCleanup
-    }
+        . "$PSScriptRoot/Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
+        $projectRoot = if ($env:BHisBuild) { $env:BHBuildOutput } else { $env:BHProjectPath }
+        $modulePath = Join-Path $projectRoot "AtlassianPS.Configuration"
+        $settingsPath = Join-Path $projectRoot "PSScriptAnalyzerSettings.psd1"
 
-    $settingsPath = if ($env:BHisBuild) {
-        "$env:BHBuildOutput/PSScriptAnalyzerSettings.psd1"
-    }
-    else {
-        "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
-    }
-
-    $Params = @{
-        Path          = $env:BHModulePath
-        Settings      = $settingsPath
-        Severity      = @('Error', 'Warning')
-        Recurse       = $true
-        Verbose       = $false
-        ErrorVariable = 'ErrorVariable'
-        ErrorAction   = 'SilentlyContinue'
-    }
-    $ScriptWarnings = Invoke-ScriptAnalyzer @Params
-    $scripts = Get-ChildItem $env:BHModulePath -Include *.ps1, *.psm1 -Recurse
-
-    foreach ($Script in $scripts) {
-        $RelPath = $Script.FullName.Replace($env:BHProjectPath, '') -replace '^\\', ''
-
-        Context "$RelPath" {
-
-            $Rules = $ScriptWarnings |
-                Where-Object {$_.ScriptPath -like $Script.FullName} |
-                Select-Object -ExpandProperty RuleName -Unique
-
-            foreach ($rule in $Rules) {
-                It "passes $rule" {
-                    $BadLines = $ScriptWarnings |
-                        Where-Object {$_.ScriptPath -like $Script.FullName -and $_.RuleName -like $rule} |
-                        Select-Object -ExpandProperty Line
-                    $BadLines | Should -Be $null
-                }
-            }
-
-            $Exceptions = $null
-            if ($ErrorVariable) {
-                $Exceptions = $ErrorVariable.Exception.Message |
-                    Where-Object {$_ -match [regex]::Escape($Script.FullName)}
-            }
-
-            It "has no parse errors" {
-                foreach ($Exception in $Exceptions) {
-                    $Exception | Should -BeNullOrEmpty
-                }
-            }
+        $params = @{
+            Path        = $modulePath
+            Settings    = $settingsPath
+            Severity    = @('Error', 'Warning')
+            Recurse     = $true
+            Verbose     = $false
+            ErrorAction = 'SilentlyContinue'
         }
+
+        $script:analyzerErrors = @()
+        $script:scriptWarnings = Invoke-ScriptAnalyzer @params -ErrorVariable +script:analyzerErrors
+    }
+
+    It "has no rule violations" {
+        $scriptWarnings | Should -BeNullOrEmpty
+    }
+
+    It "has no parse errors" {
+        $analyzerErrors | Should -BeNullOrEmpty
     }
 }

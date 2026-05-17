@@ -1,28 +1,22 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Get-Configuration" -Tag Unit {
-
     BeforeAll {
-        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Invoke-TestCleanup
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
+        Import-Module $script:moduleToTest
     }
 
-    InModuleScope $env:BHProjectName {
-
+    InModuleScope "AtlassianPS.Configuration" {
         #region Mocking
-        Mock Write-DebugMessage -ModuleName $env:BHProjectName {}
-        Mock Write-Verbose -ModuleName $env:BHProjectName {}
+        Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
+        Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
         #endregion Mocking
 
         Context "Sanity checking" {
-
-            $command = Get-Command -Name Get-Configuration
+            BeforeAll {
+                $script:command = Get-Command -Name Get-Configuration
+            }
 
             It "has a parameter 'Name' of type [String[]] with ArgumentCompleter and a default value '*'" {
                 $command | Should -HaveParameter "Name" -Type [String[]] -HasArgumentCompleter -DefaultValue "*"
@@ -38,7 +32,6 @@ Describe "Get-Configuration" -Tag Unit {
         }
 
         Context "Behavior checking" {
-
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{

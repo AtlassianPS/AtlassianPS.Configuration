@@ -1,33 +1,29 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Set-ServerConfiguration" -Tag Unit {
-
     BeforeAll {
-        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Invoke-TestCleanup
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
+        Import-Module $script:moduleToTest
     }
 
-    InModuleScope $env:BHProjectName {
+    InModuleScope "AtlassianPS.Configuration" {
+        BeforeEach {
+            #region Mocking
+            Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
+            Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
+            Mock Save-Configuration -ModuleName "AtlassianPS.Configuration" {}
 
-        #region Mocking
-        Mock Write-DebugMessage -ModuleName $env:BHProjectName {}
-        Mock Write-Verbose -ModuleName $env:BHProjectName {}
-        Mock Save-Configuration -ModuleName $env:BHProjectName {}
-
-        Mock Get-ServerConfiguration -Module $env:BHProjectName {
-            $script:Configuration["ServerList"]
+            Mock Get-ServerConfiguration -ModuleName "AtlassianPS.Configuration" {
+                $script:Configuration["ServerList"]
+            }
+            #endregion Mocking
         }
-        #endregion Mocking
 
         Context "Sanity checking" {
-
-            $command = Get-Command -Name Set-ServerConfiguration
+            BeforeAll {
+                $script:command = Get-Command -Name Set-ServerConfiguration
+            }
 
             It "has a mandatory parameter 'Id' of type [UInt32]" {
                 $command | Should -HaveParameter "Id" -Mandatory -Type [UInt32]
@@ -54,19 +50,17 @@ Describe "Set-ServerConfiguration" -Tag Unit {
             }
 
             It "has an alias '<alias>' for parameter '<parameter>'" -TestCases @(
-                @{ParameterName = "Uri"; AliasName = "Address"}
-                @{ParameterName = "Uri"; AliasName = "Url"}
-                @{ParameterName = "Name"; AliasName = "ServerName"}
-                @{ParameterName = "Name"; AliasName = "Alias"}
+                @{ParameterName = "Uri"; AliasName = "Address" }
+                @{ParameterName = "Uri"; AliasName = "Url" }
+                @{ParameterName = "Name"; AliasName = "ServerName" }
+                @{ParameterName = "Name"; AliasName = "Alias" }
             ) {
                 param($ParameterName, $AliasName)
                 $command.Parameters[$ParameterName].Aliases | Should -Contain $AliasName
             }
-
         }
 
         Context "Behavior checking" {
-
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{
@@ -142,7 +136,6 @@ Describe "Set-ServerConfiguration" -Tag Unit {
         }
 
         Context "Parameter checking" {
-
             #region Arrange
             BeforeEach {
                 $script:Configuration = @{
@@ -169,27 +162,27 @@ Describe "Set-ServerConfiguration" -Tag Unit {
             #endregion Arrange
 
             It "can change the Name" {
-                (Get-ServerConfiguration | Where Id -eq 1).Name | Should -Be "Google"
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "Google"
 
                 Set-ServerConfiguration -Id 1 -Name "https://atlassianps.org"
 
-                (Get-ServerConfiguration | Where Id -eq 1).Name | Should -Be "https://atlassianps.org"
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "https://atlassianps.org"
             }
 
             It "can change the Uri" {
-                (Get-ServerConfiguration | Where Id -eq 1).Uri | Should -Be "https://google.com/"
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Uri | Should -Be "https://google.com/"
 
                 Set-ServerConfiguration -Id 1 -Uri "https://atlassian.net"
 
-                (Get-ServerConfiguration | Where Id -eq 1).Uri | Should -Be "https://atlassian.net/"
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Uri | Should -Be "https://atlassian.net/"
             }
 
             It "can change the Type" {
-                (Get-ServerConfiguration | Where Id -eq 1).Type | Should -Be "Jira"
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Type | Should -Be "Jira"
 
                 Set-ServerConfiguration -Id 1 -Type Bitbucket
 
-                (Get-ServerConfiguration | Where Id -eq 1).Type | Should -Be "Bitbucket"
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Type | Should -Be "Bitbucket"
             }
 
             It "only allowed AtlassianPS server types" {
@@ -208,23 +201,23 @@ Describe "Set-ServerConfiguration" -Tag Unit {
             }
 
             It "can change the WebSession" {
-                (Get-ServerConfiguration | Where Id -eq 1).Session | Should -BeNullOrEmpty
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Session | Should -BeNullOrEmpty
 
                 $webSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
                 $webSession.UserAgent = "Test Value"
                 Set-ServerConfiguration -Id 1 -Session $webSession
 
-                (Get-ServerConfiguration | Where Id -eq 1).Session | Should -Not -BeNullOrEmpty
-                (Get-ServerConfiguration | Where Id -eq 1).Session.UserAgent | Should -Be "Test Value"
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Session | Should -Not -BeNullOrEmpty
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Session.UserAgent | Should -Be "Test Value"
             }
 
             It "can change the Headers" {
-                (Get-ServerConfiguration | Where Id -eq 1).Headers | Should -BeNullOrEmpty
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Headers | Should -BeNullOrEmpty
 
                 Set-ServerConfiguration -Id 1 -Headers @{ Authorization = "Basic ABCDEF" }
 
-                (Get-ServerConfiguration | Where Id -eq 1).Headers | Should -BeOfType [Hashtable]
-                (Get-ServerConfiguration | Where Id -eq 1).Headers.Authorization | Should -Be "Basic ABCDEF"
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Headers | Should -BeOfType [Hashtable]
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Headers.Authorization | Should -Be "Basic ABCDEF"
             }
         }
     }

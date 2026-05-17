@@ -1,4 +1,4 @@
-function Import-MqcnAlias {
+﻿function Import-MqcnAlias {
     <#
     .SYNOPSIS
         Create an alias for a full command name

@@ -116,7 +116,7 @@ For more information, see about_CommonParameters
 
 ## OUTPUTS
 
-### [PSCustomObject]
+### PSCustomObject
 
 ## NOTES
 

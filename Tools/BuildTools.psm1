@@ -1,26 +1,4 @@
-#requires -Modules @{ModuleName='PowerShellGet';ModuleVersion='1.6.0'}
-
-[CmdletBinding()]
-param()
-
-function Invoke-Init {
-    [Alias("Init")]
-    [CmdletBinding()]
-    param()
-    begin {
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
-        Add-ToModulePath -Path $env:BHBuildOutput
-
-        # github's PAT is stored to ~\.git-credentials within the Release Pipeline
-        # to avoid it being passed as parameter
-
-        git config --global user.email "support@atlassianps.net"
-        git config --global user.name "AtlassianPS Automated User"
-        git config --global credential.helper "store --file ~/.git-credentials"
-    }
-}
-
-function Assert-True {
+﻿function Assert-True {
     [CmdletBinding( DefaultParameterSetName = 'ByBool' )]
     param(
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByScriptBlock' )]
@@ -40,18 +18,89 @@ function Assert-True {
     }
 }
 
-function LogCall {
-    Assert-True { Test-Path TestDrive:\ } "This function only work inside pester"
-
-    Set-Content -Value "$($MyInvocation.Invocationname) $($MyInvocation.UnBoundArguments -join " ")" -Path "TestDrive:\FunctionCalled.$($MyInvocation.Invocationname).txt" -Force
+function Write-WorkflowCommand {
+    <#
+    .SYNOPSIS
+        Emit a GitHub Actions workflow command on stdout.
+    .DESCRIPTION
+        GitHub Actions workflow commands (e.g. "::error file=...,line=...::msg")
+        must reach the runner's stdout to be intercepted. Write-Output is captured
+        by Invoke-Build's pipeline plumbing, and Write-Host is forbidden by
+        PSScriptAnalyzer's PSAvoidUsingWriteHost rule. This wrapper exists so the
+        suppression can be local and justified.
+    #>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        'PSAvoidUsingWriteHost', '',
+        Justification = 'GitHub Actions workflow commands must reach stdout; Write-Output is captured by Invoke-Build pipelines.'
+    )]
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, Position = 0)]
+        [String]$Command
+    )
+    Write-Host $Command
 }
 
-function Add-ToModulePath ([String]$Path) {
-    $PSModulePath = $env:PSModulePath -split ([IO.Path]::PathSeparator)
-    if ($Path -notin $PSModulePath) {
-        $PSModulePath += $Path
-        $env:PSModulePath = $PSModulePath -join ([IO.Path]::PathSeparator)
+function Test-ContainsAll {
+    [CmdletBinding()]
+    [OutputType([Boolean])]
+    param(
+        [Parameter(Mandatory)]
+        [String[]]$Haystack,
+        [Parameter(Mandatory)]
+        [String[]]$Needle
+    )
+
+    begin {
+        $result = $Needle | ForEach-Object {
+            if ($Haystack -notcontains $_) {
+                return "missing"
+            }
+        }
+        return -not ($result -eq "missing")
     }
+}
+
+function Get-HostInformation {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingEmptyCatchBlock', '')]
+    [OutputType([String], [String])]
+    [CmdletBinding()]
+    param()
+    try {
+        $script:IsWindows = (-not (Get-Variable -Name IsWindows -ErrorAction Ignore)) -or $IsWindows
+        $script:IsLinux = (Get-Variable -Name IsLinux -ErrorAction Ignore) -and $IsLinux
+        $script:IsMacOS = (Get-Variable -Name IsMacOS -ErrorAction Ignore) -and $IsMacOS
+        $script:IsCoreCLR = $PSVersionTable.ContainsKey('PSEdition') -and $PSVersionTable.PSEdition -eq 'Core'
+    }
+    catch {}
+
+    switch ($true) {
+        { $IsWindows } {
+            $OS = "Windows"
+            if (-not ($IsCoreCLR)) {
+                $OSVersion = $PSVersionTable.BuildVersion.ToString()
+            }
+        }
+        { $IsLinux } {
+            $OS = "Linux"
+        }
+        { $IsMacOs } {
+            $OS = "OSX"
+        }
+        { $IsCoreCLR } {
+            $OSVersion = $PSVersionTable.OS
+        }
+    }
+
+    return $OS, $OSVersion
+}
+
+function Get-Dependency {
+    [CmdletBinding()]
+    param()
+
+    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$RequiredModules = Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName "build.requirements.psd1"
+    $RequiredModules
 }
 
 function Install-Dependency {
@@ -61,15 +110,23 @@ function Install-Dependency {
         $Scope = "CurrentUser"
     )
 
-    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$requiredModules = Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName "build.requirements.psd1"
-    $policy = (Get-PSRepository PSGallery).InstallationPolicy
+    $RequiredModules = Get-Dependency
+
+    # Ensure PSGallery exists
+    $psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
+    if (-not $psGallery) {
+        throw "PSGallery repository is not available. Run setup.ps1 first to initialize the PowerShell Gallery."
+    }
+
+    $Policy = $psGallery.InstallationPolicy
     try {
         Set-PSRepository PSGallery -InstallationPolicy Trusted
-        $requiredModules | Install-Module -Scope $Scope -Repository PSGallery -SkipPublisherCheck -AllowClobber -Force
-    } finally {
-        Set-PSRepository PSGallery -InstallationPolicy $policy
+        $RequiredModules | Install-Module -Scope $Scope -Repository PSGallery -SkipPublisherCheck -AllowClobber
     }
-    $requiredModules | Import-Module
+    finally {
+        Set-PSRepository PSGallery -InstallationPolicy $Policy
+    }
+    $RequiredModules | Import-Module
 }
 
 function Get-FileEncoding {

@@ -1,4 +1,4 @@
-#requires -Module PowerShellGet
+﻿#requires -Module PowerShellGet
 
 [CmdletBinding()]
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
@@ -40,7 +40,7 @@ function Sync-PSScriptAnalyzerSetting {
 }
 
 # PowerShell 5.1 and bellow need the PSGallery to be intialized
-if (-not ($gallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
+if (-not (Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
     Write-Host "Installing PackageProvider NuGet"
     $null = Install-PackageProvider -Name NuGet -Force -ErrorAction SilentlyContinue
 }

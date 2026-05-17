@@ -1,16 +1,10 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.6.0" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "[AtlassianPS.MessageStyle] Tests" -Tag Unit {
-
     BeforeAll {
-        Import-Module "$PSScriptRoot/../../Tools/TestTools.psm1" -force
-        Invoke-InitTest $PSScriptRoot
-
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Invoke-TestCleanup
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
+        Import-Module $script:moduleToTest
     }
 
     It "allows for an empty object" {
@@ -20,8 +14,6 @@ Describe "[AtlassianPS.MessageStyle] Tests" -Tag Unit {
     }
 
     It "converts a [Hashtable] to [AtlassianPS.MessageStyle]" {
-        $session = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
-
         { [AtlassianPS.MessageStyle]@{ Indent = 0 } } | Should -Not -Throw
         { [AtlassianPS.MessageStyle]@{ Indent = 0; TimeStamp = $true; } } | Should -Not -Throw
         { [AtlassianPS.MessageStyle]@{ Indent = 0; TimeStamp = $true; BreadCrumbs = $true } } | Should -Not -Throw

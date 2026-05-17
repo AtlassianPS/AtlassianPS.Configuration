@@ -1,4 +1,4 @@
-function Set-ServerConfiguration {
+﻿function Set-ServerConfiguration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
     [OutputType( [void] )]

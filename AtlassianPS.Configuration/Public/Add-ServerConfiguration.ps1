@@ -1,4 +1,4 @@
-function Add-ServerConfiguration {
+﻿function Add-ServerConfiguration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
     [OutputType( [void] )]
