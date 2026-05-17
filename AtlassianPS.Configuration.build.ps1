@@ -188,6 +188,36 @@ task Lint {
 
     Write-Build Gray "Running PSScriptAnalyzer..."
 
+    $requiredAnalyzerVersion = $null
+    foreach ($dependency in Get-Dependency) {
+        $moduleName = $null
+        if ($dependency.PSObject.Properties.Name -contains 'Name') {
+            $moduleName = $dependency.Name
+        }
+        elseif ($dependency.PSObject.Properties.Name -contains 'ModuleName') {
+            $moduleName = $dependency.ModuleName
+        }
+        if ($moduleName -ne 'PSScriptAnalyzer') {
+            continue
+        }
+        if ($dependency.PSObject.Properties.Name -contains 'RequiredVersion' -and $dependency.RequiredVersion) {
+            $requiredAnalyzerVersion = $dependency.RequiredVersion.ToString()
+            break
+        }
+        if ($dependency.PSObject.Properties.Name -contains 'Version' -and $dependency.Version) {
+            $requiredAnalyzerVersion = $dependency.Version.ToString()
+            break
+        }
+    }
+    if ($requiredAnalyzerVersion) {
+        Remove-Module PSScriptAnalyzer -ErrorAction SilentlyContinue
+        Import-Module PSScriptAnalyzer -RequiredVersion $requiredAnalyzerVersion -Force -ErrorAction Stop
+    }
+    $loadedAnalyzer = Get-Module PSScriptAnalyzer | Select-Object -First 1
+    if ($loadedAnalyzer) {
+        Write-Build Gray "Using PSScriptAnalyzer $($loadedAnalyzer.Version)"
+    }
+
     # Explicit source roots so PSSA does not recurse into Release/.
     $analyzerPaths = @(
         "$env:BHProjectPath/$env:BHProjectName"
@@ -205,7 +235,7 @@ task Lint {
     # -Path is single-valued, so invoke per root and concatenate.
     $results = @(
         foreach ($path in $analyzerPaths) {
-            Invoke-ScriptAnalyzer -Path $path @analyzerParams
+            PSScriptAnalyzer\Invoke-ScriptAnalyzer -Path $path @analyzerParams
         }
     )
 
