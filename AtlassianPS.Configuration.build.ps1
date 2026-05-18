@@ -1,4 +1,5 @@
 ﻿#requires -modules InvokeBuild
+#requires -modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.2'; MaximumVersion = '0.1.2' }
 
 [CmdletBinding()]
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
@@ -36,33 +37,17 @@ Set-StrictMode -Version Latest
 Import-Module "$PSScriptRoot/Tools/BuildTools.psm1" -Force -ErrorAction Stop
 Import-Module Metadata -Force -ErrorAction Stop
 
-Remove-Item -Path env:\BH* -ErrorAction SilentlyContinue
 $ProjectName = 'AtlassianPS.Configuration'
-$env:BHProjectName = $ProjectName
-$env:BHProjectPath = $PSScriptRoot
-$env:BHModulePath = Join-Path $PSScriptRoot $ProjectName
-$env:BHPSModulePath = $env:BHModulePath
-$env:BHPSModuleManifest = Join-Path $env:BHModulePath "$ProjectName.psd1"
-$env:BHBuildOutput = Join-Path $PSScriptRoot 'Release'
-
-if ($env:GITHUB_ACTIONS) {
-    $env:BHBuildSystem = 'GitHub Actions'
-    $env:BHBranchName = if ($env:GITHUB_HEAD_REF) { $env:GITHUB_HEAD_REF } else { $env:GITHUB_REF_NAME }
-    $env:BHCommitHash = $env:GITHUB_SHA
-    $env:BHBuildNumber = $env:GITHUB_RUN_NUMBER
-}
-else {
-    $env:BHBuildSystem = 'Unknown'
-    $env:BHBranchName = git -C $env:BHProjectPath rev-parse --abbrev-ref HEAD 2>$null
-    $env:BHCommitHash = git -C $env:BHProjectPath rev-parse HEAD 2>$null
-    $env:BHBuildNumber = '0'
-}
-$env:BHCommitMessage = (git -C $env:BHProjectPath log -1 --pretty=%B 2>$null) -join "`n"
+$script:BuildInfo = Initialize-AtlassianPSBuildEnvironment `
+    -ProjectName $ProjectName `
+    -ProjectPath $PSScriptRoot `
+    -VersionToPublish $VersionToPublish `
+    -ResetBuildEnvironmentVariables
 
 if ($VersionToPublish) {
     $VersionToPublish = $VersionToPublish.TrimStart('v')
 }
-$builtManifestPath = "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1"
+$builtManifestPath = $script:BuildInfo.BuiltManifestPath
 
 function Clear-ModuleConfigurationCache {
     [CmdletBinding()]
