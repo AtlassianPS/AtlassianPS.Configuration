@@ -4,38 +4,22 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
 param()
 
-$psScriptAnalyzerSettingsUri = 'https://raw.githubusercontent.com/AtlassianPS/.github/83e062b260346c4577d3b41974f0f8aafcc5e7e5/standards/PSScriptAnalyzerSettings.psd1'
 $psScriptAnalyzerSettingsPath = Join-Path (Join-Path $PSScriptRoot '..') 'PSScriptAnalyzerSettings.psd1'
 function Sync-PSScriptAnalyzerSetting {
     [CmdletBinding()]
     param()
 
-    Write-Host "Syncing PSScriptAnalyzer settings from AtlassianPS/.github"
+    Write-Host "Syncing PSScriptAnalyzer settings from AtlassianPS.Standards"
 
     try {
-        $invokeWebRequestParams = @{
-            Uri         = $psScriptAnalyzerSettingsUri
-            ErrorAction = 'Stop'
-        }
-
-        if ($PSVersionTable.PSEdition -eq 'Desktop') {
-            $invokeWebRequestParams.UseBasicParsing = $true
-        }
-
-        $response = Invoke-WebRequest @invokeWebRequestParams
-        $settingsContent = $response.Content
-
-        # Persist the pinned settings locally so build/lint always use the exact same config.
-        $settingsWithCrLf = $settingsContent -replace "`r?`n", "`r`n"
-        [System.IO.File]::WriteAllText(
-            $psScriptAnalyzerSettingsPath,
-            $settingsWithCrLf,
-            [System.Text.UTF8Encoding]::new($false)
-        )
-        Write-Host "Pinned PSScriptAnalyzer settings synchronized to '$psScriptAnalyzerSettingsPath'."
+        Import-Module AtlassianPS.Standards -RequiredVersion '0.1.2' -ErrorAction Stop
+        $resolvedSettingsPath = Sync-AtlassianPSScriptAnalyzerSettings `
+            -DestinationPath $psScriptAnalyzerSettingsPath `
+            -ErrorAction Stop
+        Write-Host "PSScriptAnalyzer settings synchronized to '$resolvedSettingsPath'."
     }
     catch {
-        throw "Unable to download pinned PSScriptAnalyzer settings from '$psScriptAnalyzerSettingsUri'. $($_.Exception.Message)"
+        throw "Unable to synchronize PSScriptAnalyzer settings from AtlassianPS.Standards. $($_.Exception.Message)"
     }
 }
 
@@ -51,8 +35,8 @@ if ((Get-Module PowershellGet -ListAvailable)[0].Version -lt [version]"1.6.0") {
     Install-Module PowershellGet -Scope CurrentUser -Force
 }
 
-Sync-PSScriptAnalyzerSetting
-
 Write-Host "Installing Dependencies"
 Import-Module "$PSScriptRoot/BuildTools.psm1" -Force
 Install-Dependency
+
+Sync-PSScriptAnalyzerSetting
