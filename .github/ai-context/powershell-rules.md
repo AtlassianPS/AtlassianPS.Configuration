@@ -13,10 +13,11 @@ Invoke-Build -Task Build, Test
 Focused iteration command:
 
 ```powershell
-Invoke-Pester -Path 'Tests/Functions/<FunctionName>.Unit.Tests.ps1'
+Invoke-Pester -Path 'Tests/Functions/Get-Configuration.Unit.Tests.ps1'
 ```
 
 Run full `Build, Test` before completion.
+Instruction-only changes may be skipped by CI path filters; run local validation and report exact command outcomes.
 
 ## Source Layout
 
