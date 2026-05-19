@@ -187,8 +187,14 @@ task CopyModuleFiles {
 
 # Synopsis: Compile all functions into the .psm1 file
 task CompileModule Init, {
-    $PublicFunctions = @( Get-ChildItem -Path "$env:BHBuildOutput/$env:BHProjectName/Public/*.ps1" -ErrorAction SilentlyContinue )
-    $PrivateFunctions = @( Get-ChildItem -Path "$env:BHBuildOutput/$env:BHProjectName/Private/*.ps1" -ErrorAction SilentlyContinue )
+    $PublicFunctions = @(
+        Get-ChildItem -Path "$env:BHBuildOutput/$env:BHProjectName/Public" -Recurse -File -Filter "*.ps1" -ErrorAction SilentlyContinue |
+            Sort-Object -Property FullName
+    )
+    $PrivateFunctions = @(
+        Get-ChildItem -Path "$env:BHBuildOutput/$env:BHProjectName/Private" -Recurse -File -Filter "*.ps1" -ErrorAction SilentlyContinue |
+            Sort-Object -Property FullName
+    )
 
 
     $targetFile = "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psm1"
@@ -421,7 +427,11 @@ task UpdateManifest {
     Import-Module $env:BHPSModuleManifest -Force
     $ModuleAlias = @(Get-Alias | Where-Object { $_.ModuleName -eq "$env:BHProjectName" })
 
-    $moduleFunctions = [string[]](Get-ChildItem "$env:BHModulePath/Public/*.ps1").BaseName
+    $moduleFunctions = [string[]](
+        Get-ChildItem "$env:BHModulePath/Public" -Recurse -File -Filter "*.ps1" |
+            Sort-Object -Property FullName |
+            Select-Object -ExpandProperty BaseName
+    )
     Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "FunctionsToExport" -Value @($moduleFunctions)
     Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "AliasesToExport" -Value ''
     if ($ModuleAlias) {

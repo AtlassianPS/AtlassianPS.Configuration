@@ -7,7 +7,12 @@ BeforeDiscovery {
     $script:moduleName = $env:BHProjectName
     $script:modulePrefix = (Import-PowerShellDataFile -Path $env:BHManifestToTest).DefaultCommandPrefix
 
-    $publicFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1" -File).BaseName
+    $publicFunctions = @(
+        Get-ChildItem "$env:BHModulePath/Public" -Recurse -File -Filter "*.ps1" |
+            Where-Object { $_.FullName -notmatch '[\\/]+SharedRuntime[\\/]+' } |
+            Sort-Object -Property FullName |
+            Select-Object -ExpandProperty BaseName
+    )
     $script:commands = @(
         foreach ($publicFunction in $publicFunctions) {
             $exportedCommandName = if ($script:modulePrefix) {
@@ -108,7 +113,12 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
 
     It "has executable examples for every public command" {
         $commandsWithExamples = @($exampleCases | ForEach-Object CommandName | Sort-Object -Unique)
-        $publicFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1" -File).BaseName
+        $publicFunctions = @(
+            Get-ChildItem "$env:BHModulePath/Public" -Recurse -File -Filter "*.ps1" |
+                Where-Object { $_.FullName -notmatch '[\\/]+SharedRuntime[\\/]+' } |
+                Sort-Object -Property FullName |
+                Select-Object -ExpandProperty BaseName
+        )
         $expectedCommands = @(
             foreach ($publicFunction in $publicFunctions) {
                 if ($script:modulePrefix) {

@@ -37,8 +37,14 @@ Add-MetadataConverter @{
 }
 
 #region LoadFunctions
-$PublicFunctions = @( Get-ChildItem -Path "$PSScriptRoot/Public/*.ps1" -ErrorAction SilentlyContinue )
-$PrivateFunctions = @( Get-ChildItem -Path "$PSScriptRoot/Private/*.ps1" -ErrorAction SilentlyContinue )
+$PublicFunctions = @(
+    Get-ChildItem -Path "$PSScriptRoot/Public" -Recurse -File -Filter "*.ps1" -ErrorAction SilentlyContinue |
+        Sort-Object -Property FullName
+)
+$PrivateFunctions = @(
+    Get-ChildItem -Path "$PSScriptRoot/Private" -Recurse -File -Filter "*.ps1" -ErrorAction SilentlyContinue |
+        Sort-Object -Property FullName
+)
 
 # Dot source the functions
 foreach ($file in @($PublicFunctions + $PrivateFunctions)) {
