@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+
+### Improvements
+
+- Migrated `Tools/setup.ps1` to shared `AtlassianPS.Standards` bootstrap/dependency commands with synchronized ScriptAnalyzer settings.
+- Migrated `Tools/update.dependencies.ps1` to shared `AtlassianPS.Standards\Update-AtlassianPSDependencyReference` with `ShouldProcess` and fail-fast behavior.
+- Aligned workflow setup pins and build/release standards version references to `AtlassianPS.Standards` `0.1.6`.
+- Added regression coverage for setup/update delegation and cross-surface standards version consistency.
+
 ## 0.2 - 2018-10-03
 
 ### Changed

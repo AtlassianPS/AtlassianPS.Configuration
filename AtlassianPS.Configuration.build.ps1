@@ -1,5 +1,5 @@
 ﻿#requires -modules InvokeBuild
-#requires -modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.2'; MaximumVersion = '0.1.2' }
+#requires -modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.6'; MaximumVersion = '0.1.6' }
 
 [CmdletBinding()]
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
@@ -17,12 +17,6 @@ param(
 )
 
 $WarningPreference = "Continue"
-if ($PSBoundParameters.ContainsKey('Verbose')) {
-    $VerbosePreference = "Continue"
-}
-if ($PSBoundParameters.ContainsKey('Debug')) {
-    $DebugPreference = "Continue"
-}
 
 try {
     $script:IsWindows = (-not (Get-Variable -Name IsWindows -ErrorAction Ignore)) -or $IsWindows
