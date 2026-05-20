@@ -21,7 +21,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             $workflowContent = Get-Content -LiteralPath $workflowPath -Raw
             [regex]::Matches(
                 $workflowContent,
-                "AtlassianPS/AtlassianPS\.Standards/\.github/actions/setup-powershell@(?<sha>[0-9a-f]{40})(?:\s+#\s+v(?<version>[0-9]+\.[0-9]+\.[0-9]+))?"
+                "AtlassianPS/AtlassianPS\.Standards/\.github/actions/setup-powershell@(?<sha>[0-9a-f]{40})\s+#\s+v(?<version>[0-9]+\.[0-9]+\.[0-9]+)"
             ) | ForEach-Object {
                 [PSCustomObject]@{
                     WorkflowPath = $workflowPath
@@ -34,15 +34,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         @($workflowActionMatches).Count | Should -BeGreaterThan 0
         @($workflowActionMatches | Select-Object -ExpandProperty Sha -Unique).Count | Should -Be 1
 
-        $matchedVersions = @(
-            $workflowActionMatches |
-                Where-Object { -not [string]::IsNullOrWhiteSpace($_.Version) } |
-                Select-Object -ExpandProperty Version -Unique
-        )
-        if ($matchedVersions.Count -gt 0) {
-            $matchedVersions.Count | Should -Be 1
-            $matchedVersions[0] | Should -Be $standardsVersion
-        }
+        ($workflowActionMatches | Select-Object -ExpandProperty Version -Unique) | Should -Be @($standardsVersion)
     }
 
     It 'uses the same standards version in build script and release workflow publish orchestration' {
@@ -59,7 +51,16 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $releaseWorkflowContent = Get-Content -LiteralPath (Join-Path -Path $script:projectRoot -ChildPath '.github/workflows/release.yml') -Raw
         $releaseWorkflowContent | Should -Match "Invoke-Build\s+-Task\s+Publish\s+-VersionToPublish\s+\$\{\{\s*steps\.release_ref\.outputs\.release_tag\s*\}\}"
         $releaseWorkflowContent | Should -Match '-PSGalleryAPIKey\s+\$\{\{\s*secrets\.PSGALLERY_API_KEY\s*\}\}'
+        $releaseWorkflowContent | Should -Match 'MatteoCampinoti94/changelog-to-release@v1\.0\.6'
+        $releaseWorkflowContent | Should -Match 'body:\s+\$\{\{\s*steps\.changelog\.outputs\.body\s*\}\}'
         $releaseWorkflowContent | Should -Not -Match 'Import-Module\s+AtlassianPS\.Standards\s+-RequiredVersion'
+    }
+
+    It 'keeps smoke_tests in the required CI gate' {
+        $ciWorkflowContent = Get-Content -LiteralPath (Join-Path -Path $script:projectRoot -ChildPath '.github/workflows/ci.yml') -Raw
+        $ciWorkflowContent | Should -Match '(?m)^\s*smoke_tests:\s*$'
+        $ciWorkflowContent | Should -Match 'needs:\s*\[[^\]]*smoke_tests[^\]]*\]'
+        $ciWorkflowContent | Should -Match 'Invoke-Build\s+-Task\s+TestSmoke'
     }
 
     It 'reads AtlassianPS.Standards version from build.requirements in tool scripts' {

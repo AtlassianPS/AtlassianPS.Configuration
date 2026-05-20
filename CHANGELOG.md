@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Aligned workflow setup pins and build/release standards version references to `AtlassianPS.Standards` `0.1.6`.
 - Added regression coverage for setup/update delegation and cross-surface standards version consistency.
 - Aligned build lint/publish tasks with JiraPS north-star shared helpers (`Invoke-AtlassianPSLint`, `Publish-AtlassianPSModuleRelease`, `New-AtlassianPSModulePackage`) and updated release workflow to call `Invoke-Build -Task Publish`.
+- Added JiraPS-style smoke gate (`smoke_tests`) with `TestSmoke` build task and CI required-check aggregation.
+- Added release changelog extraction to publish workflow and attached changelog body to the GitHub release.
 
 ## 0.2 - 2018-10-03
 

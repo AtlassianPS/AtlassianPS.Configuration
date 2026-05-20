@@ -54,9 +54,17 @@ jobs:
           -PSGalleryAPIKey ${{ secrets.PSGALLERY_API_KEY }}
         shell: pwsh
 
+      - name: Cherry pick CHANGELOG.md
+        id: changelog
+        uses: MatteoCampinoti94/changelog-to-release@v1.0.6
+        with:
+          version-name: ${{ steps.release_ref.outputs.release_tag }}
+        if: ${{ hashFiles('CHANGELOG.md') != '' }}
+
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v3
         with:
+          body: ${{ steps.changelog.outputs.body }}
           tag_name: ${{ steps.release_ref.outputs.release_tag }}
           name: ${{ steps.release_ref.outputs.release_tag }}
           files: ./Release/AtlassianPS.Configuration.zip
