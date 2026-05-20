@@ -139,65 +139,11 @@ task ShowInfo Init, GetNextVersion, {
 task ShowDebugInfo ShowInfo
 #endregion DebugInformation
 
-# Synopsis: Run style and script analyzer validation over source roots.
+# Synopsis: Run style checks and PSScriptAnalyzer. Collects both result sets
+# before throwing so a single run surfaces every issue. Emits GitHub Actions
+# workflow commands when running under CI so violations appear as inline
+# annotations on the PR diff.
 task Lint {
-    $isGitHubActions = [bool]$env:GITHUB_ACTIONS
-    $failures = [System.Collections.Generic.List[String]]::new()
-
-    Write-Build Gray "Running style tests..."
-
-    $pesterConfigHash = @{
-        Run    = @{
-            PassThru = $true
-            Path     = "$env:BHProjectPath/Tests/Style.Tests.ps1"
-        }
-        Output = @{
-            Verbosity = $PesterVerbosity
-        }
-    }
-
-    $pesterConfig = New-PesterConfiguration -Hashtable $pesterConfigHash
-    $testResults = Invoke-Pester -Configuration $pesterConfig
-    if ($testResults.FailedCount -gt 0) {
-        $failures.Add("$($testResults.FailedCount) style test(s) failed.")
-    }
-    else {
-        Write-Build Green "Style tests: passed."
-    }
-
-    Write-Build Gray "Running PSScriptAnalyzer..."
-
-    $requiredAnalyzerVersion = $null
-    foreach ($dependency in Get-Dependency) {
-        $moduleName = $null
-        if ($dependency.PSObject.Properties.Name -contains 'Name') {
-            $moduleName = $dependency.Name
-        }
-        elseif ($dependency.PSObject.Properties.Name -contains 'ModuleName') {
-            $moduleName = $dependency.ModuleName
-        }
-        if ($moduleName -ne 'PSScriptAnalyzer') {
-            continue
-        }
-        if ($dependency.PSObject.Properties.Name -contains 'RequiredVersion' -and $dependency.RequiredVersion) {
-            $requiredAnalyzerVersion = $dependency.RequiredVersion.ToString()
-            break
-        }
-        if ($dependency.PSObject.Properties.Name -contains 'Version' -and $dependency.Version) {
-            $requiredAnalyzerVersion = $dependency.Version.ToString()
-            break
-        }
-    }
-    if ($requiredAnalyzerVersion) {
-        Remove-Module PSScriptAnalyzer -ErrorAction SilentlyContinue
-        Import-Module PSScriptAnalyzer -RequiredVersion $requiredAnalyzerVersion -Force -ErrorAction Stop
-    }
-    $loadedAnalyzer = Get-Module PSScriptAnalyzer | Select-Object -First 1
-    if ($loadedAnalyzer) {
-        Write-Build Gray "Using PSScriptAnalyzer $($loadedAnalyzer.Version)"
-    }
-
-    # Explicit source roots so PSSA does not recurse into Release/.
     $analyzerPaths = @(
         "$env:BHProjectPath/$env:BHProjectName"
         "$env:BHProjectPath/Tests"
@@ -205,43 +151,15 @@ task Lint {
         "$env:BHProjectPath/$env:BHProjectName.build.ps1"
     )
 
-    $analyzerParams = @{
-        Settings = "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
-        Severity = @('Error', 'Warning')
-        Recurse  = $true
-    }
-
-    # -Path is single-valued, so invoke per root and concatenate.
-    $results = @(
-        foreach ($path in $analyzerPaths) {
-            PSScriptAnalyzer\Invoke-ScriptAnalyzer -Path $path @analyzerParams
-        }
-    )
-
-    if ($results.Count -gt 0) {
-        foreach ($result in $results) {
-            $color = if ($result.Severity -eq 'Error') { 'Red' } else { 'Yellow' }
-            $location = if ($result.ScriptName) { $result.ScriptName } else { '<unknown>' }
-            Write-Build $color "[$($result.Severity)] ${location}:$($result.Line) - $($result.RuleName): $($result.Message)"
-
-            if ($isGitHubActions -and $result.ScriptPath) {
-                $level = if ($result.Severity -eq 'Error') { 'error' } else { 'warning' }
-                $relPath = [System.IO.Path]::GetRelativePath($env:BHProjectPath, $result.ScriptPath)
-                # Workflow command escaping per
-                # https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions
-                $msg = ($result.Message -replace '%', '%25' -replace "`r", '%0D' -replace "`n", '%0A')
-                Write-WorkflowCommand "::${level} file=$relPath,line=$($result.Line),col=$($result.Column),title=$($result.RuleName)::$msg"
-            }
-        }
-        $failures.Add("$($results.Count) PSScriptAnalyzer issue(s) found.")
-    }
-    else {
-        Write-Build Green "PSScriptAnalyzer: no issues found."
-    }
-
-    if ($failures.Count -gt 0) {
-        throw ("Lint failed:`n  - " + ($failures -join "`n  - "))
-    }
+    $null = Invoke-AtlassianPSLint `
+        -ProjectPath $env:BHProjectPath `
+        -ModulePath $env:BHModulePath `
+        -BuildScriptPath "$env:BHProjectPath/$env:BHProjectName.build.ps1" `
+        -StyleTestPath "$env:BHProjectPath/Tests/Style.Tests.ps1" `
+        -AnalyzerSettingsPath "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" `
+        -AnalyzerPaths $analyzerPaths `
+        -PesterVerbosity $PesterVerbosity `
+        -Severity @('Error', 'Warning')
 }
 
 #region BuildRelease
@@ -554,10 +472,7 @@ task SetVersion {
 
 # Synopsis: Create a ZIP file with this build
 task Package {
-    Assert-True { Test-Path "$env:BHBuildOutput\$env:BHProjectName" } "Missing files to package"
-
-    Remove-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction SilentlyContinue
-    $null = Compress-Archive -Path "$env:BHBuildOutput\$env:BHProjectName" -DestinationPath "$env:BHBuildOutput\$env:BHProjectName.zip"
+    $null = New-AtlassianPSModulePackage -BuildOutputPath $env:BHBuildOutput -ModuleName $env:BHProjectName
 }
 #endregion BuildRelease
 
@@ -621,7 +536,7 @@ task Test Init, {
 #region Publish
 task Publish SetVersion, SignCode, Package, {
     Assert-True (-not [String]::IsNullOrEmpty($PSGalleryAPIKey)) "No key for the PSGallery"
-    Publish-Module -Path "$env:BHBuildOutput/$env:BHProjectName" -NuGetApiKey $PSGalleryAPIKey
+    Publish-AtlassianPSModuleRelease -BuildOutputPath $env:BHBuildOutput -ModuleName $env:BHProjectName -ApiKey $PSGalleryAPIKey
 }, UpdateHomepage
 
 task UpdateHomepage {

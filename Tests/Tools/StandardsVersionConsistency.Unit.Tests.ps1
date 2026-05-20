@@ -45,7 +45,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         }
     }
 
-    It 'uses the same standards version in build script and release workflow imports' {
+    It 'uses the same standards version in build script and release workflow publish orchestration' {
         $buildRequirementsPath = Join-Path -Path $script:projectRoot -ChildPath 'Tools/build.requirements.psd1'
         $buildRequirements = Import-PowerShellDataFile -Path $buildRequirementsPath
         $standardsRequirement = $buildRequirements |
@@ -57,14 +57,9 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $buildScriptContent | Should -Match "ModuleName\s*=\s*'AtlassianPS\.Standards';\s*ModuleVersion\s*=\s*'$([regex]::Escape($standardsVersion))';\s*MaximumVersion\s*=\s*'$([regex]::Escape($standardsVersion))'"
 
         $releaseWorkflowContent = Get-Content -LiteralPath (Join-Path -Path $script:projectRoot -ChildPath '.github/workflows/release.yml') -Raw
-        $releaseImports = [regex]::Matches(
-            $releaseWorkflowContent,
-            'Import-Module\s+AtlassianPS\.Standards\s+-RequiredVersion\s+(?<version>[0-9]+\.[0-9]+\.[0-9]+)'
-        )
-
-        @($releaseImports).Count | Should -BeGreaterThan 0
-        @($releaseImports | ForEach-Object { $_.Groups['version'].Value } | Select-Object -Unique).Count | Should -Be 1
-        ($releaseImports[0].Groups['version'].Value) | Should -Be $standardsVersion
+        $releaseWorkflowContent | Should -Match "Invoke-Build\s+-Task\s+Publish\s+-VersionToPublish\s+\$\{\{\s*steps\.release_ref\.outputs\.release_tag\s*\}\}"
+        $releaseWorkflowContent | Should -Match '-PSGalleryAPIKey\s+\$\{\{\s*secrets\.PSGALLERY_API_KEY\s*\}\}'
+        $releaseWorkflowContent | Should -Not -Match 'Import-Module\s+AtlassianPS\.Standards\s+-RequiredVersion'
     }
 
     It 'reads AtlassianPS.Standards version from build.requirements in tool scripts' {
