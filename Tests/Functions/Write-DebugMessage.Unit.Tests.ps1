@@ -24,9 +24,14 @@ Describe "Write-DebugMessage" -Tag Unit {
                 $command.Parameters["Message"].ParameterType | Should -Be "String"
             }
 
-            It "does not expose legacy BreakPoint and Cmdlet parameters" {
-                $command.Parameters.ContainsKey("BreakPoint") | Should -BeFalse
-                $command.Parameters.ContainsKey("Cmdlet") | Should -BeFalse
+            It "has a [Switch] -BreakPoint parameter" {
+                $command.Parameters.ContainsKey("BreakPoint")
+                $command.Parameters["BreakPoint"].ParameterType | Should -Be "Switch"
+            }
+
+            It "has a [System.Management.Automation.PSCmdlet] -Cmdlet parameter" {
+                $command.Parameters.ContainsKey("Cmdlet")
+                $command.Parameters["Cmdlet"].ParameterType | Should -Be "System.Management.Automation.PSCmdlet"
             }
         }
 

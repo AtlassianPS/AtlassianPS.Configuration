@@ -16,7 +16,7 @@ Writes a debug message while preserving the current debug preference.
 ## SYNTAX
 
 ```powershell
-Write-AtlassianDebugMessage [[-Message] <String>] [<CommonParameters>]
+Write-AtlassianDebugMessage [[-Message] <String>] [-BreakPoint] [[-Cmdlet] <PSCmdlet>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -50,6 +50,39 @@ Required: False
 Position: 1
 Default value: None
 Accept pipeline input: True (ByValue)
+Accept wildcard characters: False
+```
+
+### -BreakPoint
+
+When set, preserves the current debug preference behavior instead of forcing
+`Continue`.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Cmdlet
+
+Optional cmdlet context used by legacy callers.
+
+```yaml
+Type: PSCmdlet
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: $PSCmdlet
+Accept pipeline input: False
 Accept wildcard characters: False
 ```
 

@@ -4,12 +4,21 @@
     param(
         [Parameter(ValueFromPipeline)]
         [String]
-        $Message
+        $Message,
+
+        [Parameter()]
+        [Switch]
+        $BreakPoint,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCmdlet]
+        $Cmdlet = $PSCmdlet
     )
 
     begin {
         $oldDebugPreference = $DebugPreference
-        if ($DebugPreference -ne 'SilentlyContinue') {
+        if (-not $BreakPoint -and $DebugPreference -ne 'SilentlyContinue') {
             $DebugPreference = 'Continue'
         }
     }
