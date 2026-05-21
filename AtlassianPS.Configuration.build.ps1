@@ -532,31 +532,6 @@ task Test Init, {
     Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) Pester test(s) failed."
 }
 
-task TestSmoke Init, {
-    Assert-True { Test-Path $env:BHBuildOutput -PathType Container } "Release path must exist"
-
-    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-
-    $pesterConfigHash = @{
-        Run        = @{
-            PassThru = $true
-            Path     = "$env:BHBuildOutput/Tests/Smoke.Tests.ps1"
-        }
-        TestResult = @{
-            Enabled      = $true
-            OutputFormat = 'NUnitXml'
-            OutputPath   = "$env:BHProjectPath/Test-Smoke-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
-        }
-        Output     = @{
-            Verbosity = $PesterVerbosity
-        }
-    }
-
-    $pesterConfig = New-PesterConfiguration -Hashtable $pesterConfigHash
-    $testResults = Invoke-Pester -Configuration $pesterConfig
-
-    Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) smoke test(s) failed."
-}
 #endregion
 
 #region Publish

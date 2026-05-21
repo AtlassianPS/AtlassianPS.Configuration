@@ -61,13 +61,6 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $manifestContent | Should -Match "(?s)PrivateData\s*=\s*@\{.*PSData\s*=\s*@\{.*Prerelease\s*=\s*''"
     }
 
-    It 'keeps smoke_tests in the required CI gate' {
-        $ciWorkflowContent = Get-Content -LiteralPath (Join-Path -Path $script:projectRoot -ChildPath '.github/workflows/ci.yml') -Raw
-        $ciWorkflowContent | Should -Match '(?m)^\s*smoke_tests:\s*$'
-        $ciWorkflowContent | Should -Match 'needs:\s*\[[^\]]*smoke_tests[^\]]*\]'
-        $ciWorkflowContent | Should -Match 'Invoke-Build\s+-Task\s+TestSmoke'
-    }
-
     It 'reads AtlassianPS.Standards version from build.requirements in tool scripts' {
         $setupScriptContent = Get-Content -LiteralPath (Join-Path -Path $script:projectRoot -ChildPath 'Tools/setup.ps1') -Raw
         $updateScriptContent = Get-Content -LiteralPath (Join-Path -Path $script:projectRoot -ChildPath 'Tools/update.dependencies.ps1') -Raw

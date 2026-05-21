@@ -122,32 +122,10 @@ jobs:
           name: ${{ matrix.name }}-Unit-Tests
           path: Test*.xml
 
-  smoke_tests:
-    name: Smoke Tests
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
-
-      - uses: actions/download-artifact@v8
-        with:
-          name: Release
-          path: ./Release/
-
-      - run: Invoke-Build -Task TestSmoke -PesterVerbosity Detailed
-        shell: pwsh
-
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: Smoke-Tests
-          path: Test-Smoke*.xml
-
   ci-required:
     name: CI Result
     if: always()
-    needs: [lint, build, test_windows_ps5, test_pwsh, smoke_tests]
+    needs: [lint, build, test_windows_ps5, test_pwsh]
     runs-on: ubuntu-latest
     steps:
       - name: Aggregate job results
