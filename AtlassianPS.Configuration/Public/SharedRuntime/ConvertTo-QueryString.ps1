@@ -1,4 +1,4 @@
-﻿function ConvertTo-GetParameter {
+﻿function ConvertTo-QueryString {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
     [OutputType([String])]

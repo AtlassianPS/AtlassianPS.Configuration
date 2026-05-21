@@ -1,4 +1,4 @@
-﻿function ConvertTo-ParameterHash {
+﻿function ConvertFrom-QueryString {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding(DefaultParameterSetName = 'ByString')]
     [OutputType([Hashtable])]

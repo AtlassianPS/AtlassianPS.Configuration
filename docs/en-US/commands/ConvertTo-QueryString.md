@@ -1,13 +1,13 @@
 ---
 external help file: AtlassianPS.Configuration-help.xml
 Module Name: AtlassianPS.Configuration
-online version: https://atlassianps.org/docs/AtlassianPS.Configuration/commands/ConvertTo-GetParameter/
+online version: https://atlassianps.org/docs/AtlassianPS.Configuration/commands/ConvertTo-QueryString/
 locale: en-US
 schema: 2.0.0
 layout: documentation
-permalink: /docs/AtlassianPS.Configuration/commands/ConvertTo-GetParameter/
+permalink: /docs/AtlassianPS.Configuration/commands/ConvertTo-QueryString/
 ---
-# ConvertTo-GetParameter
+# ConvertTo-QueryString
 
 ## SYNOPSIS
 
@@ -16,7 +16,7 @@ Converts a hashtable to a URL query-string fragment.
 ## SYNTAX
 
 ```powershell
-ConvertTo-AtlassianGetParameter [-InputObject] <Hashtable> [<CommonParameters>]
+ConvertTo-AtlassianQueryString [-InputObject] <Hashtable> [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -29,7 +29,7 @@ hashtable. Keys and values are URL-encoded before joining.
 ### EXAMPLE 1
 
 ```powershell
-ConvertTo-AtlassianGetParameter -InputObject @{
+ConvertTo-AtlassianQueryString -InputObject @{
     jql = 'project=TEST'
     max = 25
 }
@@ -75,4 +75,4 @@ System.String
 
 ## RELATED LINKS
 
-[ConvertTo-ParameterHash](../ConvertTo-ParameterHash/)
+[ConvertFrom-QueryString](../ConvertFrom-QueryString/)

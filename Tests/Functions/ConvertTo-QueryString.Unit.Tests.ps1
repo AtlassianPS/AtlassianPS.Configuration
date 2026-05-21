@@ -1,6 +1,6 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-GetParameter" -Tag Unit {
+Describe "ConvertTo-QueryString" -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
@@ -9,7 +9,7 @@ Describe "ConvertTo-GetParameter" -Tag Unit {
 
     InModuleScope "AtlassianPS.Configuration" {
         It "builds query-string format from hashtable" {
-            $query = ConvertTo-GetParameter -InputObject ([Ordered]@{
+            $query = ConvertTo-QueryString -InputObject ([Ordered]@{
                     jql = "project=TEST"
                     max = "25"
                 })
@@ -20,11 +20,11 @@ Describe "ConvertTo-GetParameter" -Tag Unit {
         }
 
         It "returns an empty string for empty hashtables" {
-            ConvertTo-GetParameter -InputObject @{} | Should -Be ''
+            ConvertTo-QueryString -InputObject @{} | Should -Be ''
         }
 
         It "emits empty assignment for null values" {
-            $query = ConvertTo-GetParameter -InputObject @{ empty = $null }
+            $query = ConvertTo-QueryString -InputObject @{ empty = $null }
 
             $query | Should -Be '?empty='
         }

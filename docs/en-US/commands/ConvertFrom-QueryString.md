@@ -1,13 +1,13 @@
 ---
 external help file: AtlassianPS.Configuration-help.xml
 Module Name: AtlassianPS.Configuration
-online version: https://atlassianps.org/docs/AtlassianPS.Configuration/commands/ConvertTo-ParameterHash/
+online version: https://atlassianps.org/docs/AtlassianPS.Configuration/commands/ConvertFrom-QueryString/
 locale: en-US
 schema: 2.0.0
 layout: documentation
-permalink: /docs/AtlassianPS.Configuration/commands/ConvertTo-ParameterHash/
+permalink: /docs/AtlassianPS.Configuration/commands/ConvertFrom-QueryString/
 ---
-# ConvertTo-ParameterHash
+# ConvertFrom-QueryString
 
 ## SYNOPSIS
 
@@ -16,11 +16,11 @@ Parses a URL query string into a hashtable.
 ## SYNTAX
 
 ```powershell
-ConvertTo-AtlassianParameterHash -Uri <Uri> [<CommonParameters>]
+ConvertFrom-AtlassianQueryString -Uri <Uri> [<CommonParameters>]
 ```
 
 ```powershell
-ConvertTo-AtlassianParameterHash [-Query] <String> [<CommonParameters>]
+ConvertFrom-AtlassianQueryString [-Query] <String> [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -33,7 +33,7 @@ parameters into a decoded hashtable.
 ### EXAMPLE 1
 
 ```powershell
-ConvertTo-AtlassianParameterHash -Query '?jql=project%3DTEST&max=25'
+ConvertFrom-AtlassianQueryString -Query '?jql=project%3DTEST&max=25'
 ```
 
 Parses query-string text into key/value entries.
@@ -41,7 +41,7 @@ Parses query-string text into key/value entries.
 ### EXAMPLE 2
 
 ```powershell
-ConvertTo-AtlassianParameterHash -Uri 'https://example.test/search?jql=project%3DTEST&max=25'
+ConvertFrom-AtlassianQueryString -Uri 'https://example.test/search?jql=project%3DTEST&max=25'
 ```
 
 Parses the query component of a URI into key/value entries.
@@ -100,4 +100,4 @@ System.Collections.Hashtable
 
 ## RELATED LINKS
 
-[ConvertTo-GetParameter](../ConvertTo-GetParameter/)
+[ConvertTo-QueryString](../ConvertTo-QueryString/)
