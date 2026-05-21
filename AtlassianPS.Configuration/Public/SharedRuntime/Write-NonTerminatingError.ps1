@@ -1,6 +1,5 @@
-﻿function Stop-ErrorRecord {
+﻿function Write-NonTerminatingError {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
     [CmdletBinding(DefaultParameterSetName = 'ExistingException')]
     param(
         [Parameter()]
@@ -68,6 +67,6 @@
                 -TargetObject $TargetObject
         }
 
-        $Cmdlet.ThrowTerminatingError($ErrorRecord)
+        $Cmdlet.WriteError($ErrorRecord)
     }
 }

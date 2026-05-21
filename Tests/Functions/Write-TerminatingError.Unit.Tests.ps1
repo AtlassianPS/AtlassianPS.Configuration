@@ -1,6 +1,6 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Stop-ErrorRecord" -Tag Unit {
+Describe "Write-TerminatingError" -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
@@ -9,19 +9,19 @@ Describe "Stop-ErrorRecord" -Tag Unit {
 
     InModuleScope "AtlassianPS.Configuration" {
         It "throws a terminating error record" {
-            function Invoke-TestStopErrorRecord {
+            function Invoke-TestWriteTerminatingError {
                 [CmdletBinding()]
                 param()
 
-                Stop-ErrorRecord `
+                Write-TerminatingError `
                     -Message "outer-error" `
                     -Exception ([System.Exception]::new("inner-error")) `
-                    -ErrorId "StopError.Record" `
+                    -ErrorId "WriteTerminatingError.Record" `
                     -Category InvalidOperation
             }
 
             {
-                Invoke-TestStopErrorRecord
+                Invoke-TestWriteTerminatingError
             } | Should -Throw -ExpectedMessage "*outer-error*"
         }
     }

@@ -1,6 +1,6 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Write-ErrorRecord" -Tag Unit {
+Describe "Write-NonTerminatingError" -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
@@ -9,18 +9,18 @@ Describe "Write-ErrorRecord" -Tag Unit {
 
     InModuleScope "AtlassianPS.Configuration" {
         It "writes a non-terminating error record" {
-            function Invoke-TestWriteErrorRecord {
+            function Invoke-TestWriteNonTerminatingError {
                 [CmdletBinding()]
                 param()
 
-                Write-ErrorRecord `
+                Write-NonTerminatingError `
                     -Exception ([System.Exception]::new("write-error")) `
-                    -ErrorId "WriteError.Record" `
+                    -ErrorId "WriteNonTerminatingError.Record" `
                     -Category InvalidOperation
             }
 
             $errorRecords = @()
-            Invoke-TestWriteErrorRecord -ErrorAction SilentlyContinue -ErrorVariable +errorRecords
+            Invoke-TestWriteNonTerminatingError -ErrorAction SilentlyContinue -ErrorVariable +errorRecords
 
             $errorRecords | Should -Not -BeNullOrEmpty
             $errorRecords[0].Exception.Message | Should -Be "write-error"

@@ -1,40 +1,40 @@
 ---
 external help file: AtlassianPS.Configuration-help.xml
 Module Name: AtlassianPS.Configuration
-online version: https://atlassianps.org/docs/AtlassianPS.Configuration/commands/Write-ErrorRecord/
+online version: https://atlassianps.org/docs/AtlassianPS.Configuration/commands/Write-TerminatingError/
 locale: en-US
 schema: 2.0.0
 layout: documentation
-permalink: /docs/AtlassianPS.Configuration/commands/Write-ErrorRecord/
+permalink: /docs/AtlassianPS.Configuration/commands/Write-TerminatingError/
 ---
-# Write-ErrorRecord
+# Write-TerminatingError
 
 ## SYNOPSIS
 
-Creates and writes non-terminating error records.
+Creates and throws terminating error records.
 
 ## SYNTAX
 
 ```powershell
-Write-AtlassianErrorRecord [[-Cmdlet] <PSCmdlet>] -Exception <Exception>
+Write-AtlassianTerminatingError [[-Cmdlet] <PSCmdlet>] -Exception <Exception>
  [[-TargetObject] <Object>] -ErrorId <String> -Category <ErrorCategory>
  [<CommonParameters>]
 ```
 
 ```powershell
-Write-AtlassianErrorRecord [[-Cmdlet] <PSCmdlet>] [-Exception <Exception>]
+Write-AtlassianTerminatingError [[-Cmdlet] <PSCmdlet>] [-Exception <Exception>]
  [-ExceptionType <String>] -Message <String> [[-TargetObject] <Object>]
  -ErrorId <String> -Category <ErrorCategory> [<CommonParameters>]
 ```
 
 ```powershell
-Write-AtlassianErrorRecord [[-Cmdlet] <PSCmdlet>] -ErrorRecord <ErrorRecord>
+Write-AtlassianTerminatingError [[-Cmdlet] <PSCmdlet>] -ErrorRecord <ErrorRecord>
  [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-Writes non-terminating errors either from an existing exception, a newly
+Throws terminating errors either from an existing exception, a newly
 constructed exception, or an existing error record.
 
 ## EXAMPLES
@@ -42,69 +42,82 @@ constructed exception, or an existing error record.
 ### EXAMPLE 1
 
 ```powershell
-function Invoke-WriteErrorExistingExample {
+function Invoke-WriteTerminatingErrorExistingExample {
     [CmdletBinding()]
     param()
 
-    Write-AtlassianErrorRecord `
+    Write-AtlassianTerminatingError `
         -Exception ([System.Exception]::new('existing-exception')) `
-        -ErrorId 'Demo.WriteError.Existing' `
-        -Category InvalidOperation `
-        -ErrorAction SilentlyContinue
+        -ErrorId 'Demo.WriteTerminatingError.Existing' `
+        -Category InvalidOperation
 }
 
-Invoke-WriteErrorExistingExample
+try {
+    Invoke-WriteTerminatingErrorExistingExample
+}
+catch {
+    $_.FullyQualifiedErrorId
+}
 ```
 
-Writes a non-terminating error from an existing exception.
+Throws a terminating error from an existing exception and catches it.
 
 ### EXAMPLE 2
 
 ```powershell
-function Invoke-WriteErrorNewExample {
+function Invoke-WriteTerminatingErrorNewExample {
     [CmdletBinding()]
     param()
 
-    Write-AtlassianErrorRecord `
+    Write-AtlassianTerminatingError `
         -Message 'generated-exception' `
         -ExceptionType 'System.InvalidOperationException' `
-        -ErrorId 'Demo.WriteError.New' `
-        -Category InvalidOperation `
-        -ErrorAction SilentlyContinue
+        -ErrorId 'Demo.WriteTerminatingError.New' `
+        -Category InvalidOperation
 }
 
-Invoke-WriteErrorNewExample
+try {
+    Invoke-WriteTerminatingErrorNewExample
+}
+catch {
+    $_.FullyQualifiedErrorId
+}
 ```
 
-Writes a non-terminating error with a newly created exception type.
+Throws a terminating error with a newly created exception type and catches it.
 
 ### EXAMPLE 3
 
 ```powershell
-function Invoke-WriteErrorRecordExample {
+function Invoke-WriteTerminatingErrorRecordExample {
     [CmdletBinding()]
     param()
 
     $record = [System.Management.Automation.ErrorRecord]::new(
         [System.Exception]::new('rethrow-record'),
-        'Demo.WriteError.Record',
+        'Demo.WriteTerminatingError.Record',
         [System.Management.Automation.ErrorCategory]::InvalidOperation,
         $null
     )
 
-    Write-AtlassianErrorRecord -ErrorRecord $record -ErrorAction SilentlyContinue
+    Write-AtlassianTerminatingError -ErrorRecord $record
 }
 
-Invoke-WriteErrorRecordExample
+try {
+    Invoke-WriteTerminatingErrorRecordExample
+}
+catch {
+    $_.FullyQualifiedErrorId
+}
 ```
 
-Writes a non-terminating error using an existing error record.
+Throws a terminating error from an existing error record and catches it.
 
 ## PARAMETERS
 
 ### -Cmdlet
 
-Cmdlet runtime to use for writing the error. Defaults to `$PSCmdlet`.
+Cmdlet runtime to use for throwing the error. Defaults to `$PSCmdlet`.
 
 ```yaml
 Type: PSCmdlet
@@ -216,7 +229,7 @@ Accept wildcard characters: False
 
 ### -ErrorRecord
 
-Existing error record to write directly.
+Existing error record to throw directly.
 
 ```yaml
 Type: ErrorRecord
@@ -250,4 +263,4 @@ None
 
 ## RELATED LINKS
 
-[Stop-ErrorRecord](../Stop-ErrorRecord/)
+[Write-NonTerminatingError](../Write-NonTerminatingError/)

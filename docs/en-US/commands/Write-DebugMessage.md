@@ -73,4 +73,4 @@ None
 
 ## RELATED LINKS
 
-[Write-ErrorRecord](../Write-ErrorRecord/)
+[Write-NonTerminatingError](../Write-NonTerminatingError/)

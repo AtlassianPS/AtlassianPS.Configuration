@@ -16,13 +16,16 @@ Merges multiple hashtables into a single hashtable.
 ## SYNTAX
 
 ```powershell
-Join-AtlassianHashtable [-Hashtable] <IDictionary[]> [<CommonParameters>]
+Join-AtlassianHashtable [-Hashtable] <IDictionary[]> [[-OnDuplicate] <String>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
 Combines each incoming dictionary into one output hashtable. Later entries win
 when keys overlap.
+
+The output table is initialized from the first non-null input dictionary so key
+comparison behavior (for example case sensitivity) is preserved.
 
 ## EXAMPLES
 
@@ -36,6 +39,22 @@ when keys overlap.
 ```
 
 Returns one hashtable where `Value` is `2` and all keys are present.
+
+### EXAMPLE 2
+
+```powershell
+try {
+    @(
+        @{ Name = 'A' }
+        @{ Name = 'B' }
+    ) | Join-AtlassianHashtable -OnDuplicate Error
+}
+catch {
+    $_.FullyQualifiedErrorId
+}
+```
+
+Throws on duplicate keys instead of overwriting values.
 
 ## PARAMETERS
 
@@ -52,6 +71,23 @@ Required: True
 Position: 1
 Default value: None
 Accept pipeline input: True (ByValue)
+Accept wildcard characters: False
+```
+
+### -OnDuplicate
+
+Controls how duplicate keys are handled while merging.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+Accepted values: Overwrite, Error
+
+Required: False
+Position: 2
+Default value: Overwrite
+Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
