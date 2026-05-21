@@ -81,5 +81,3 @@ System.String
 ## NOTES
 
 ## RELATED LINKS
-
-[Resolve-FullPath](../Resolve-FullPath/)
