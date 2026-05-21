@@ -415,13 +415,12 @@ Task RemoveOrphanedExternalHelp {
 }
 
 # Synopsis: Update the manifest of the module
-task UpdateManifest GetNextVersion, {
+task UpdateManifest {
     Clear-ModuleConfigurationCache
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
     Import-Module $env:BHPSModuleManifest -Force
     $ModuleAlias = @(Get-Alias | Where-Object { $_.ModuleName -eq "$env:BHProjectName" })
 
-    Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "ModuleVersion" -Value ([string]$env:NextBuildVersion)
     $moduleFunctions = [string[]](Get-ChildItem "$env:BHModulePath/Public/*.ps1").BaseName
     Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "FunctionsToExport" -Value @($moduleFunctions)
     Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "AliasesToExport" -Value ''

@@ -50,7 +50,8 @@ jobs:
 
       - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
 
-      - run: Invoke-Build -Task Publish -VersionToPublish ${{ steps.release_ref.outputs.release_tag }}
+      - name: Publish module
+        run: Invoke-Build -Task Publish -VersionToPublish ${{ steps.release_ref.outputs.release_tag }}
           -PSGalleryAPIKey ${{ secrets.PSGALLERY_API_KEY }}
         shell: pwsh
 
@@ -59,6 +60,7 @@ jobs:
         uses: MatteoCampinoti94/changelog-to-release@v1.0.6
         with:
           version-name: ${{ steps.release_ref.outputs.release_tag }}
+          configuration: ./.github/changelog.configuration.json
         if: ${{ hashFiles('CHANGELOG.md') != '' }}
 
       - name: Create Release and Upload Asset

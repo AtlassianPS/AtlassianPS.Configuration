@@ -15,8 +15,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added regression coverage for setup/update delegation and cross-surface standards version consistency.
 - Aligned build lint/publish tasks with JiraPS north-star shared helpers (`Invoke-AtlassianPSLint`, `Publish-AtlassianPSModuleRelease`, `New-AtlassianPSModulePackage`) and updated release workflow to call `Invoke-Build -Task Publish`.
 - Added release changelog extraction to publish workflow and attached changelog body to the GitHub release.
+- Wired `changelog-to-release` to `./.github/changelog.configuration.json` for JiraPS-parity release note rendering.
 - Added `PrivateData.PSData.Prerelease` to the module manifest and regression checks so release publish/version tasks cannot fail on missing prerelease metadata.
 - Removed smoke and placeholder integration test surfaces to keep this repository focused on unit/build validation.
+- Removed build-time `ModuleVersion` mutation from `UpdateManifest`; release version updates now remain publish-scoped through `SetVersion`.
 
 ## 0.2 - 2018-10-03
 
