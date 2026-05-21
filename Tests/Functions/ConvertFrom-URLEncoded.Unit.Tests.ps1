@@ -11,6 +11,14 @@ Describe "ConvertFrom-URLEncoded" -Tag Unit {
         It "decodes encoded text" {
             ConvertFrom-URLEncoded -InputString "hello+world%2Bvalue" | Should -Be "hello world+value"
         }
+
+        It "decodes pipeline arrays" {
+            $decoded = @("hello+world", "one%2Btwo") | ConvertFrom-URLEncoded
+
+            $decoded | Should -HaveCount 2
+            $decoded[0] | Should -Be "hello world"
+            $decoded[1] | Should -Be "one+two"
+        }
     }
 }
 

@@ -26,7 +26,6 @@ BeforeDiscovery {
 
     $publicFunctions = @(
         Get-ChildItem "$env:BHModulePath/Public" -Recurse -File -Filter "*.ps1" |
-            Where-Object { $_.FullName -notmatch '[\\/]+SharedRuntime[\\/]+' } |
             Sort-Object -Property FullName |
             Select-Object -ExpandProperty BaseName
     )

@@ -9,7 +9,6 @@ BeforeDiscovery {
 
     $publicFunctions = @(
         Get-ChildItem "$env:BHModulePath/Public" -Recurse -File -Filter "*.ps1" |
-            Where-Object { $_.FullName -notmatch '[\\/]+SharedRuntime[\\/]+' } |
             Sort-Object -Property FullName |
             Select-Object -ExpandProperty BaseName
     )
@@ -115,7 +114,6 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
         $commandsWithExamples = @($exampleCases | ForEach-Object CommandName | Sort-Object -Unique)
         $publicFunctions = @(
             Get-ChildItem "$env:BHModulePath/Public" -Recurse -File -Filter "*.ps1" |
-                Where-Object { $_.FullName -notmatch '[\\/]+SharedRuntime[\\/]+' } |
                 Sort-Object -Property FullName |
                 Select-Object -ExpandProperty BaseName
         )

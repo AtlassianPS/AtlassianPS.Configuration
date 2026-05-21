@@ -24,6 +24,18 @@ Describe "New-ErrorRecord" -Tag Unit {
                 New-ErrorRecord -Mode ExistingException -ErrorId "Record.Test" -Category InvalidOperation
             } | Should -Throw -ExpectedMessage "*Exception is required*"
         }
+
+        It "creates wrapped exceptions for new-exception mode" {
+            $record = New-ErrorRecord `
+                -Mode NewException `
+                -Message "outer" `
+                -Exception ([System.ArgumentException]::new("inner")) `
+                -ErrorId "Record.NewException" `
+                -Category InvalidOperation
+
+            $record.Exception.Message | Should -Be "outer"
+            $record.Exception.InnerException.Message | Should -Be "inner"
+        }
     }
 }
 

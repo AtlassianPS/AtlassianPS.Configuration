@@ -18,6 +18,16 @@ Describe "ConvertTo-GetParameter" -Tag Unit {
             $query | Should -Match 'jql='
             $query | Should -Match 'max='
         }
+
+        It "returns an empty string for empty hashtables" {
+            ConvertTo-GetParameter -InputObject @{} | Should -Be ''
+        }
+
+        It "emits empty assignment for null values" {
+            $query = ConvertTo-GetParameter -InputObject @{ empty = $null }
+
+            $query | Should -Be '?empty='
+        }
     }
 }
 
