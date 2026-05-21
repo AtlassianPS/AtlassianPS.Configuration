@@ -56,6 +56,11 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $releaseWorkflowContent | Should -Not -Match 'Import-Module\s+AtlassianPS\.Standards\s+-RequiredVersion'
     }
 
+    It 'keeps manifest prerelease metadata required by publish task' {
+        $manifestContent = Get-Content -LiteralPath (Join-Path -Path $script:projectRoot -ChildPath 'AtlassianPS.Configuration/AtlassianPS.Configuration.psd1') -Raw
+        $manifestContent | Should -Match "(?s)PrivateData\s*=\s*@\{.*PSData\s*=\s*@\{.*Prerelease\s*=\s*''"
+    }
+
     It 'keeps smoke_tests in the required CI gate' {
         $ciWorkflowContent = Get-Content -LiteralPath (Join-Path -Path $script:projectRoot -ChildPath '.github/workflows/ci.yml') -Raw
         $ciWorkflowContent | Should -Match '(?m)^\s*smoke_tests:\s*$'

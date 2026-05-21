@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Aligned build lint/publish tasks with JiraPS north-star shared helpers (`Invoke-AtlassianPSLint`, `Publish-AtlassianPSModuleRelease`, `New-AtlassianPSModulePackage`) and updated release workflow to call `Invoke-Build -Task Publish`.
 - Added JiraPS-style smoke gate (`smoke_tests`) with `TestSmoke` build task and CI required-check aggregation.
 - Added release changelog extraction to publish workflow and attached changelog body to the GitHub release.
+- Added `PrivateData.PSData.Prerelease` to the module manifest and regression checks so release publish/version tasks cannot fail on missing prerelease metadata.
 
 ## 0.2 - 2018-10-03
 
