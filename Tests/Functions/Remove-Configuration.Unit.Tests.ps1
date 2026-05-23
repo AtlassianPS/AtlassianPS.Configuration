@@ -121,6 +121,14 @@ Describe "Remove-Configuration" -Tag Unit {
 
                 Get-Configuration | Where-Object Name -eq "ServerList" | Should -Not -BeNullOrEmpty
             }
+
+            It "allows the Message configuration key to be removed" {
+                $script:Configuration["Message"] = [AtlassianPS.MessageStyle]::new()
+
+                Remove-Configuration -Name "Message"
+
+                Get-Configuration | Where-Object Name -eq "Message" | Should -BeNullOrEmpty
+            }
         }
     }
 }

@@ -36,7 +36,7 @@
     begin {
         Write-Verbose "Function started"
 
-        $reservedNames = @('ServerList', 'Message')
+        $reservedNames = @('ServerList')
     }
 
     process {

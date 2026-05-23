@@ -123,6 +123,15 @@ Describe "Set-Configuration" -Tag Unit {
                 $script:Configuration.ServerList | Should -Not -Be "broken"
             }
 
+            It "allows the Message configuration key to be changed" {
+                $messageStyle = [AtlassianPS.MessageStyle]::new(2, $false, $true, $false)
+
+                Set-Configuration -Name "Message" -Value $messageStyle
+
+                (Get-Configuration -Name "Message" -ValueOnly).Indent | Should -Be 2
+                (Get-Configuration -Name "Message" -ValueOnly).BreadCrumbs | Should -BeTrue
+            }
+
             It "allows value to be passed over pipeline for a new entry" {
                 Get-Configuration | Should -HaveCount 4
                 (Get-Configuration | Where-Object Name -eq "NewKey").Value | Should -BeNullOrEmpty
