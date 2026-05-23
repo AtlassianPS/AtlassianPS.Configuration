@@ -5,12 +5,14 @@
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [ValidateRange(1, [UInt32]::MaxValue)]
         [UInt32]
         $Id,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [Alias('Url', 'Address')]
+        [ValidateScript( { $_.IsAbsoluteUri } )]
         [Uri]
         $Uri,
 
@@ -61,6 +63,18 @@
 
         $serverEntry = Get-ServerConfiguration | Where-Object { $_.Id -eq $Id }
         if ($serverEntry) {
+            if ($PSBoundParameters.ContainsKey('Name') -and (Get-ServerConfiguration | Where-Object { $_.Id -ne $Id -and $_.Name -eq $Name })) {
+                $writeErrorSplat = @{
+                    ExceptionType = "System.ApplicationException"
+                    Message       = "An entry with name [$Name] already exists"
+                    ErrorId       = "AtlassianPS.ServerData.EntryExists"
+                    Category      = "InvalidData"
+                    TargetObject  = $Name
+                }
+                WriteError @writeErrorSplat
+                return
+            }
+
             foreach ($property in ($PSBoundParameters.Keys | Where-Object { $_ -notin $parametersToIgnore } )) {
                 Write-Verbose "Changing [$property] of entry #$Id"
 

@@ -97,7 +97,7 @@ Name with which this server will be stored.
 If no name is provided, the "Authority" of the address will be used.
 This value must be unique.
 
-In case the ServerName was already saved, it will be overwritten.
+In case the ServerName was already saved for another entry, an error is written and the existing entries are not changed.
 
 Example for "Authority":
   https://**www.google.com**/maps?hl=en --> "www.google.com"

@@ -90,9 +90,12 @@ Describe "Remove-Configuration" -Tag Unit {
             It "accepts an object over the pipeline" {
                 Get-Configuration | Should -HaveCount 4
 
-                Get-Configuration | Remove-Configuration
+                Get-Configuration |
+                    Where-Object Name -ne "ServerList" |
+                    Remove-Configuration
 
-                Get-Configuration | Should -HaveCount 0
+                Get-Configuration | Should -HaveCount 1
+                Get-Configuration | Where-Object Name -eq "ServerList" | Should -Not -BeNullOrEmpty
             }
 
             It "accepts strings over the pipeline" {
@@ -113,6 +116,20 @@ Describe "Remove-Configuration" -Tag Unit {
                 Get-Configuration | Should -HaveCount 3
                 Get-Configuration | Where-Object Name -eq "Foo" | Should -BeNullOrEmpty
                 Get-Configuration | Where-Object Name -eq "Bar" | Should -Not -BeNullOrEmpty
+            }
+
+            It "does not allow reserved configuration keys to be removed" {
+                { Remove-Configuration -Name "ServerList" -ErrorAction Stop } | Should -Throw
+
+                Get-Configuration | Where-Object Name -eq "ServerList" | Should -Not -BeNullOrEmpty
+            }
+
+            It "allows the Message configuration key to be removed" {
+                $script:Configuration["Message"] = [AtlassianPS.MessageStyle]::new()
+
+                Remove-Configuration -Name "Message"
+
+                Get-Configuration | Where-Object Name -eq "Message" | Should -BeNullOrEmpty
             }
         }
     }

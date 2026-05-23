@@ -5,6 +5,7 @@
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [Alias('Url', 'Address')]
+        [ValidateScript( { $_.IsAbsoluteUri } )]
         [Uri]
         $Uri,
 
@@ -24,19 +25,15 @@
 
         [Parameter( ValueFromPipelineByPropertyName )]
         [Hashtable]
-        $Headers = @{}
+        $Headers
     )
 
     begin {
         Write-Verbose "Function started"
 
-        if (-not ($script:Configuration.ServerList)) {
-            $script:Configuration.ServerList = $null
-        }
-
         $serverList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
-        if (Get-ServerConfiguration) {
-            [System.Collections.Generic.List[AtlassianPS.ServerData]]$serverList = Get-ServerConfiguration
+        foreach ($server in @(Get-ServerConfiguration)) {
+            $serverList.Add($server)
         }
     }
 
@@ -44,34 +41,33 @@
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if (-not $Name) {
-            $Name = $Uri.Authority
-        }
+        $entryName = if ($PSBoundParameters.ContainsKey('Name')) { $Name } else { $Uri.Authority }
+        $entryHeaders = if ($PSBoundParameters.ContainsKey('Headers')) { $Headers } else { @{} }
 
-        if (Get-ServerConfiguration | Where-Object Name -eq $Name) {
+        if ($serverList | Where-Object Name -eq $entryName) {
             $writeErrorSplat = @{
                 ExceptionType = "System.ApplicationException"
-                Message       = "An entry with name [$Name] already exists"
+                Message       = "An entry with name [$entryName] already exists"
                 ErrorId       = "AtlassianPS.ServerData.EntryExists"
                 Category      = "InvalidData"
-                TargetObject  = $Name
+                TargetObject  = $entryName
             }
             WriteError @writeErrorSplat
         }
         else {
-            if (-not ($index = ((Get-ServerConfiguration).Id | Measure-Object -Maximum).Maximum)) {
+            if (-not ($index = ($serverList.Id | Measure-Object -Maximum).Maximum)) {
                 $index = 0
             }
             $index++
 
             $config = [AtlassianPS.ServerData]@{
                 Id      = $index
-                Name    = $Name
+                Name    = $entryName
                 Uri     = ([Uri]($Uri.AbsoluteUri -replace "\/$", ""))
                 Type    = $Type
                 # IsCloudServer = (Test-ServerIsCloud -Type $Type -Uri $Uri -Headers $Headers -ErrorAction Stop -verbose)
                 Session = $Session
-                Headers = $Headers
+                Headers = $entryHeaders
             }
 
             Write-Verbose "Adding server #$($index): [$($config.Name)]"

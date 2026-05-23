@@ -76,6 +76,7 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
                 Remove-ServerConfiguration -Name "Google", "Google with Session"
 
                 Get-ServerConfiguration | Should -BeNullOrEmpty
+                $script:Configuration["ServerList"].GetType() | Should -Be ([System.Collections.Generic.List[AtlassianPS.ServerData]])
             }
 
             It "accepts an object over the pipeline" {
@@ -96,6 +97,7 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
                 "Google", "Google with Session" | Remove-ServerConfiguration
 
                 Get-ServerConfiguration | Should -BeNullOrEmpty
+                $script:Configuration["ServerList"].GetType() | Should -Be ([System.Collections.Generic.List[AtlassianPS.ServerData]])
             }
 
             It "writes an error when the server could not be removed" {

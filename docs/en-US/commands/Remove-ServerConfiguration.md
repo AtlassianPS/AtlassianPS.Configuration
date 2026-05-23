@@ -47,7 +47,7 @@ This command will remove all stored servers.
 
 Name with which this server is stored.
 
-Is case sensitive
+Is not case sensitive
 
 ```yaml
 Type: String[]
