@@ -140,6 +140,28 @@ Describe "Add-ServerConfiguration" -Tag Unit {
                 (Get-ServerConfiguration).Id | Should -Be @(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
             }
 
+            It "adds piped servers with unique names and IDs" {
+                @(
+                    [PSCustomObject]@{ Name = "New Server 1"; Uri = "https://one.atlassianps.org"; Type = "Jira" }
+                    [PSCustomObject]@{ Name = "New Server 2"; Uri = "https://two.atlassianps.org"; Type = "Jira" }
+                ) | Add-ServerConfiguration
+
+                Get-ServerConfiguration | Should -HaveCount 4
+                (Get-ServerConfiguration).Id | Should -Be @(1, 2, 3, 4)
+                (Get-ServerConfiguration).Name | Should -Contain "New Server 1"
+                (Get-ServerConfiguration).Name | Should -Contain "New Server 2"
+            }
+
+            It "rejects duplicate names within one pipeline invocation" {
+                @(
+                    [PSCustomObject]@{ Name = "New Server"; Uri = "https://one.atlassianps.org"; Type = "Jira" }
+                    [PSCustomObject]@{ Name = "New Server"; Uri = "https://two.atlassianps.org"; Type = "Jira" }
+                ) | Add-ServerConfiguration -ErrorAction SilentlyContinue
+
+                Get-ServerConfiguration | Should -HaveCount 3
+                (Get-ServerConfiguration | Where-Object Name -eq "New Server") | Should -HaveCount 1
+            }
+
             It "writes an error if the Name already exists in the collection" {
                 Get-ServerConfiguration | Should -HaveCount 2
                 (Get-ServerConfiguration).Name | Should -Contain "Google"
@@ -207,6 +229,8 @@ Describe "Add-ServerConfiguration" -Tag Unit {
 
                 { Add-ServerConfiguration -Name "None" -Uri "https://atlassianps.org" -Type "" } | Should -Throw
                 { Add-ServerConfiguration -Name "Github" -Uri "https://atlassianps.org" -Type Github } | Should -Throw
+
+                { Add-ServerConfiguration -Name "Relative" -Uri "relative/path" -Type Jira } | Should -Throw
 
                 Get-ServerConfiguration | Should -HaveCount 5
             }

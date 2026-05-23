@@ -81,6 +81,14 @@ Describe "Save-Configuration" -Tag Unit {
                 ($before["ServerList"] | Where-Object Session | Select-Object -First 1).Session.UserAgent | Should -Not -BeNullOrEmpty
                 ($after["ServerList"] | Where-Object Name -eq "Google with Session" | Select-Object -First 1).Session | Should -BeNullOrEmpty
             }
+
+            It "does not clear sessions from the live configuration" {
+                $before = Get-Configuration -AsHashtable
+
+                Save-Configuration
+
+                ($before["ServerList"] | Where-Object Name -eq "Google with Session" | Select-Object -First 1).Session.UserAgent | Should -Not -BeNullOrEmpty
+            }
         }
     }
 }

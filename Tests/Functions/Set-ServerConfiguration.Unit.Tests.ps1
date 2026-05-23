@@ -129,9 +129,15 @@ Describe "Set-ServerConfiguration" -Tag Unit {
 
             It "writes an error if the index does not exist" {
                 { Set-ServerConfiguration -Id 1 -Name "New Server" -ErrorAction Stop } | Should -Not -Throw
-                { Set-ServerConfiguration -Id 2 -Name "New Server" -ErrorAction Stop } | Should -Not -Throw
+                { Set-ServerConfiguration -Id 2 -Name "Other New Server" -ErrorAction Stop } | Should -Not -Throw
                 { Set-ServerConfiguration -Id 3 -Name "New Server" -ErrorAction Stop } | Should -Throw "No entry could be found at index 3"
                 { Set-ServerConfiguration -Id 3 -Name "New Server" -ErrorAction SilentlyContinue } | Should -Not -Throw
+            }
+
+            It "rejects duplicate names" {
+                { Set-ServerConfiguration -Id 1 -Name "Google with Session" -ErrorAction Stop } | Should -Throw
+
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "Google"
             }
         }
 
@@ -196,6 +202,8 @@ Describe "Set-ServerConfiguration" -Tag Unit {
 
                 { Set-ServerConfiguration -Id 1 -Name "None" -Uri "https://atlassianps.org" -Type "" } | Should -Throw
                 { Set-ServerConfiguration -Id 1 -Name "Github" -Uri "https://atlassianps.org" -Type Github } | Should -Throw
+                { Set-ServerConfiguration -Id 1 -Uri "relative/path" } | Should -Throw
+                { Set-ServerConfiguration -Id 0 -Name "Invalid" } | Should -Throw
 
                 Get-ServerConfiguration | Should -HaveCount 2
             }

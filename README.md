@@ -53,7 +53,7 @@ $serverData = @{
     # Type of the Atlassian product
     Type = "Confluence"
 }
-Set-AtlassianServerConfiguration @serverData
+Add-AtlassianServerConfiguration @serverData
 
 Get-ConfluenceSpace -Server "AtlassianPS - wiki"
 ```

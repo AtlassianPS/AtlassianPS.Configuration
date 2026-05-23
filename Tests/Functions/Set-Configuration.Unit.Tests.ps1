@@ -111,6 +111,18 @@ Describe "Set-Configuration" -Tag Unit {
                 (Get-Configuration | Where-Object Name -eq "Bar").Value | Should -Contain 100
             }
 
+            It "appends a value to a new entry without a leading null" {
+                Set-Configuration -Name "NewKey" -Value "New Value" -Append
+
+                (Get-Configuration | Where-Object Name -eq "NewKey").Value | Should -Be @("New Value")
+            }
+
+            It "does not allow reserved configuration keys to be changed" {
+                { Set-Configuration -Name "ServerList" -Value "broken" -ErrorAction Stop } | Should -Throw
+
+                $script:Configuration.ServerList | Should -Not -Be "broken"
+            }
+
             It "allows value to be passed over pipeline for a new entry" {
                 Get-Configuration | Should -HaveCount 4
                 (Get-Configuration | Where-Object Name -eq "NewKey").Value | Should -BeNullOrEmpty

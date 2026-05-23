@@ -14,6 +14,7 @@
             }
         )]
         [Alias('ServerName', 'Alias')]
+        [ValidateNotNullOrEmpty()]
         [String[]]
         $Name
     )
@@ -21,7 +22,10 @@
     begin {
         Write-Verbose "Function started"
 
-        $serverList = Get-ServerConfiguration
+        $serverList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
+        foreach ($server in @(Get-ServerConfiguration)) {
+            $serverList.Add($server)
+        }
     }
 
     process {
@@ -42,12 +46,24 @@
             }
         }
 
-        $serverList = $serverList | Where-Object { $_.Name -notin $Name }
+        $remainingServers = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
+        foreach ($server in $serverList) {
+            if ($server.Name -notin $Name) {
+                $remainingServers.Add($server)
+            }
+        }
+        $serverList = $remainingServers
     }
 
     end {
         Write-DebugMessage "Persisting ServerList"
-        $script:Configuration.ServerList = $serverList
+        $persistedServerList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
+        foreach ($server in $serverList) {
+            $persistedServerList.Add($server)
+        }
+
+        $script:Configuration.Remove("ServerList")
+        $script:Configuration.Add("ServerList", $persistedServerList)
         Save-Configuration
 
         Write-Verbose "Function ended"

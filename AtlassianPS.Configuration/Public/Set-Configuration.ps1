@@ -35,25 +35,44 @@
 
     begin {
         Write-Verbose "Function started"
+
+        $reservedNames = @('ServerList', 'Message')
     }
 
     process {
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
+        if ($Name -in $reservedNames) {
+            $writeErrorSplat = @{
+                ExceptionType = "System.ApplicationException"
+                Message       = "Configuration key [$Name] is reserved and cannot be changed with Set-Configuration"
+                ErrorId       = "AtlassianPS.Configuration.ReservedKey"
+                Category      = "InvalidArgument"
+                TargetObject  = $Name
+            }
+            WriteError @writeErrorSplat
+            return
+        }
+
         if ($Append) {
             Write-Verbose "Appending to existing value"
             $oldValue = (Get-Configuration -Name $Name -ValueOnly)
-            try {
-                $newValue = @(@($oldValue) + @($Value)) -as ($oldValue.GetType())
-                if (-not $newValue) {
-                    throw "failed to case to $($oldValue.GetType().Name)"
-                }
+            if ($null -eq $oldValue) {
+                $newValue = @($Value)
             }
-            catch {
-                Write-DebugMessage $_
+            else {
+                try {
+                    $newValue = @(@($oldValue) + @($Value)) -as ($oldValue.GetType())
+                    if (-not $newValue) {
+                        throw "failed to cast to $($oldValue.GetType().Name)"
+                    }
+                }
+                catch {
+                    Write-DebugMessage $_
 
-                $newValue = @(@($oldValue) + @($Value))
+                    $newValue = @(@($oldValue) + @($Value))
+                }
             }
             $Value = $newValue
         }

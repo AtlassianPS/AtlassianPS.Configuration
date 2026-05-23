@@ -22,6 +22,8 @@
 
     begin {
         Write-Verbose "Function started"
+
+        $reservedNames = @('ServerList', 'Message')
     }
 
     process {
@@ -29,6 +31,18 @@
         Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         foreach ($_name in $Name) {
+            if ($_name -in $reservedNames) {
+                $writeErrorSplat = @{
+                    ExceptionType = "System.ApplicationException"
+                    Message       = "Configuration key [$_name] is reserved and cannot be removed with Remove-Configuration"
+                    ErrorId       = "AtlassianPS.Configuration.ReservedKey"
+                    Category      = "InvalidArgument"
+                    TargetObject  = $_name
+                }
+                WriteError @writeErrorSplat
+                continue
+            }
+
             Write-Verbose "Filtering for [name = $_name]"
 
             $script:Configuration.Remove($_name)
