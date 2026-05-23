@@ -1,4 +1,4 @@
-function Format-MessageStyle {
+﻿function Format-MessageStyle {
     [CmdletBinding()]
     [OutputType([String])]
     param(

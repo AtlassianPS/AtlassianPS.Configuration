@@ -1,4 +1,4 @@
-function Write-VerboseMessage {
+﻿function Write-VerboseMessage {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
     param(

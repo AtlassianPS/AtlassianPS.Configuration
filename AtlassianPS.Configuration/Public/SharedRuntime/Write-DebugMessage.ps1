@@ -1,4 +1,4 @@
-function Write-DebugMessage {
+﻿function Write-DebugMessage {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
     param(

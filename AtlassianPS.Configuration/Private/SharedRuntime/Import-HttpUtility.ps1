@@ -1,4 +1,4 @@
-function Import-HttpUtility {
+﻿function Import-HttpUtility {
     [CmdletBinding()]
     param()
 
