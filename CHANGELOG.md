@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Added a dedicated shared runtime helper surface in `Public/SharedRuntime` and `Private/SharedRuntime`.
+- Added `Write-VerboseMessage` as a public shared runtime helper for formatted verbose output without shadowing PowerShell's built-in `Write-Verbose`.
 - Moved shared runtime helper implementations from `AtlassianPS.Standards` into `AtlassianPS.Configuration` to keep standards tooling-focused.
 
 ## 0.2 - 2018-10-03
