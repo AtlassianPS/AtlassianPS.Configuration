@@ -8,29 +8,31 @@ Describe "Set-Configuration" -Tag Unit {
     }
 
     InModuleScope "AtlassianPS.Configuration" {
-        #region Mocking
-        Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
-        Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
-        Mock Save-Configuration -ModuleName "AtlassianPS.Configuration" {}
+        BeforeEach {
+            #region Mocking
+            Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
+            Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
+            Mock Save-Configuration -ModuleName "AtlassianPS.Configuration" {}
 
-        Mock Get-Configuration {
-            $tempConfig = $script:Configuration.Clone()
-            $return = $tempConfig.Keys |
-                ForEach-Object {
-                    [PSCustomObject]@{
-                        Name  = $_
-                        Value = $tempConfig[$_]
+            Mock Get-Configuration {
+                $tempConfig = $script:Configuration.Clone()
+                $return = $tempConfig.Keys |
+                    ForEach-Object {
+                        [PSCustomObject]@{
+                            Name  = $_
+                            Value = $tempConfig[$_]
+                        }
                     }
+                if ($Name) {
+                    $return = $return | Where-Object Name -eq $Name
                 }
-            if ($Name) {
-                $return = $return | Where-Object Name -eq $Name
+                if ($ValueOnly) {
+                    $return = $return.Value
+                }
+                $return
             }
-            if ($ValueOnly) {
-                $return = $return.Value
-            }
-            $return
+            #endregion Mocking
         }
-        #endregion Mocking
 
         Context "Sanity checking" {
             BeforeAll {
@@ -98,6 +100,13 @@ Describe "Set-Configuration" -Tag Unit {
 
                 Get-Configuration | Should -HaveCount 4
                 (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Not -BeNullOrEmpty
+            }
+
+            It "does not set or save a configuration value when WhatIf is used" {
+                Set-Configuration -Name "Foo" -Value "New Value" -WhatIf
+
+                (Get-Configuration | Where-Object Name -eq "Foo").Value | Should -Be "lorem ipsum"
+                Should -Invoke "Save-Configuration" -ModuleName "AtlassianPS.Configuration" -Exactly -Times 0 -Scope It
             }
 
             It "appends a value to an entry" {

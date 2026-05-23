@@ -8,15 +8,17 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
     }
 
     InModuleScope "AtlassianPS.Configuration" {
-        #region Mocking
-        Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
-        Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
-        Mock Save-Configuration -ModuleName "AtlassianPS.Configuration" {}
+        BeforeEach {
+            #region Mocking
+            Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
+            Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
+            Mock Save-Configuration -ModuleName "AtlassianPS.Configuration" {}
 
-        Mock Get-ServerConfiguration {
-            $script:Configuration["ServerList"]
+            Mock Get-ServerConfiguration {
+                $script:Configuration["ServerList"]
+            }
+            #endregion Mocking
         }
-        #endregion Mocking
 
         Context "Sanity checking" {
             BeforeAll {
@@ -68,6 +70,14 @@ Describe "Remove-ServerConfiguration" -Tag Unit {
                 Remove-ServerConfiguration -Name "Google"
 
                 Get-ServerConfiguration | Should -HaveCount 1
+            }
+
+            It "does not remove or save a server when WhatIf is used" {
+                Remove-ServerConfiguration -Name "Google" -WhatIf
+
+                Get-ServerConfiguration | Should -HaveCount 2
+                (Get-ServerConfiguration).Name | Should -Contain "Google"
+                Should -Invoke "Save-Configuration" -ModuleName "AtlassianPS.Configuration" -Exactly -Times 0 -Scope It
             }
 
             It "removes multiple entries of the servers" {

@@ -27,6 +27,6 @@
     )
 
     begin {
-        Set-Alias -Name $Alias -Value $Command -Scope 1
+        Set-Alias -Name $Alias -Value $Command -Scope 1 -WhatIf:$false
     }
 }

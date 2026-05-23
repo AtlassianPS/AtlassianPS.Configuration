@@ -92,6 +92,14 @@ Describe "Add-ServerConfiguration" -Tag Unit {
                 (Get-ServerConfiguration).Name | Should -Contain "New Server"
             }
 
+            It "does not add or save a server when WhatIf is used" {
+                Add-ServerConfiguration -Name "New Server" -Uri "https://atlassianps.org" -Type Jira -WhatIf
+
+                Get-ServerConfiguration | Should -HaveCount 2
+                (Get-ServerConfiguration).Name | Should -Not -Contain "New Server"
+                Should -Invoke "Save-Configuration" -ModuleName "AtlassianPS.Configuration" -Exactly -Times 0 -Scope It
+            }
+
             It "uses the [Uri]::Authority as default for server's name" {
                 Get-ServerConfiguration | Should -HaveCount 2
                 (Get-ServerConfiguration).Name | Should -Not -Contain "atlassianps.org"

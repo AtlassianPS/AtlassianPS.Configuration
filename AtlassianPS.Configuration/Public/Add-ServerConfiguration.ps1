@@ -1,6 +1,6 @@
 ﻿function Add-ServerConfiguration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [CmdletBinding()]
+    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $true )]
     [OutputType( [void] )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
@@ -35,6 +35,8 @@
         foreach ($server in @(Get-ServerConfiguration)) {
             $serverList.Add($server)
         }
+
+        $configurationChanged = $false
     }
 
     process {
@@ -54,7 +56,7 @@
             }
             WriteError @writeErrorSplat
         }
-        else {
+        elseif ($PSCmdlet.ShouldProcess($entryName, "Add server configuration")) {
             if (-not ($index = ($serverList.Id | Measure-Object -Maximum).Maximum)) {
                 $index = 0
             }
@@ -73,13 +75,16 @@
             Write-Verbose "Adding server #$($index): [$($config.Name)]"
             Write-DebugMessage "Adding server `$config: $($config.Name) @ index $index" -BreakPoint
             $serverList.Add($config)
+            $configurationChanged = $true
         }
     }
 
     end {
-        Write-DebugMessage "Persisting ServerList"
-        $script:Configuration["ServerList"] = $serverList
-        Save-Configuration
+        if ($configurationChanged) {
+            Write-DebugMessage "Persisting ServerList"
+            $script:Configuration["ServerList"] = $serverList
+            Save-Configuration
+        }
 
         Write-Verbose "Function ended"
     }

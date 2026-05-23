@@ -8,22 +8,24 @@ Describe "Remove-Configuration" -Tag Unit {
     }
 
     InModuleScope "AtlassianPS.Configuration" {
-        #region Mocking
-        Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
-        Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
-        Mock Save-Configuration -ModuleName "AtlassianPS.Configuration" {}
+        BeforeEach {
+            #region Mocking
+            Mock Write-DebugMessage -ModuleName "AtlassianPS.Configuration" {}
+            Mock Write-Verbose -ModuleName "AtlassianPS.Configuration" {}
+            Mock Save-Configuration -ModuleName "AtlassianPS.Configuration" {}
 
-        Mock Get-Configuration {
-            $tempConfig = $script:Configuration.Clone()
-            $tempConfig.Keys |
-                ForEach-Object {
-                    [PSCustomObject]@{
-                        Name  = $_
-                        Value = $tempConfig[$_]
+            Mock Get-Configuration {
+                $tempConfig = $script:Configuration.Clone()
+                $tempConfig.Keys |
+                    ForEach-Object {
+                        [PSCustomObject]@{
+                            Name  = $_
+                            Value = $tempConfig[$_]
+                        }
                     }
-                }
+            }
+            #endregion Mocking
         }
-        #endregion Mocking
 
         Context "Sanity checking" {
             BeforeAll {
@@ -71,6 +73,14 @@ Describe "Remove-Configuration" -Tag Unit {
                 Get-Configuration | Should -HaveCount 3
                 Get-Configuration | Where-Object Name -eq "Foo" | Should -BeNullOrEmpty
                 Get-Configuration | Where-Object Name -eq "Bar" | Should -Not -BeNullOrEmpty
+            }
+
+            It "does not remove or save a configuration key when WhatIf is used" {
+                Remove-Configuration -Name "Foo" -WhatIf
+
+                Get-Configuration | Should -HaveCount 4
+                Get-Configuration | Where-Object Name -eq "Foo" | Should -Not -BeNullOrEmpty
+                Should -Invoke "Save-Configuration" -ModuleName "AtlassianPS.Configuration" -Exactly -Times 0 -Scope It
             }
 
             It "removes multiple entries at once" {
