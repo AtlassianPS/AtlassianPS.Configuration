@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added `PrivateData.PSData.Prerelease` to the module manifest and regression checks so release publish/version tasks cannot fail on missing prerelease metadata.
 - Removed smoke and placeholder integration test surfaces to keep this repository focused on unit/build validation.
 - Removed build-time `ModuleVersion` mutation from `UpdateManifest`; release version updates now remain publish-scoped through `SetVersion`.
+
 ### Changed
 
 - Added a dedicated shared runtime helper surface in `Public/SharedRuntime` and `Private/SharedRuntime`.

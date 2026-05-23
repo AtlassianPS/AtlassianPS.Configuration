@@ -20,9 +20,14 @@ Describe "Write-TerminatingError" -Tag Unit {
                     -Category InvalidOperation
             }
 
-            {
+            try {
                 Invoke-TestWriteTerminatingError
-            } | Should -Throw -ExpectedMessage "*outer-error*"
+                throw "Expected Invoke-TestWriteTerminatingError to throw."
+            }
+            catch {
+                $_.Exception.Message | Should -BeLike "*outer-error*"
+                $_.InvocationInfo.MyCommand.Name | Should -Be "Invoke-TestWriteTerminatingError"
+            }
         }
     }
 }

@@ -7,7 +7,7 @@
         [Uri]
         $Uri,
 
-        [Parameter(Mandatory, Position = 0, ParameterSetName = 'ByString')]
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline, ParameterSetName = 'ByString')]
         [String]
         $Query
     )
@@ -19,7 +19,7 @@
             $Query = $Uri.Query
         }
 
-        if ($Query -match '^\?.+') {
+        if (($Query -match '^\?.+') -or ($Query -match '=')) {
             $Query.TrimStart('?').Split('&') | ForEach-Object {
                 $key, $value = $_.Split('=', 2)
                 if (-not [String]::IsNullOrEmpty($key)) {

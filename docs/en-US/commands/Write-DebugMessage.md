@@ -24,6 +24,9 @@ Write-AtlassianDebugMessage [[-Message] <String>] [-BreakPoint] [[-Cmdlet] <PSCm
 Writes debug output and restores the original `$DebugPreference` value after
 processing.
 
+Message formatting follows the configured message style settings (`Breadcrumbs`,
+`Indent`, `FunctionName`, and `TimeStamp`).
+
 ## EXAMPLES
 
 ### EXAMPLE 1
@@ -34,6 +37,16 @@ Write-AtlassianDebugMessage -Message 'Shared runtime diagnostic message.'
 ```
 
 Writes the debug message and keeps the same debug preference in scope.
+
+### EXAMPLE 2
+
+```powershell
+Set-AtlassianConfiguration -Name Message -Value ([AtlassianPS.MessageStyle]::new(2, $false, $true, $false))
+Write-AtlassianDebugMessage -Message 'Shared runtime diagnostic message.'
+```
+
+Writes a breadcrumb line and an indented debug message based on the configured
+message style.
 
 ## PARAMETERS
 

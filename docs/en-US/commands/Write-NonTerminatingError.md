@@ -104,7 +104,8 @@ Writes a non-terminating error using an existing error record.
 
 ### -Cmdlet
 
-Cmdlet runtime to use for writing the error. Defaults to `$PSCmdlet`.
+Cmdlet runtime to use for writing the error.
+Defaults to the caller's `$PSCmdlet` when called from an advanced function.
 
 ```yaml
 Type: PSCmdlet
@@ -113,7 +114,7 @@ Aliases:
 
 Required: False
 Position: 0
-Default value: $PSCmdlet
+Default value: Caller $PSCmdlet
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

@@ -25,6 +25,7 @@ Describe "Write-NonTerminatingError" -Tag Unit {
             $errorRecords | Should -Not -BeNullOrEmpty
             $errorRecords[0].Exception.Message | Should -Be "write-error"
             $errorRecords[0].CategoryInfo.Category | Should -Be "InvalidOperation"
+            $errorRecords[0].InvocationInfo.MyCommand.Name | Should -Be "Invoke-TestWriteNonTerminatingError"
         }
     }
 }

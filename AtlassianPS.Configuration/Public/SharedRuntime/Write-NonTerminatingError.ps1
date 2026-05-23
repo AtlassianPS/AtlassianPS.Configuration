@@ -5,7 +5,14 @@
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
-        $Cmdlet = $PSCmdlet,
+        $Cmdlet = $(
+            try {
+                (Get-Variable -Scope 1 -Name PSCmdlet -ErrorAction Stop).Value
+            }
+            catch {
+                $PSCmdlet
+            }
+        ),
 
         [Parameter(Mandatory, ParameterSetName = 'ExistingException', Position = 1, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [Parameter(ParameterSetName = 'NewException')]

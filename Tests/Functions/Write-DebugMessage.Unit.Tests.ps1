@@ -50,6 +50,55 @@ Describe "Write-DebugMessage" -Tag Unit {
                     $DebugPreference = $originalPreference
                 }
             }
+
+            It "honors message style breadcrumbs and indentation" {
+                $originalPreference = $DebugPreference
+                $originalMessageStyle = $script:Configuration["Message"]
+                $DebugPreference = 'Continue'
+                $script:Configuration["Message"] = [AtlassianPS.MessageStyle]::new(2, $false, $true, $false)
+
+                try {
+                    function Invoke-TestWriteDebugMessage {
+                        [CmdletBinding()]
+                        param()
+
+                        Write-DebugMessage -Message 'crumb-message'
+                    }
+
+                    $debugOutput = (Invoke-TestWriteDebugMessage 5>&1 | Out-String)
+
+                    $debugOutput | Should -Match '\[.*>.*\]:'
+                    $debugOutput | Should -Match '\s{2}crumb-message'
+                }
+                finally {
+                    $script:Configuration["Message"] = $originalMessageStyle
+                    $DebugPreference = $originalPreference
+                }
+            }
+
+            It "uses the caller command name for function-name formatting" {
+                $originalPreference = $DebugPreference
+                $originalMessageStyle = $script:Configuration["Message"]
+                $DebugPreference = 'Continue'
+                $script:Configuration["Message"] = [AtlassianPS.MessageStyle]::new(0, $false, $false, $true)
+
+                try {
+                    function Invoke-TestWriteDebugMessageFunctionName {
+                        [CmdletBinding()]
+                        param()
+
+                        Write-DebugMessage -Message 'function-name-message'
+                    }
+
+                    $debugOutput = (Invoke-TestWriteDebugMessageFunctionName 5>&1 | Out-String)
+
+                    $debugOutput | Should -Match '\[Invoke-TestWriteDebugMessageFunctionName\] function-name-message'
+                }
+                finally {
+                    $script:Configuration["Message"] = $originalMessageStyle
+                    $DebugPreference = $originalPreference
+                }
+            }
         }
     }
 }

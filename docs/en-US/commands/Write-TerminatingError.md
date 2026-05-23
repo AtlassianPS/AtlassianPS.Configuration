@@ -117,7 +117,8 @@ Throws a terminating error from an existing error record and catches it.
 
 ### -Cmdlet
 
-Cmdlet runtime to use for throwing the error. Defaults to `$PSCmdlet`.
+Cmdlet runtime to use for throwing the error.
+Defaults to the caller's `$PSCmdlet` when called from an advanced function.
 
 ```yaml
 Type: PSCmdlet
@@ -126,7 +127,7 @@ Aliases:
 
 Required: False
 Position: 0
-Default value: $PSCmdlet
+Default value: Caller $PSCmdlet
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

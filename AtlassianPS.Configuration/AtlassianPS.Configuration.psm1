@@ -19,14 +19,6 @@ if ($PSVersionTable.PSVersion.Major -lt 5) {
     Add-Type -Path (Join-Path $PSScriptRoot AtlassianPS.Configuration.Attributes.cs) -ReferencedAssemblies Microsoft.CSharp, Microsoft.PowerShell.Commands.Utility, System.Management.Automation, System.Runtime.Extensions, System.Security.Cryptography.X509Certificates
 }
 
-if (-not ('System.Web.HttpUtility' -as [Type])) {
-    if ($PSVersionTable.PSEdition -eq 'Desktop') {
-        Add-Type -AssemblyName System.Web -ErrorAction Stop
-    }
-    else {
-        Add-Type -AssemblyName System.Web.HttpUtility -ErrorAction Stop
-    }
-}
 #endregion Dependencies
 
 #region ModuleConfig

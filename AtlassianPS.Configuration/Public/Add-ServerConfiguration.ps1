@@ -75,7 +75,7 @@
             }
 
             Write-Verbose "Adding server #$($index): [$($config.Name)]"
-            Write-DebugMessage "Adding server `$config: $($config.Name) @ index $index"
+            Write-DebugMessage "Adding server `$config: $($config.Name) @ index $index" -BreakPoint
             $serverList.Add($config)
         }
     }

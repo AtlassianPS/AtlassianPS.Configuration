@@ -25,10 +25,23 @@ Describe "ConvertFrom-QueryString" -Tag Unit {
         }
 
         It "returns an empty hashtable for non-query strings" {
-            $parsed = ConvertFrom-QueryString -Query "jql=project%3DTEST"
+            $parsed = ConvertFrom-QueryString -Query "not-a-query-value"
 
             $parsed | Should -BeOfType [Hashtable]
             $parsed.Keys | Should -BeNullOrEmpty
+        }
+
+        It "parses raw query strings without a leading question mark" {
+            $parsed = ConvertFrom-QueryString -Query "jql=project%3DTEST&max=25"
+
+            $parsed["jql"] | Should -Be "project=TEST"
+            $parsed["max"] | Should -Be "25"
+        }
+
+        It "accepts query strings from the pipeline" {
+            $parsed = "jql=project%3DTEST" | ConvertFrom-QueryString
+
+            $parsed["jql"] | Should -Be "project=TEST"
         }
     }
 }
