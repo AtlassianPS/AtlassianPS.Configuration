@@ -26,6 +26,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added `Write-VerboseMessage` as a public shared runtime helper for formatted verbose output without shadowing PowerShell's built-in `Write-Verbose`.
 - Moved shared runtime helper implementations from `AtlassianPS.Standards` into `AtlassianPS.Configuration` to keep standards tooling-focused.
 
+### Fixed
+
+- Preserved in-memory server sessions while exporting sanitized configuration.
+- Fixed server add/remove/update edge cases around duplicate names, pipeline input, URI validation, and empty server lists.
+- Protected the internal `ServerList` key from generic configuration mutation while keeping `Message` configurable.
+- Corrected first-use and command documentation for server configuration commands.
+
 ## 0.2 - 2018-10-03
 
 ### Changed

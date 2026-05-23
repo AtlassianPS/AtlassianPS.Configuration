@@ -57,13 +57,8 @@
 
     end {
         Write-DebugMessage "Persisting ServerList"
-        $persistedServerList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
-        foreach ($server in $serverList) {
-            $persistedServerList.Add($server)
-        }
-
         $script:Configuration.Remove("ServerList")
-        $script:Configuration.Add("ServerList", $persistedServerList)
+        $script:Configuration.Add("ServerList", $serverList)
         Save-Configuration
 
         Write-Verbose "Function ended"
