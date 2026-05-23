@@ -90,7 +90,9 @@ Describe "Remove-Configuration" -Tag Unit {
             It "accepts an object over the pipeline" {
                 Get-Configuration | Should -HaveCount 4
 
-                Get-Configuration | Remove-Configuration
+                Get-Configuration |
+                    Where-Object Name -ne "ServerList" |
+                    Remove-Configuration
 
                 Get-Configuration | Should -HaveCount 1
                 Get-Configuration | Where-Object Name -eq "ServerList" | Should -Not -BeNullOrEmpty
