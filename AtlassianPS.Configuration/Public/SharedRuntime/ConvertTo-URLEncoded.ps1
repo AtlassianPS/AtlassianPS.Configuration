@@ -9,14 +9,7 @@
     )
 
     begin {
-        if (-not ('System.Web.HttpUtility' -as [Type])) {
-            if ($PSVersionTable.PSEdition -eq 'Desktop') {
-                Add-Type -AssemblyName System.Web -ErrorAction Stop
-            }
-            else {
-                Add-Type -AssemblyName System.Web.HttpUtility -ErrorAction Stop
-            }
-        }
+        Import-HttpUtility
     }
 
     process {
