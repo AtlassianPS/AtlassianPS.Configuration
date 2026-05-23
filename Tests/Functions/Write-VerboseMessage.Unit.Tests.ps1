@@ -69,7 +69,7 @@ Describe "Write-VerboseMessage" -Tag Unit {
 
                     $verboseOutput = (Invoke-TestWriteVerboseMessage 4>&1 | Out-String)
 
-                    $verboseOutput | Should -Match '\[.*>.*\]:'
+                    $verboseOutput | Should -Match '(?s)\[.*>.*\]:'
                     $verboseOutput | Should -Match '\s{2}crumb-message'
                 }
                 finally {

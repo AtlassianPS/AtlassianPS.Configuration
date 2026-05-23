@@ -67,7 +67,7 @@ Describe "Write-DebugMessage" -Tag Unit {
 
                     $debugOutput = (Invoke-TestWriteDebugMessage 5>&1 | Out-String)
 
-                    $debugOutput | Should -Match '\[.*>.*\]:'
+                    $debugOutput | Should -Match '(?s)\[.*>.*\]:'
                     $debugOutput | Should -Match '\s{2}crumb-message'
                 }
                 finally {
