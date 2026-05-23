@@ -11,6 +11,8 @@ permalink: /module/AtlassianPS.Configuration/
 
 AtlassianPS.Configuration is a module that offers a common set of tools to the [AtlassianPS] products to handle user-specific configuration.
 
+It also provides a shared runtime helper surface for dependent modules. Runtime helpers are intentionally separated from configuration cmdlets under `AtlassianPS.Configuration/Public/SharedRuntime/` (with shared internals under `Private/SharedRuntime/`) so helper evolution stays isolated from core configuration behavior.
+
 Join the conversation on [![SlackLogo][] AtlassianPS.Slack.com](https://atlassianps.org/slack)
 
 [SlackLogo]: https://atlassianps.org/assets/img/Slack_Mark_Web_28x28.png

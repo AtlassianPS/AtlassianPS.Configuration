@@ -1,6 +1,6 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Write-DebugMessage" -Tag Unit {
+Describe "Write-VerboseMessage" -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
@@ -8,25 +8,14 @@ Describe "Write-DebugMessage" -Tag Unit {
     }
 
     InModuleScope "AtlassianPS.Configuration" {
-        #region Mocking
-        #endregion Mocking
-
-        #region Arrange
-        #endregion Arrange
-
         Context "Sanity checking" {
             BeforeAll {
-                $script:command = Get-Command -Name Write-DebugMessage
+                $script:command = Get-Command -Name Write-VerboseMessage
             }
 
             It "has a [String] -Message parameter" {
                 $command.Parameters.ContainsKey("Message")
                 $command.Parameters["Message"].ParameterType | Should -Be "String"
-            }
-
-            It "has a [Switch] -BreakPoint parameter" {
-                $command.Parameters.ContainsKey("BreakPoint")
-                $command.Parameters["BreakPoint"].ParameterType | Should -Be "Switch"
             }
 
             It "has a [System.Management.Automation.PSCmdlet] -Cmdlet parameter" {
@@ -36,67 +25,80 @@ Describe "Write-DebugMessage" -Tag Unit {
         }
 
         Context "Behavior checking" {
-            It "writes debug output and preserves debug preference" {
-                $originalPreference = $DebugPreference
-                $DebugPreference = 'Continue'
+            It "writes verbose output" {
+                $originalPreference = $VerbosePreference
+                $VerbosePreference = 'Continue'
 
                 try {
-                    $debugOutput = Write-DebugMessage -Message 'debug-message' 5>&1
+                    $verboseOutput = Write-VerboseMessage -Message 'verbose-message' 4>&1
 
-                    $DebugPreference | Should -Be 'Continue'
-                    ($debugOutput | Out-String) | Should -Match 'debug-message'
+                    ($verboseOutput | Out-String) | Should -Match 'verbose-message'
                 }
                 finally {
-                    $DebugPreference = $originalPreference
+                    $VerbosePreference = $originalPreference
+                }
+            }
+
+            It "accepts messages from the pipeline" {
+                $originalPreference = $VerbosePreference
+                $VerbosePreference = 'Continue'
+
+                try {
+                    $verboseOutput = 'pipeline-message' | Write-VerboseMessage 4>&1
+
+                    ($verboseOutput | Out-String) | Should -Match 'pipeline-message'
+                }
+                finally {
+                    $VerbosePreference = $originalPreference
                 }
             }
 
             It "honors message style breadcrumbs and indentation" {
-                $originalPreference = $DebugPreference
+                $originalPreference = $VerbosePreference
                 $originalMessageStyle = $script:Configuration["Message"]
-                $DebugPreference = 'Continue'
+                $VerbosePreference = 'Continue'
                 $script:Configuration["Message"] = [AtlassianPS.MessageStyle]::new(2, $false, $true, $false)
 
                 try {
-                    function Invoke-TestWriteDebugMessage {
+                    function Invoke-TestWriteVerboseMessage {
                         [CmdletBinding()]
                         param()
 
-                        Write-DebugMessage -Message 'crumb-message'
+                        Write-VerboseMessage -Message 'crumb-message'
                     }
 
-                    $debugOutput = (Invoke-TestWriteDebugMessage 5>&1 | Out-String)
+                    $verboseOutput = (Invoke-TestWriteVerboseMessage 4>&1 | Out-String)
 
-                    $debugOutput | Should -Match '(?s)\[.*>.*\]:'
-                    $debugOutput | Should -Match '\s{2}crumb-message'
+                    $verboseOutput | Should -Match '(?s)\[.*>.*\]:'
+                    $verboseOutput | Should -Match '\s{2}crumb-message'
                 }
                 finally {
                     $script:Configuration["Message"] = $originalMessageStyle
-                    $DebugPreference = $originalPreference
+                    $VerbosePreference = $originalPreference
                 }
             }
 
             It "uses the caller command name for function-name formatting" {
-                $originalPreference = $DebugPreference
+                $originalPreference = $VerbosePreference
                 $originalMessageStyle = $script:Configuration["Message"]
-                $DebugPreference = 'Continue'
+                $VerbosePreference = 'Continue'
                 $script:Configuration["Message"] = [AtlassianPS.MessageStyle]::new(0, $false, $false, $true)
 
                 try {
-                    function Invoke-TestWriteDebugMessageFunctionName {
+                    function Invoke-TestWriteVerboseMessageFunctionName {
                         [CmdletBinding()]
                         param()
 
-                        Write-DebugMessage -Message 'function-name-message'
+                        Write-VerboseMessage -Message 'function-name-message'
                     }
 
-                    $debugOutput = (Invoke-TestWriteDebugMessageFunctionName 5>&1 | Out-String)
+                    $verboseOutput = (Invoke-TestWriteVerboseMessageFunctionName 4>&1 | Out-String)
 
-                    $debugOutput | Should -Match '\[Invoke-TestWriteDebugMessageFunctionName\] function-name-message'
+                    $verboseOutput | Should -Match '\[Invoke-TestWriteVerboseMessageFunctionName\] function-name-message'
                 }
                 finally {
                     $script:Configuration["Message"] = $originalMessageStyle
-                    $DebugPreference = $originalPreference
+                    $VerbosePreference = $originalPreference
                 }
             }
         }

@@ -24,7 +24,11 @@ BeforeDiscovery {
             }
     )
 
-    $publicFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1" -File).BaseName
+    $publicFunctions = @(
+        Get-ChildItem "$env:BHModulePath/Public" -Recurse -File -Filter "*.ps1" |
+            Sort-Object -Property FullName |
+            Select-Object -ExpandProperty BaseName
+    )
 
     $commandTypes = @('Cmdlet', 'Function')
     if ($PSVersionTable.PSEdition -eq 'Desktop') {

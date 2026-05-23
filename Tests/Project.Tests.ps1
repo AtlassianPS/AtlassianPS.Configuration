@@ -10,8 +10,16 @@ BeforeDiscovery {
     $script:loadedNamespace = [AtlassianPS.ServerData].Assembly.GetTypes() | Where-Object {
         $_.IsPublic -and $_.Namespace -eq 'AtlassianPS'
     }
-    $script:publicFunctionFiles = (Get-ChildItem "$env:BHModulePath/Public/*.ps1" -File).BaseName
-    $script:privateFunctionFiles = (Get-ChildItem "$env:BHModulePath/Private/*.ps1" -File).BaseName
+    $script:publicFunctionFiles = @(
+        Get-ChildItem "$env:BHModulePath/Public" -Recurse -File -Filter "*.ps1" |
+            Sort-Object -Property FullName |
+            Select-Object -ExpandProperty BaseName
+    )
+    $script:privateFunctionFiles = @(
+        Get-ChildItem "$env:BHModulePath/Private" -Recurse -File -Filter "*.ps1" |
+            Sort-Object -Property FullName |
+            Select-Object -ExpandProperty BaseName
+    )
     $script:exportedFunctionNames = @($script:module.ExportedFunctions.Keys)
     $script:normalizedExportedFunctions = foreach ($functionName in $script:exportedFunctionNames) {
         if ($script:modulePrefix -and $functionName -like "*-$script:modulePrefix*") {
