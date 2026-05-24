@@ -60,12 +60,32 @@ Get-ConfluenceSpace -Server "AtlassianPS - wiki"
 
 You can find the full documentation on our [homepage](https://atlassianps.org/docs/AtlassianPS.Configuration) and in the console.
 
+```powershell
+# Review the help at any time!
+Get-Help about_AtlassianPS.Configuration
+Get-Command -Module AtlassianPS.Configuration
+Get-Help Get-AtlassianServerConfiguration -Full # or any other command
+```
+
 ### Contribute
 
 Want to contribute to AtlassianPS? Great!
 We appreciate [everyone](https://atlassianps.org/#people) who invests their time to make our modules the best they can be.
 
 Check out our guidelines on [Contributing] to our modules and documentation.
+
+## Tested on
+
+| Configuration | Status |
+| ------------- | ------ |
+| Windows PowerShell v5.1 | [CI workflow](https://github.com/AtlassianPS/AtlassianPS.Configuration/actions/workflows/ci.yml) |
+| PowerShell 7 on Windows | [CI workflow](https://github.com/AtlassianPS/AtlassianPS.Configuration/actions/workflows/ci.yml) |
+| PowerShell 7 on Ubuntu | [CI workflow](https://github.com/AtlassianPS/AtlassianPS.Configuration/actions/workflows/ci.yml) |
+| PowerShell 7 on macOS | [CI workflow](https://github.com/AtlassianPS/AtlassianPS.Configuration/actions/workflows/ci.yml) |
+
+## Acknowledgements
+
+* Thanks to everyone ([Our Contributors](https://atlassianps.org/#people)) that helped with this module
 
 ## Useful links
 
@@ -88,7 +108,7 @@ Hopefully this is obvious, but:
   [Latest Release]: https://github.com/AtlassianPS/AtlassianPS.Configuration/releases/latest
   [Submit an Issue]: https://github.com/AtlassianPS/AtlassianPS.Configuration/issues/new
   [MIT license]: https://github.com/AtlassianPS/AtlassianPS.Configuration/blob/master/LICENSE
-  [Contributing]: http://atlassianps.org/docs/Contributing
+  [Contributing]: https://atlassianps.org/docs/Contributing/
 
 <!-- [//]: # (Sweet online markdown editor at http://dillinger.io) -->
 <!-- [//]: # ("GitHub Flavored Markdown" https://help.github.com/articles/github-flavored-markdown/) -->
