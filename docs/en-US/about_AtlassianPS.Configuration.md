@@ -74,6 +74,12 @@ Find us on GitHub or Slack, and let us know what you think.
 
 # SEE ALSO
 
+[Commands index](/docs/AtlassianPS.Configuration/commands/)
+
+[Classes index](/docs/AtlassianPS.Configuration/classes/)
+
+[Enumerations index](/docs/AtlassianPS.Configuration/enumerations/)
+
 [AtlassianPS org](https://atlassianps.org)
 
 [AtlassianPS Slack team](https://atlassianps.org/slack)
