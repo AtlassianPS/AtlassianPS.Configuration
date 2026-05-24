@@ -1,8 +1,7 @@
 ﻿function Set-ServerConfiguration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
+    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $true )]
     [OutputType( [void] )]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateRange(1, [UInt32]::MaxValue)]
@@ -55,6 +54,7 @@
             'WhatIf'
             'Confirm'
         )
+        $configurationChanged = $false
     }
 
     process {
@@ -75,10 +75,13 @@
                 return
             }
 
-            foreach ($property in ($PSBoundParameters.Keys | Where-Object { $_ -notin $parametersToIgnore } )) {
-                Write-Verbose "Changing [$property] of entry #$Id"
+            if ($PSCmdlet.ShouldProcess("#$Id ($($serverEntry.Name))", "Update server configuration")) {
+                foreach ($property in ($PSBoundParameters.Keys | Where-Object { $_ -notin $parametersToIgnore } )) {
+                    Write-Verbose "Changing [$property] of entry #$Id"
 
-                $serverEntry.$property = Get-Variable $property -ValueOnly
+                    $serverEntry.$property = Get-Variable $property -ValueOnly
+                    $configurationChanged = $true
+                }
             }
         }
         else {
@@ -94,7 +97,9 @@
     }
 
     end {
-        Save-Configuration
+        if ($configurationChanged) {
+            Save-Configuration
+        }
 
         Write-Verbose "Function ended"
     }

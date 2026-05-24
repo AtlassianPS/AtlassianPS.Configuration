@@ -95,6 +95,21 @@ Describe "Set-ServerConfiguration" -Tag Unit {
                 (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "New Server"
             }
 
+            It "does not update or save a server when WhatIf is used" {
+                Set-ServerConfiguration -Id 1 -Name "New Server" -WhatIf
+
+                (Get-ServerConfiguration).Name | Should -Not -Contain "New Server"
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "Google"
+                Should -Invoke "Save-Configuration" -ModuleName "AtlassianPS.Configuration" -Exactly -Times 0 -Scope It
+            }
+
+            It "ignores Confirm when updating a server" {
+                Set-ServerConfiguration -Id 1 -Name "New Server" -Confirm:$false
+
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "New Server"
+                Should -Invoke "Save-Configuration" -ModuleName "AtlassianPS.Configuration" -Exactly -Times 1 -Scope It
+            }
+
             It "accepts the Id over the pipeline" {
                 (Get-ServerConfiguration).Name | Should -Not -Contain "New Server"
 

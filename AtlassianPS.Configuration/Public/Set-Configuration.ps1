@@ -1,8 +1,7 @@
 ﻿function Set-Configuration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
+    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $true )]
     [OutputType( [PSCustomObject] )]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage( 'PSUseShouldProcessForStateChangingFunctions', '' )]
     param(
         [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
@@ -37,6 +36,7 @@
         Write-Verbose "Function started"
 
         $reservedNames = @('ServerList')
+        $configurationChanged = $false
     }
 
     process {
@@ -81,16 +81,21 @@
         else { $dataType = "null" }
         Write-Verbose "Storing value [$dataType] to [name = $Name]"
 
-        $script:Configuration.Remove($Name)
-        $script:Configuration.Add($Name, $Value)
+        if ($PSCmdlet.ShouldProcess($Name, "Set configuration value")) {
+            $script:Configuration.Remove($Name)
+            $script:Configuration.Add($Name, $Value)
+            $configurationChanged = $true
 
-        if ($Passthru) {
-            Get-Configuration -Name $Name
+            if ($Passthru) {
+                Get-Configuration -Name $Name
+            }
         }
     }
 
     end {
-        Save-Configuration
+        if ($configurationChanged) {
+            Save-Configuration
+        }
 
         Write-Verbose "Function ended"
     }

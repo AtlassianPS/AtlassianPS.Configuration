@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Improvements
 
+- Added `-WhatIf` and `-Confirm` support to mutating configuration and server configuration commands.
 - Migrated `Tools/setup.ps1` to shared `AtlassianPS.Standards` bootstrap/dependency commands with synchronized ScriptAnalyzer settings.
 - Migrated `Tools/update.dependencies.ps1` to shared `AtlassianPS.Standards\Update-AtlassianPSDependencyReference` with `ShouldProcess` and fail-fast behavior.
 - Aligned workflow setup pins and build/release standards version references to `AtlassianPS.Standards` `0.1.6`.

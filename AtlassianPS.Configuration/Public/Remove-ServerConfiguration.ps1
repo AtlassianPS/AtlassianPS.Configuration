@@ -1,8 +1,7 @@
 ﻿function Remove-ServerConfiguration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
+    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $true )]
     [OutputType( [void] )]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ArgumentCompleter( {
@@ -26,6 +25,8 @@
         foreach ($server in @(Get-ServerConfiguration)) {
             $serverList.Add($server)
         }
+
+        $configurationChanged = $false
     }
 
     process {
@@ -46,20 +47,27 @@
             }
         }
 
-        $remainingServers = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
-        foreach ($server in $serverList) {
-            if ($server.Name -notin $Name) {
-                $remainingServers.Add($server)
+        foreach ($serverToRemove in $Name) {
+            if ($serverToRemove -in $serverList.Name -and $PSCmdlet.ShouldProcess($serverToRemove, "Remove server configuration")) {
+                $remainingServers = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
+                foreach ($server in $serverList) {
+                    if ($server.Name -ne $serverToRemove) {
+                        $remainingServers.Add($server)
+                    }
+                }
+                $serverList = $remainingServers
+                $configurationChanged = $true
             }
         }
-        $serverList = $remainingServers
     }
 
     end {
-        Write-DebugMessage "Persisting ServerList"
-        $script:Configuration.Remove("ServerList")
-        $script:Configuration.Add("ServerList", $serverList)
-        Save-Configuration
+        if ($configurationChanged) {
+            Write-DebugMessage "Persisting ServerList"
+            $script:Configuration.Remove("ServerList")
+            $script:Configuration.Add("ServerList", $serverList)
+            Save-Configuration
+        }
 
         Write-Verbose "Function ended"
     }

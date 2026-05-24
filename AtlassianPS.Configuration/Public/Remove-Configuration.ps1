@@ -1,8 +1,7 @@
 ﻿function Remove-Configuration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $false )]
+    [CmdletBinding( ConfirmImpact = 'Low', SupportsShouldProcess = $true )]
     [OutputType( [void] )]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage( 'PSUseShouldProcessForStateChangingFunctions', '' )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
@@ -24,6 +23,7 @@
         Write-Verbose "Function started"
 
         $reservedNames = @('ServerList')
+        $configurationChanged = $false
     }
 
     process {
@@ -45,12 +45,16 @@
 
             Write-Verbose "Filtering for [name = $_name]"
 
-            $script:Configuration.Remove($_name)
+            if ($PSCmdlet.ShouldProcess($_name, "Remove configuration key")) {
+                $configurationChanged = $script:Configuration.Remove($_name) -or $configurationChanged
+            }
         }
     }
 
     end {
-        Save-Configuration
+        if ($configurationChanged) {
+            Save-Configuration
+        }
 
         Write-Verbose "Function ended"
     }
