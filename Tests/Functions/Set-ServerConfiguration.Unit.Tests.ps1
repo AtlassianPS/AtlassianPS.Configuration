@@ -103,6 +103,13 @@ Describe "Set-ServerConfiguration" -Tag Unit {
                 Should -Invoke "Save-Configuration" -ModuleName "AtlassianPS.Configuration" -Exactly -Times 0 -Scope It
             }
 
+            It "ignores Confirm when updating a server" {
+                Set-ServerConfiguration -Id 1 -Name "New Server" -Confirm:$false
+
+                (Get-ServerConfiguration | Where-Object Id -eq 1).Name | Should -Be "New Server"
+                Should -Invoke "Save-Configuration" -ModuleName "AtlassianPS.Configuration" -Exactly -Times 1 -Scope It
+            }
+
             It "accepts the Id over the pipeline" {
                 (Get-ServerConfiguration).Name | Should -Not -Contain "New Server"
 

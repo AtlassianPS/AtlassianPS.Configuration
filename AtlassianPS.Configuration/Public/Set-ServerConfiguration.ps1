@@ -51,6 +51,8 @@
             'OutVariable'
             'OutBuffer'
             'PipelineVariable'
+            'WhatIf'
+            'Confirm'
         )
         $configurationChanged = $false
     }
