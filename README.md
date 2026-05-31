@@ -27,16 +27,6 @@ Join the conversation on [![SlackLogo][] AtlassianPS.Slack.com](https://atlassia
 > This module does not need to be installed manually.  
 > [AtlassianPS] products which use this module will install it automatically using the [PowerShell Gallery].
 
-Install AtlassianPS.Configuration from the [PowerShell Gallery]! `Install-Module` requires PowerShellGet (included in PS v5, or download for v3/v4 via the gallery link)
-
-```powershell
-# One time only install:
-Install-Module AtlassianPS.Configuration -Scope CurrentUser
-
-# Check for updates occasionally:
-Update-Module AtlassianPS.Configuration
-```
-
 ### Usage
 
 > This example uses [ConfluencePS](https://atlassianps.org/docs/ConfluencePS) for illustration.  
