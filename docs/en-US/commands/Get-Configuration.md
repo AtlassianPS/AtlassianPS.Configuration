@@ -184,4 +184,4 @@ For more information, see about_CommonParameters
 
 [Remove-Configuration](../Remove-Configuration/)
 
-[Export-Configuration](../Export-Configuration/)
+[Export-Configuration](https://github.com/PoshCode/Configuration)
