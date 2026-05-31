@@ -26,7 +26,7 @@ Add-AtlassianServerConfiguration [-Uri] <Uri> [[-Name] <String>]
 This function allows for several Server object to be stored in memory.
 Stored servers are used by the commands in order to know with what server to communicate.
 
-The stored servers can be exported to file with [Export-Configuration](../Export-Configuration/).  
+The stored servers can be exported to file with [Export-Configuration](https://github.com/PoshCode/Configuration).  
 _Exported servers will be imported automatically when the module is loaded._
 
 ## EXAMPLES
@@ -170,4 +170,4 @@ For more information, see about_CommonParameters
 
 [Remove-ServerConfiguration](../Remove-ServerConfiguration/)
 
-[Export-Configuration](../Export-Configuration/)
+[Export-Configuration](https://github.com/PoshCode/Configuration)

@@ -33,14 +33,20 @@ Such a key-value pair will not produce any change in behavior of any other
 cmdlet by itself; the module using this module, AtlassianPS.Configuration,
 must implement a usage for the key-value.
 A documentation of the currently implemented key-value pairs can be found in
-[About AtlassianPS.Configuration Keys](about/implemented-keys.html).
+[About AtlassianPS.Configuration Keys](/docs/AtlassianPS.Configuration/about/implemented-keys.html).
+
+## Guides
+
+<div class="reference-index">
+    <a href="/docs/AtlassianPS.Configuration/about/implemented-keys.html">Implemented Keys</a>
+</div>
 
 This module stores the latest configuration in memory to disk.
 By doing so, the module is able to retrieve the last known configuration when
 being imported.
 
 > AtlassianPS.Configuration uses
-> [PoshCode/Configuration](Export-AtlassianConfiguration) for importing and
+> [PoshCode/Configuration](https://github.com/PoshCode/Configuration) for importing and
 > exporting the configuration.  
 > Where the configuration is exported and how the configuration is imported is
 > described [here](https://github.com/PoshCode/Configuration#how-it-works)
