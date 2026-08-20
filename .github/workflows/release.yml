@@ -39,7 +39,7 @@ jobs:
           echo "release_sha=$release_sha" >> "$GITHUB_OUTPUT"
 
       - name: Download artifact from tagged commit CI run
-        uses: dawidd6/action-download-artifact@v21
+        uses: dawidd6/action-download-artifact@v23
         with:
           workflow: ci.yml
           workflow_conclusion: success
