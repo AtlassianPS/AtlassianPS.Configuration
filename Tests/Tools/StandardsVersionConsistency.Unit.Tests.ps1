@@ -4,7 +4,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:projectRoot = Resolve-ProjectRoot
-        $script:standardsActionSha = 'ee540ecca268608dd5e1957430511ec87f4bc854'
+        $script:standardsActionSha = 'd6a624b73b9d7d4d197340c960fee647c0d215d7'
 
         $requirementsPath = Join-Path $script:projectRoot 'Tools/build.requirements.psd1'
         $requirements = Import-PowerShellDataFile -Path $requirementsPath

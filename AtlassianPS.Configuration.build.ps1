@@ -1,5 +1,5 @@
 ﻿#requires -modules InvokeBuild
-#requires -modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.14'; MaximumVersion = '0.1.14' }
+#requires -modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.15'; MaximumVersion = '0.1.15' }
 
 [CmdletBinding()]
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]

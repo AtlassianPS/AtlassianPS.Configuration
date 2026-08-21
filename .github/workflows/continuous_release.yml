@@ -42,18 +42,18 @@ jobs:
           persist-credentials: false
           ref: ${{ github.event.workflow_run.head_sha || 'master' }}
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/plan-merged-release@ee540ecca268608dd5e1957430511ec87f4bc854 # v0.1.14
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/plan-merged-release@d6a624b73b9d7d4d197340c960fee647c0d215d7 # v0.1.15
         id: plan
         with:
           commit-sha: ${{ github.event.workflow_run.head_sha }}
           release-impact: ${{ inputs.release_impact }}
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/prepare-release-changelog@ee540ecca268608dd5e1957430511ec87f4bc854 # v0.1.14
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/prepare-release-changelog@d6a624b73b9d7d4d197340c960fee647c0d215d7 # v0.1.15
         if: steps.plan.outputs.should_release == 'true'
         with:
           release-version: ${{ steps.plan.outputs.release_tag }}
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@ee540ecca268608dd5e1957430511ec87f4bc854 # v0.1.14
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@d6a624b73b9d7d4d197340c960fee647c0d215d7 # v0.1.15
         if: steps.plan.outputs.should_release == 'true'
 
       - name: Stamp source manifest version
@@ -71,7 +71,7 @@ jobs:
           owner: ${{ github.repository_owner }}
           repositories: AtlassianPS.Configuration
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/commit-release-metadata@ee540ecca268608dd5e1957430511ec87f4bc854 # v0.1.14
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/commit-release-metadata@d6a624b73b9d7d4d197340c960fee647c0d215d7 # v0.1.15
         if: steps.plan.outputs.should_release == 'true'
         with:
           release-tag: ${{ steps.plan.outputs.release_tag }}
