@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@d6a624b73b9d7d4d197340c960fee647c0d215d7 # v0.1.15
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@3c050eda17bfb4177f93c3cac61610a6f21b2537 # v0.1.16
 
       - run: Invoke-Build -Task Lint, Build
         shell: pwsh
@@ -56,7 +56,7 @@ jobs:
             "tag=$($Matches.tag)" >> $env:GITHUB_OUTPUT
           }
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/build-release-notes@d6a624b73b9d7d4d197340c960fee647c0d215d7 # v0.1.15
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/build-release-notes@3c050eda17bfb4177f93c3cac61610a6f21b2537 # v0.1.16
         if: steps.release.outputs.tag != ''
         with:
           release-version: ${{ steps.release.outputs.tag }}
@@ -81,7 +81,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@d6a624b73b9d7d4d197340c960fee647c0d215d7 # v0.1.15
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@3c050eda17bfb4177f93c3cac61610a6f21b2537 # v0.1.16
         with:
           ps-version: "5"
           # Setup is run below in the powershell (PS 5.1) shell instead of pwsh,
@@ -121,7 +121,7 @@ jobs:
           - { os: macos-latest, name: "macOS" }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@d6a624b73b9d7d4d197340c960fee647c0d215d7 # v0.1.15
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@3c050eda17bfb4177f93c3cac61610a6f21b2537 # v0.1.16
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:

@@ -13,7 +13,7 @@ Describe 'GitHub Actions release contract' -Tag Unit {
     It 'pins every external action to a full commit SHA' {
         foreach ($workflow in Get-ChildItem (Join-Path $script:projectRoot '.github/workflows') -Filter '*.yml') {
             $content = Get-Content -LiteralPath $workflow.FullName -Raw
-            $actionReferences = [regex]::Matches($content, '(?m)^\s*-\s+uses:\s+(?<action>[^@\s]+)@(?<ref>[^\s#]+)')
+            $actionReferences = [regex]::Matches($content, '(?m)^\s*(?:-\s+)?uses:\s+(?<action>[^@\s]+)@(?<ref>[^\s#]+)')
 
             foreach ($reference in $actionReferences) {
                 $reference.Groups['ref'].Value | Should -Match '^[0-9a-f]{40}$' -Because $workflow.Name
@@ -37,29 +37,12 @@ Describe 'GitHub Actions release contract' -Tag Unit {
         $script:ci | Should -Not -Match 'PSGALLERY_API_KEY|ATLASSIANPS_RELEASE_APP|HOMEPAGE_PAT'
     }
 
-    It 'promotes only the exact tested artifact' {
-        $publishJob = [regex]::Match($script:continuousRelease, '(?ms)^  publish:\s*\r?\n(?<body>.*)\z').Groups['body'].Value
-
-        $publishJob | Should -Match 'actions/download-artifact@[0-9a-f]{40}'
-        $publishJob | Should -Match 'run-id:\s+\$\{\{\s*github\.event\.workflow_run\.id\s*\}\}'
-        $publishJob | Should -Match 'digest-mismatch:\s+error'
-        $publishJob | Should -Not -Match 'actions/checkout@|uses:\s+\./|Invoke-Build'
-
-        $tagIndex = $publishJob.IndexOf('Create annotated release tag')
-        $dependencyIndex = $publishJob.IndexOf('Install-Module -Name $dependency.ModuleName')
-        $publishIndex = $publishJob.IndexOf('Publish-Module -Path ./Release/AtlassianPS.Configuration')
-        $releaseIndex = $publishJob.IndexOf('softprops/action-gh-release')
-        $tagIndex | Should -BeGreaterOrEqual 0
-        $dependencyIndex | Should -BeGreaterThan $tagIndex
-        $publishIndex | Should -BeGreaterThan $dependencyIndex
-        $releaseIndex | Should -BeGreaterThan $publishIndex
-    }
-
-    It 'keeps publication idempotent and uses Publish-Module directly' {
-        $script:continuousRelease | Should -Match 'Find-Module -Name ''AtlassianPS\.Configuration'' -RequiredVersion \$expectedGalleryVersion -Repository PSGallery'
-        $script:continuousRelease | Should -Match 'Publish-Module -Path ./Release/AtlassianPS\.Configuration -Repository PSGallery'
-        $script:continuousRelease | Should -Match 'body_path:\s+\./Release/release-notes\.md'
-        $script:continuousRelease | Should -Match 'repository:\s+AtlassianPS/AtlassianPS\.github\.io'
+    It 'delegates release orchestration to the immutable Standards workflow' {
+        $script:continuousRelease | Should -Match 'uses:\s+AtlassianPS/AtlassianPS\.Standards/\.github/workflows/module_release\.yml@[0-9a-f]{40}'
+        $script:continuousRelease | Should -Match 'module-name:\s+AtlassianPS\.Configuration'
+        $script:continuousRelease | Should -Match 'release-impact:\s+\$\{\{\s*inputs\.release_impact\s*\}\}'
+        $script:continuousRelease | Should -Match 'secrets:\s+inherit'
+        $script:continuousRelease | Should -Not -Match '(?m)^  (prepare|publish):|Publish-Module|create-github-app-token|actions/download-artifact'
     }
 
     It 'removes the legacy tag-triggered release path' {
