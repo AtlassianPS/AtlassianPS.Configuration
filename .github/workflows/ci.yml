@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: [master]
     paths-ignore:
-      &paths-ignore # Documentation (NOT docs/** - that's PlatyPS source!)
+      # Documentation (NOT docs/** - that's PlatyPS source!)
       - "CHANGELOG.md"
       - "LICENSE"
       # AI assistant instruction files
@@ -26,54 +26,69 @@ on:
       - ".vscode/**"
       - ".editorconfig"
       - ".spelling"
-      # Untracked regenerated docs (kept in case they ever land)
       - "docs-regenerated/**"
   push:
     branches: [master]
-    paths-ignore: *paths-ignore
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
-
-      - run: Invoke-Build -Task Lint
-        shell: pwsh
-
   build:
-    name: Build Module
-    needs: lint
+    name: Lint and build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@ee540ecca268608dd5e1957430511ec87f4bc854 # v0.1.14
 
-      - run: Invoke-Build -Task Clean, Build
+      - run: Invoke-Build -Task Lint, Build
         shell: pwsh
 
-      - uses: actions/upload-artifact@v7
+      - name: Resolve release build
+        id: release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        shell: pwsh
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          if ($env:COMMIT_MESSAGE -match '^Prepare (?<tag>v\d+\.\d+\.\d+) release$') {
+            "tag=$($Matches.tag)" >> $env:GITHUB_OUTPUT
+          }
+
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/build-release-notes@ee540ecca268608dd5e1957430511ec87f4bc854 # v0.1.14
+        if: steps.release.outputs.tag != ''
+        with:
+          release-version: ${{ steps.release.outputs.tag }}
+
+      - name: Stamp and verify release build
+        if: steps.release.outputs.tag != ''
+        run: |
+          Invoke-Build -Task SetVersion -VersionToPublish ${{ steps.release.outputs.tag }}
+          Invoke-Build -Task VerifyReleaseArtifact -VersionToPublish ${{ steps.release.outputs.tag }}
+        shell: pwsh
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: Release
           path: ./Release/
+          if-no-files-found: error
 
   test_windows_ps5:
     name: Test (Windows PS5)
     needs: build
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@ee540ecca268608dd5e1957430511ec87f4bc854 # v0.1.14
         with:
           ps-version: "5"
           # Setup is run below in the powershell (PS 5.1) shell instead of pwsh,
           # so the Windows PowerShell module path is populated.
           skip-setup: "true"
 
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: Release
           path: ./Release/
@@ -87,7 +102,7 @@ jobs:
       - run: Invoke-Build -Task Test
         shell: powershell
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: Windows-PS5-Unit-Tests
@@ -105,10 +120,10 @@ jobs:
           - { os: ubuntu-latest, name: "Ubuntu" }
           - { os: macos-latest, name: "macOS" }
     steps:
-      - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@ee540ecca268608dd5e1957430511ec87f4bc854 # v0.1.14
 
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: Release
           path: ./Release/
@@ -116,7 +131,7 @@ jobs:
       - run: Invoke-Build -Task Test
         shell: pwsh
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: ${{ matrix.name }}-Unit-Tests
@@ -125,7 +140,7 @@ jobs:
   ci-required:
     name: CI Result
     if: always()
-    needs: [lint, build, test_windows_ps5, test_pwsh]
+    needs: [build, test_windows_ps5, test_pwsh]
     runs-on: ubuntu-latest
     steps:
       - name: Aggregate job results
@@ -134,8 +149,8 @@ jobs:
           results='${{ toJSON(needs) }}'
           echo "Job results:"
           echo "$results"
-          if echo "$results" | grep -E '"result":[[:space:]]*"(failure|cancelled)"' > /dev/null; then
-            echo "::error::One or more required jobs failed or were cancelled."
+          if echo "$results" | grep -E '"result":[[:space:]]*"(failure|cancelled|skipped)"' > /dev/null; then
+            echo "::error::One or more required jobs failed, were cancelled, or were skipped."
             exit 1
           fi
-          echo "All required jobs passed or were skipped."
+          echo "All required jobs passed."

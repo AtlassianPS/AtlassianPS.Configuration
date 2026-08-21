@@ -1,5 +1,5 @@
 ﻿#requires -modules InvokeBuild
-#requires -modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.6'; MaximumVersion = '0.1.6' }
+#requires -modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.14'; MaximumVersion = '0.1.14' }
 
 [CmdletBinding()]
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
@@ -12,8 +12,7 @@ param(
     [String] $VersionToPublish,
 
     [String[]]$Tag,
-    [String[]]$ExcludeTag = "NotImplemented",
-    [String]$PSGalleryAPIKey
+    [String[]]$ExcludeTag = "NotImplemented"
 )
 
 $WarningPreference = "Continue"
@@ -452,36 +451,61 @@ task UpdateManifest {
     Remove-Utf8Bom -Path $builtManifestPath
 }
 
-task SetVersion {
-    Assert-True (-not [String]::IsNullOrEmpty($VersionToPublish)) "VersionToPublish is required."
-    [System.Management.Automation.SemanticVersion]$versionToPublish = $VersionToPublish
-
-    $published = Find-Module -Name $env:BHProjectName -ErrorAction SilentlyContinue
-    if ($published) {
-        [System.Management.Automation.SemanticVersion]$latestPublished = $published.Version
-        Write-Build Gray "Latest published version: $latestPublished"
-        Assert-True { $versionToPublish -gt $latestPublished } "Version must be greater than latest published version: $latestPublished"
-    }
-    else {
-        Write-Build Gray "No published version found in PSGallery; skipping version guard"
+# Synopsis: Stamp the planned version into the committed source manifest.
+task SetSourceVersion {
+    if (-not $script:BuildInfo.VersionToPublish) {
+        throw 'VersionToPublish is required for SetSourceVersion. Use -VersionToPublish <semver>.'
     }
 
-    $versionString = "{0}.{1}.{2}" -f $versionToPublish.Major, $versionToPublish.Minor, $versionToPublish.Patch
-    Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "ModuleVersion" -Value $versionString
-
-    if ($versionToPublish.PreReleaseLabel) {
-        Write-Build Gray "Setting Prerelease label: $($versionToPublish.PreReleaseLabel)"
-        Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "Prerelease" -Value $versionToPublish.PreReleaseLabel
-    }
-    else {
-        Write-Build Gray "Removing Prerelease label (stable release)"
-        Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "Prerelease" -Value ''
-    }
+    $null = Set-AtlassianPSModuleManifestVersion `
+        -BuiltManifestPath $env:BHPSModuleManifest `
+        -ModuleName $env:BHProjectName `
+        -VersionToPublish $script:BuildInfo.VersionToPublish
 }
 
-# Synopsis: Create a ZIP file with this build
+# Synopsis: Stamp the planned version and release notes into the built artifact.
+task SetVersion {
+    if (-not $script:BuildInfo.VersionToPublish) {
+        throw 'VersionToPublish is required for SetVersion. Use -VersionToPublish <semver>.'
+    }
+
+    $releaseNotes = Get-AtlassianPSReleaseNotesFromChangelog `
+        -ChangelogPath (Join-Path -Path $env:BHProjectPath -ChildPath 'CHANGELOG.md') `
+        -ReleaseVersion $script:BuildInfo.VersionToPublish
+
+    $null = Set-AtlassianPSModuleManifestVersion `
+        -BuiltManifestPath $builtManifestPath `
+        -ModuleName $env:BHProjectName `
+        -VersionToPublish $script:BuildInfo.VersionToPublish `
+        -ReleaseNotes $releaseNotes
+}
+
+# Synopsis: Create a ZIP file with this build.
 task Package {
-    $null = New-AtlassianPSModulePackage -BuildOutputPath $env:BHBuildOutput -ModuleName $env:BHProjectName
+    $script:PackagePath = New-AtlassianPSModulePackage `
+        -BuildOutputPath $env:BHBuildOutput `
+        -ModuleName $env:BHProjectName
+}
+
+task VerifyReleaseArtifact Package, {
+    if (-not $script:BuildInfo.VersionToPublish) {
+        throw 'VersionToPublish is required for VerifyReleaseArtifact. Use -VersionToPublish <semver>.'
+    }
+
+    $expectedVersion = $script:BuildInfo.VersionToPublish.TrimStart('v')
+    $null = Test-AtlassianPSModulePackage `
+        -BuildOutputPath $env:BHBuildOutput `
+        -ModuleName $env:BHProjectName `
+        -PackagePath $script:PackagePath `
+        -ExpectedVersion $expectedVersion `
+        -RequireReleaseNotes
+}
+
+task TestPublish Build, Package, {
+    $null = Test-AtlassianPSModulePackage `
+        -BuildOutputPath $env:BHBuildOutput `
+        -ModuleName $env:BHProjectName `
+        -PackagePath $script:PackagePath
 }
 #endregion BuildRelease
 
@@ -542,21 +566,6 @@ task Test Init, {
 }
 
 #endregion
-
-#region Publish
-task Publish SetVersion, SignCode, Package, {
-    Assert-True (-not [String]::IsNullOrEmpty($PSGalleryAPIKey)) "No key for the PSGallery"
-    Publish-AtlassianPSModuleRelease -BuildOutputPath $env:BHBuildOutput -ModuleName $env:BHProjectName -ApiKey $PSGalleryAPIKey
-}, UpdateHomepage
-
-task UpdateHomepage {
-    # TODO: handled by repository-dispatch in release workflow
-}
-
-task SignCode {
-    # TODO: waiting for certificates
-}
-#endregion Publish
 
 #region Cleaning tasks
 # Synopsis: Clean the working dir
