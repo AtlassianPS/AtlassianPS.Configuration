@@ -46,10 +46,12 @@ Describe 'GitHub Actions release contract' -Tag Unit {
         $publishJob | Should -Not -Match 'actions/checkout@|uses:\s+\./|Invoke-Build'
 
         $tagIndex = $publishJob.IndexOf('Create annotated release tag')
+        $dependencyIndex = $publishJob.IndexOf('Install-Module -Name $dependency.ModuleName')
         $publishIndex = $publishJob.IndexOf('Publish-Module -Path ./Release/AtlassianPS.Configuration')
         $releaseIndex = $publishJob.IndexOf('softprops/action-gh-release')
         $tagIndex | Should -BeGreaterOrEqual 0
-        $publishIndex | Should -BeGreaterThan $tagIndex
+        $dependencyIndex | Should -BeGreaterThan $tagIndex
+        $publishIndex | Should -BeGreaterThan $dependencyIndex
         $releaseIndex | Should -BeGreaterThan $publishIndex
     }
 
