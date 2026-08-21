@@ -161,6 +161,12 @@ jobs:
             Write-Host "PSGallery already contains AtlassianPS.Configuration $expectedGalleryVersion; skipping immutable publish."
             return
           }
+
+          $manifest = Import-PowerShellDataFile ./Release/AtlassianPS.Configuration/AtlassianPS.Configuration.psd1
+          foreach ($dependency in @($manifest.RequiredModules)) {
+            Install-Module -Name $dependency.ModuleName -MinimumVersion $dependency.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force -AllowClobber -ErrorAction Stop
+          }
+
           Publish-Module -Path ./Release/AtlassianPS.Configuration -Repository PSGallery -NuGetApiKey ${{ secrets.PSGALLERY_API_KEY }} -ErrorAction Stop
         shell: pwsh
 
