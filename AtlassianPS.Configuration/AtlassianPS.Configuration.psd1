@@ -4,7 +4,7 @@
     GUID                 = 'f946e1f7-ed4f-43da-aa24-6d57a25117cb'
     Author               = 'Lipkau'
     CompanyName          = 'AtlassianPS'
-    Copyright            = '(c) 2018 AtlassianPS. All rights reserved.'
+    Copyright            = '(c) 2018 AtlassianPS contributors.'
     Description          = "A module for modules - AtlasianPS modules use this to handle the user's configuration"
     RequiredModules      = @(
         @{

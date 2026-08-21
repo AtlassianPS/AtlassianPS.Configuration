@@ -114,7 +114,7 @@ Describe "General project validation" -Tag Unit {
         It "uses the MIT license" {
             Test-Path "$env:BHProjectPath/LICENSE" | Should -BeTrue
             "$env:BHProjectPath/LICENSE" | Should -FileContentMatchExactly "MIT License"
-            "$env:BHProjectPath/LICENSE" | Should -FileContentMatch "Copyright \(c\) 20\d{2} AtlassianPS"
+            "$env:BHProjectPath/LICENSE" | Should -FileContentMatch "Copyright \(c\) 20\d{2} AtlassianPS contributors"
         }
 
         It "has a .gitignore" {
