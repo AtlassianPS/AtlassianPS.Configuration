@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## v0.2.6 - 2026-08-21
+
 ### Improvements
 
 - Added `-WhatIf` and `-Confirm` support to mutating configuration and server configuration commands.
@@ -31,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed server add/remove/update edge cases around duplicate names, pipeline input, URI validation, and empty server lists.
 - Protected the internal `ServerList` key from generic configuration mutation while keeping `Message` configurable.
 - Corrected first-use and command documentation for server configuration commands.
+* Added automatic releases for reviewed contributor pull requests using the exact module artifact validated by CI.
 
 ## v0.2.5 - 2019-03-06
 
