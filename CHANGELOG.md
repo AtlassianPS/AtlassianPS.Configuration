@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## v0.2.7 - 2026-08-21
+
+* Fixed automatic publishing to install the tested module's declared dependencies before calling `Publish-Module`. `v0.2.6` was not published; its changes are included in this release.
+
 ## v0.2.6 - 2026-08-21
 
 ### Improvements
