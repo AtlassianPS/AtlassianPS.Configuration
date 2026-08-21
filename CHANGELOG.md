@@ -7,14 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
-## v0.2.6 - 2026-08-21
-
 ### Improvements
 
 - Added `-WhatIf` and `-Confirm` support to mutating configuration and server configuration commands.
 - Migrated `Tools/setup.ps1` to shared `AtlassianPS.Standards` bootstrap/dependency commands with synchronized ScriptAnalyzer settings.
 - Migrated `Tools/update.dependencies.ps1` to shared `AtlassianPS.Standards\Update-AtlassianPSDependencyReference` with `ShouldProcess` and fail-fast behavior.
-- Aligned workflow and build dependencies with `AtlassianPS.Standards` `0.1.14`.
+- Aligned workflow and build dependencies with `AtlassianPS.Standards` `0.1.15`.
 - Added regression coverage for setup/update delegation and cross-surface standards version consistency.
 - Aligned release artifact creation and validation with shared `AtlassianPS.Standards` helpers.
 - Made `CHANGELOG.md` the release-notes source for both PSGallery metadata and GitHub releases.
@@ -33,7 +31,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed server add/remove/update edge cases around duplicate names, pipeline input, URI validation, and empty server lists.
 - Protected the internal `ServerList` key from generic configuration mutation while keeping `Message` configurable.
 - Corrected first-use and command documentation for server configuration commands.
-* Added automatic releases for reviewed contributor pull requests using the exact module artifact validated by CI.
 
 ## v0.2.5 - 2019-03-06
 
