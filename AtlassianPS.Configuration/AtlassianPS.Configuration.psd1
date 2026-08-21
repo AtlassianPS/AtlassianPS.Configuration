@@ -26,7 +26,7 @@
             LicenseUri   = 'https://github.com/AtlassianPS/AtlassianPS.Configuration/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/AtlassianPS/AtlassianPS.Configuration'
             IconUri      = 'https://atlassianps.org/assets/img/AtlassianPS.Configuration.png'
-            ReleaseNotes = 'https://github.com/AtlassianPS/AtlassianPS.Configuration/blob/master/CHANGELOG.md'
+            ReleaseNotes = ''
             Prerelease   = ''
         }
     }

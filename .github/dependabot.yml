@@ -6,5 +6,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - dependencies
+      - github_actions
+      - "release:none"
     commit-message:
       prefix: "⬆️ "
