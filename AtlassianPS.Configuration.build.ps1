@@ -150,15 +150,37 @@ task Lint {
         "$env:BHProjectPath/$env:BHProjectName.build.ps1"
     )
 
-    $null = Invoke-AtlassianPSLint `
-        -ProjectPath $env:BHProjectPath `
-        -ModulePath $env:BHModulePath `
-        -BuildScriptPath "$env:BHProjectPath/$env:BHProjectName.build.ps1" `
-        -StyleTestPath "$env:BHProjectPath/Tests/Style.Tests.ps1" `
-        -AnalyzerSettingsPath "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" `
-        -AnalyzerPaths $analyzerPaths `
-        -PesterVerbosity $PesterVerbosity `
-        -Severity @('Error', 'Warning')
+    $lintFailures = @()
+    try {
+        $null = Invoke-AtlassianPSModuleTests `
+            -TestPath "$env:BHProjectPath/Tests/Style.Tests.ps1" `
+            -PesterVerbosity $PesterVerbosity `
+            -MinimumPesterVersion ([Version]'5.9.0') `
+            -MaximumPesterVersion ([Version]'5.9.999')
+    }
+    catch {
+        $lintFailures += $_.Exception.Message
+    }
+
+    try {
+        $null = Invoke-AtlassianPSLint `
+            -ProjectPath $env:BHProjectPath `
+            -ModulePath $env:BHModulePath `
+            -BuildScriptPath "$env:BHProjectPath/$env:BHProjectName.build.ps1" `
+            -StyleTestPath "$env:BHProjectPath/Tests/Style.Tests.ps1" `
+            -AnalyzerSettingsPath "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" `
+            -AnalyzerPaths $analyzerPaths `
+            -PesterVerbosity $PesterVerbosity `
+            -Severity @('Error', 'Warning') `
+            -SkipStyleTests
+    }
+    catch {
+        $lintFailures += $_.Exception.Message
+    }
+
+    if ($lintFailures.Count -gt 0) {
+        throw ("Lint failed:`n  - " + ($lintFailures -join "`n  - "))
+    }
 }
 
 #region BuildRelease
@@ -514,6 +536,8 @@ task Test Init, {
     Assert-True { Test-Path $env:BHBuildOutput -PathType Container } "Release path must exist"
 
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    Get-Module Pester | Remove-Module -Force -ErrorAction SilentlyContinue
+    Import-Module Pester -MinimumVersion '5.9.0' -MaximumVersion '5.9.999' -Force -ErrorAction Stop
 
     <# $params = @{
         Path    = "$env:BHBuildOutput/$env:BHProjectName"
