@@ -4,7 +4,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:projectRoot = Resolve-ProjectRoot
-        $script:standardsActionSha = 'd6a624b73b9d7d4d197340c960fee647c0d215d7'
+        $script:standardsActionSha = '3c050eda17bfb4177f93c3cac61610a6f21b2537'
 
         $requirementsPath = Join-Path $script:projectRoot 'Tools/build.requirements.psd1'
         $requirements = Import-PowerShellDataFile -Path $requirementsPath
@@ -14,13 +14,13 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $script:standardsVersion = [string]$standardsRequirement.RequiredVersion
     }
 
-    It 'pins every Standards workflow action to the released build dependency' {
+    It 'pins every Standards workflow dependency to the released build dependency' {
         $workflowRoot = Join-Path $script:projectRoot '.github/workflows'
         $matches = foreach ($workflow in Get-ChildItem $workflowRoot -Filter '*.yml') {
             $content = Get-Content -LiteralPath $workflow.FullName -Raw
             [regex]::Matches(
                 $content,
-                'AtlassianPS/AtlassianPS\.Standards/\.github/actions/[^\s@]+@(?<sha>[0-9a-f]{40})\s+#\s+v(?<version>\d+\.\d+\.\d+)'
+                'AtlassianPS/AtlassianPS\.Standards/\.github/(?:actions/[^\s@]+|workflows/module_release\.yml)@(?<sha>[0-9a-f]{40})\s+#\s+v(?<version>\d+\.\d+\.\d+)'
             )
         }
 
