@@ -1,10 +1,10 @@
-﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.9.0"; MaximumVersion = "5.9.999" }
 
 Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:projectRoot = Resolve-ProjectRoot
-        $script:standardsActionSha = '3c050eda17bfb4177f93c3cac61610a6f21b2537'
+        $script:standardsActionSha = 'fc574a6647971312d28383dd06e29a1a8d2e66e6'
 
         $requirementsPath = Join-Path $script:projectRoot 'Tools/build.requirements.psd1'
         $requirements = Import-PowerShellDataFile -Path $requirementsPath
@@ -29,6 +29,13 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             Should -Be @($script:standardsActionSha)
         @($matches | ForEach-Object { $_.Groups['version'].Value } | Select-Object -Unique) |
             Should -Be @($script:standardsVersion)
+    }
+
+    It 'grants the shared release workflow issue read access' {
+        $workflow = Get-Content (Join-Path $script:projectRoot '.github/workflows/continuous_release.yml') -Raw
+
+        $workflow | Should -Match 'issues:\s+read'
+        $workflow | Should -Match 'workflows/module_release\.yml@[0-9a-f]{40}'
     }
 
     It 'keeps the build script requirement aligned with build.requirements' {
