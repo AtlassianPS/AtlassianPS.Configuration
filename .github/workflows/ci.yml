@@ -7,150 +7,31 @@ concurrency:
 on:
   pull_request:
     branches: [master]
-    paths-ignore:
-      # Documentation (NOT docs/** - that's PlatyPS source!)
-      - "CHANGELOG.md"
-      - "LICENSE"
-      # AI assistant instruction files
-      - "AGENTS.md"
-      - "CLAUDE.md"
-      - "GEMINI.md"
-      - ".cursor/**"
-      - ".github/copilot-instructions.md"
-      - ".github/ai-context/**"
-      - ".github/instructions/**"
-      # GitHub/editor meta files
-      - ".github/*.md"
-      - ".github/ISSUE_TEMPLATE/**"
-      - ".github/PULL_REQUEST_TEMPLATE/**"
-      - ".vscode/**"
-      - ".editorconfig"
-      - ".spelling"
-      - "docs-regenerated/**"
   push:
     branches: [master]
   workflow_dispatch:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
-  build:
-    name: Lint and build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@fc574a6647971312d28383dd06e29a1a8d2e66e6 # v0.1.18
-
-      - run: Invoke-Build -Task Lint, Build
-        shell: pwsh
-
-      - name: Resolve release build
-        id: release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        shell: pwsh
-        env:
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-        run: |
-          if ($env:COMMIT_MESSAGE -match '^Prepare (?<tag>v\d+\.\d+\.\d+) release$') {
-            "tag=$($Matches.tag)" >> $env:GITHUB_OUTPUT
-          }
-
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/build-release-notes@fc574a6647971312d28383dd06e29a1a8d2e66e6 # v0.1.18
-        if: steps.release.outputs.tag != ''
-        with:
-          release-version: ${{ steps.release.outputs.tag }}
-
-      - name: Stamp and verify release build
-        if: steps.release.outputs.tag != ''
-        run: |
-          Invoke-Build -Task SetVersion -VersionToPublish ${{ steps.release.outputs.tag }}
-          Invoke-Build -Task VerifyReleaseArtifact -VersionToPublish ${{ steps.release.outputs.tag }}
-        shell: pwsh
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: Release
-          path: ./Release/
-          if-no-files-found: error
-
-  test_windows_ps5:
-    name: Test (Windows PS5)
-    needs: build
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@fc574a6647971312d28383dd06e29a1a8d2e66e6 # v0.1.18
-        with:
-          ps-version: "5"
-          # Setup is run below in the powershell (PS 5.1) shell instead of pwsh,
-          # so the Windows PowerShell module path is populated.
-          skip-setup: "true"
-
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: Release
-          path: ./Release/
-
-      - name: Setup
-        shell: powershell
-        run: |
-          ./Tools/setup.ps1
-          Invoke-Build -Task ShowDebugInfo
-
-      - run: Invoke-Build -Task Test
-        shell: powershell
-
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        if: always()
-        with:
-          name: Windows-PS5-Unit-Tests
-          path: Test*.xml
-
-  test_pwsh:
-    name: Test (${{ matrix.name }})
-    needs: build
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { os: windows-latest, name: "Windows PS7" }
-          - { os: ubuntu-latest, name: "Ubuntu" }
-          - { os: macos-latest, name: "macOS" }
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@fc574a6647971312d28383dd06e29a1a8d2e66e6 # v0.1.18
-
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: Release
-          path: ./Release/
-
-      - run: Invoke-Build -Task Test
-        shell: pwsh
-
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        if: always()
-        with:
-          name: ${{ matrix.name }}-Unit-Tests
-          path: Test*.xml
+  module-ci:
+    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_ci.yml@a2aac6c601073864ae77c8660e6c6c57c26217be # v0.2.0
 
   ci-required:
     name: CI Result
     if: always()
-    needs: [build, test_windows_ps5, test_pwsh]
+    needs: module-ci
     runs-on: ubuntu-latest
     steps:
-      - name: Aggregate job results
+      - name: Require the reusable CI pipeline
         shell: bash
+        env:
+          PIPELINE_RESULT: ${{ needs.module-ci.result }}
         run: |
-          results='${{ toJSON(needs) }}'
-          echo "Job results:"
-          echo "$results"
-          if echo "$results" | grep -E '"result":[[:space:]]*"(failure|cancelled|skipped)"' > /dev/null; then
-            echo "::error::One or more required jobs failed, were cancelled, or were skipped."
+          if [[ "$PIPELINE_RESULT" != "success" ]]; then
+            echo "::error::Module CI finished with result: $PIPELINE_RESULT"
             exit 1
           fi
-          echo "All required jobs passed."
+
