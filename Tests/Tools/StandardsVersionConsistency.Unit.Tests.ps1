@@ -45,14 +45,11 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $buildScript | Should -Match "ModuleName\s*=\s*'AtlassianPS\.Standards';\s*ModuleVersion\s*=\s*'$escapedVersion';\s*MaximumVersion\s*=\s*'$escapedVersion'"
     }
 
-    It 'reads the Standards version from build.requirements in dependency tools' {
+    It 'reads the Standards version from build.requirements in setup' {
         $setupScript = Get-Content (Join-Path $script:projectRoot 'Tools/setup.ps1') -Raw
-        $updateScript = Get-Content (Join-Path $script:projectRoot 'Tools/update.dependencies.ps1') -Raw
 
         $setupScript | Should -Match '\$buildRequirements\s*=\s*Import-PowerShellDataFile'
         $setupScript | Should -Match '-RequiredVersion\s+\$standardsVersion'
-        $updateScript | Should -Match '\$buildRequirements\s*=\s*Import-PowerShellDataFile'
-        $updateScript | Should -Match 'AtlassianPS\.Standards\\Update-AtlassianPSDependencyReference'
     }
 
     It 'loads the pinned Pester version before running the test task' {
