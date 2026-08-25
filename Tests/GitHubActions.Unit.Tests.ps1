@@ -30,7 +30,7 @@ Describe 'GitHub Actions release contract' -Tag Unit {
     }
 
     It 'delegates CI to the immutable Standards workflow' {
-        $script:ci | Should -Match 'AtlassianPS/AtlassianPS\.Standards/\.github/workflows/module_ci\.yml@[0-9a-f]{40}\s+#\s+v0\.2\.0'
+        $script:ci | Should -Match 'AtlassianPS/AtlassianPS\.Standards/\.github/workflows/module_ci\.yml@[0-9a-f]{40}\s+#\s+v0\.3\.0'
         $script:ci | Should -Match '(?ms)ci-required:.*?name:\s+CI Result.*?needs:\s+module-ci'
         $script:ci | Should -Not -Match 'actions/checkout@|Invoke-Build|upload-artifact@'
     }
