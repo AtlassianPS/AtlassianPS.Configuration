@@ -36,6 +36,7 @@ Describe 'GitHub Actions release contract' -Tag Unit {
     }
 
     It 'delegates release orchestration to the immutable Standards workflow' {
+        $script:continuousRelease | Should -Match '(?ms)workflow_run:.*?branches:\s*\[master\]'
         $script:continuousRelease | Should -Match 'uses:\s+AtlassianPS/AtlassianPS\.Standards/\.github/workflows/module_release\.yml@[0-9a-f]{40}'
         $script:continuousRelease | Should -Match 'module-name:\s+AtlassianPS\.Configuration'
         $script:continuousRelease | Should -Match 'release-impact:\s+\$\{\{\s*inputs\.release_impact\s*\}\}'
