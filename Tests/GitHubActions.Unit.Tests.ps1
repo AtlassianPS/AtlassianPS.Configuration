@@ -23,6 +23,10 @@ Describe 'GitHub Actions release contract' -Tag Unit {
 
     It 'validates release intent using only the immutable remote action' {
         $script:releaseIntent | Should -Match '(?m)^\s+pull_request_target:'
+        $script:releaseIntent | Should -Not -Match '(?m)types:\s*\[[^\]]*\bedited\b'
+        $script:releaseIntent | Should -Match '(?m)types:\s*\[[^\]]*\bsynchronize\b'
+        $script:releaseIntent | Should -Match '(?m)types:\s*\[[^\]]*\blabeled\b'
+        $script:releaseIntent | Should -Match '(?m)types:\s*\[[^\]]*\bunlabeled\b'
         $script:releaseIntent | Should -Match 'AtlassianPS/AtlassianPS\.Standards/\.github/actions/validate-release-intent@'
         $script:releaseIntent | Should -Match '(?m)^\s+pull-requests:\s+read\r?$'
         $script:releaseIntent | Should -Match '(?m)^\s+issues:\s+write\r?$'
