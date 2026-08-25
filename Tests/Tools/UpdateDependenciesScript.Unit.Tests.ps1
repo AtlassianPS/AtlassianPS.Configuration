@@ -64,7 +64,8 @@ function Update-AtlassianPSDependencyReference {
         [String]`$BuildRequirementsPath,
         [String]`$ManifestPath,
         [Switch]`$SkipBuildRequirement,
-        [Switch]`$SkipManifestRequirement
+        [Switch]`$SkipManifestRequirement,
+        [Switch]`$AllowMajorVersionUpgrade
     )
 
     [PSCustomObject]@{
@@ -72,6 +73,7 @@ function Update-AtlassianPSDependencyReference {
         ManifestPath            = `$ManifestPath
         SkipBuildRequirement    = [Boolean]`$SkipBuildRequirement
         SkipManifestRequirement = [Boolean]`$SkipManifestRequirement
+        AllowMajorVersionUpgrade = [Boolean]`$AllowMajorVersionUpgrade
     } | ConvertTo-Json -Compress | Set-Content -LiteralPath '$escapedUpdateCapturePath'
 
     return [PSCustomObject]@{
@@ -108,7 +110,7 @@ Export-ModuleMember -Function Update-AtlassianPSDependencyReference
         $originalModulePath = $env:PSModulePath
         $env:PSModulePath = "$moduleSearchPath$([System.IO.Path]::PathSeparator)$originalModulePath"
         try {
-            $result = & $scriptPath -SkipManifestRequirement
+            $result = & $scriptPath -SkipManifestRequirement -AllowMajorVersionUpgrade
         }
         finally {
             $env:PSModulePath = $originalModulePath
@@ -120,6 +122,7 @@ Export-ModuleMember -Function Update-AtlassianPSDependencyReference
         $capturedUpdate.ManifestPath | Should -Be (Join-Path -Path $harnessRoot -ChildPath 'AtlassianPS.Configuration/AtlassianPS.Configuration.psd1')
         $capturedUpdate.SkipBuildRequirement | Should -BeFalse
         $capturedUpdate.SkipManifestRequirement | Should -BeTrue
+        $capturedUpdate.AllowMajorVersionUpgrade | Should -BeTrue
         $result.Updated | Should -BeTrue
     }
 
@@ -158,7 +161,8 @@ function Update-AtlassianPSDependencyReference {
         [String]$BuildRequirementsPath,
         [String]$ManifestPath,
         [Switch]$SkipBuildRequirement,
-        [Switch]$SkipManifestRequirement
+        [Switch]$SkipManifestRequirement,
+        [Switch]$AllowMajorVersionUpgrade
     )
 
     throw "Update-AtlassianPSDependencyReference should not be called under WhatIf."
@@ -240,7 +244,8 @@ function Update-AtlassianPSDependencyReference {
         [String]$BuildRequirementsPath,
         [String]$ManifestPath,
         [Switch]$SkipBuildRequirement,
-        [Switch]$SkipManifestRequirement
+        [Switch]$SkipManifestRequirement,
+        [Switch]$AllowMajorVersionUpgrade
     )
 
     Write-Error -Message "simulated update failure"

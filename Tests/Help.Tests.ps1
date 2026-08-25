@@ -296,7 +296,13 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         $helpTypes = @(
                             $parameterHelp |
                                 ForEach-Object {
-                                    if ($_.parameterValue) { ($_.parameterValue -as [string]).Trim() }
+                                    $parameterValue = $_.PSObject.Properties['parameterValue']
+                                    if ($parameterValue) {
+                                        ($parameterValue.Value -as [string]).Trim()
+                                    }
+                                    elseif ($_.type.name) {
+                                        ($_.type.name -as [string]).Trim()
+                                    }
                                 } |
                                 Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
                                 ForEach-Object {

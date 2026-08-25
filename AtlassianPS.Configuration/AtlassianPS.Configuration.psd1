@@ -9,7 +9,7 @@
     RequiredModules      = @(
         @{
             ModuleName    = 'Configuration'
-            ModuleVersion = '1.3.1'
+            ModuleVersion = '1.6.0'
         }
     )
     FormatsToProcess     = @('AtlassianPS.Configuration.format.ps1xml')

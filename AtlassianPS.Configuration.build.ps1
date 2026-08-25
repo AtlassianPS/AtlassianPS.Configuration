@@ -1,5 +1,5 @@
 ﻿#requires -modules InvokeBuild
-#requires -modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.18'; MaximumVersion = '0.1.18' }
+#requires -modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.19'; MaximumVersion = '0.1.19' }
 
 [CmdletBinding()]
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
@@ -536,8 +536,16 @@ task Test Init, {
     Assert-True { Test-Path $env:BHBuildOutput -PathType Container } "Release path must exist"
 
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    $requirementsContent = Get-Content `
+        -LiteralPath (Join-Path $PSScriptRoot 'Tools/build.requirements.psd1') `
+        -Raw
+    $pesterMatch = [regex]::Match(
+        $requirementsContent,
+        'ModuleName\s*=\s*"Pester";\s*RequiredVersion\s*=\s*"(?<Version>[^"]+)"'
+    )
+    Assert-True $pesterMatch.Success 'Pester must have a pinned RequiredVersion in Tools/build.requirements.psd1.'
     Get-Module Pester | Remove-Module -Force -ErrorAction SilentlyContinue
-    Import-Module Pester -MinimumVersion '5.9.0' -MaximumVersion '5.9.999' -Force -ErrorAction Stop
+    Import-Module Pester -RequiredVersion ([Version]$pesterMatch.Groups['Version'].Value) -Force -ErrorAction Stop
 
     <# $params = @{
         Path    = "$env:BHBuildOutput/$env:BHProjectName"

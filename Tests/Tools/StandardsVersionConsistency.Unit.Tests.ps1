@@ -4,7 +4,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:projectRoot = Resolve-ProjectRoot
-        $script:standardsActionSha = 'fc574a6647971312d28383dd06e29a1a8d2e66e6'
+        $script:standardsActionSha = 'f691d79ab6b5e44b67db390f6a61ebf00e2f7293'
 
         $requirementsPath = Join-Path $script:projectRoot 'Tools/build.requirements.psd1'
         $requirements = Import-PowerShellDataFile -Path $requirementsPath
@@ -53,5 +53,12 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $setupScript | Should -Match '-RequiredVersion\s+\$standardsVersion'
         $updateScript | Should -Match '\$buildRequirements\s*=\s*Import-PowerShellDataFile'
         $updateScript | Should -Match 'AtlassianPS\.Standards\\Update-AtlassianPSDependencyReference'
+    }
+
+    It 'loads the pinned Pester version before running the test task' {
+        $buildScript = Get-Content (Join-Path $script:projectRoot 'AtlassianPS.Configuration.build.ps1') -Raw
+
+        $buildScript | Should -Match "ModuleName\\s\*=\\s\*`"Pester`""
+        $buildScript | Should -Match 'Import-Module Pester -RequiredVersion'
     }
 }
