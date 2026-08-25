@@ -66,3 +66,4 @@ Invoke-Pester -Path 'Tests/Functions/Get-Configuration.Unit.Tests.ps1'
 - Instruction-only changes can be skipped by CI path filters; run local validation and report exact command outcomes.
 - `.github/workflows/release_intent.yml` validates one `release:*` intent per pull request.
 - `.github/workflows/continuous_release.yml` prepares and publishes the exact candidate validated by CI.
+- Branch protection requires both `CI Result` and `Release Intent` before merge.
