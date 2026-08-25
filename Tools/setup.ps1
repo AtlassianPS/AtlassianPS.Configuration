@@ -73,10 +73,24 @@ Install-Module -Name 'AtlassianPS.Standards' `
 
 Import-Module -Name 'AtlassianPS.Standards' -RequiredVersion $standardsVersion -Force -ErrorAction Stop
 
-$null = Install-AtlassianPSDependencyRequirement `
-    -BuildRequirementsPath $buildRequirementsPath `
-    -ManifestPath $manifestPath `
-    -ErrorAction Stop
+$skipPublisherCheckKey = 'Install-Module:SkipPublisherCheck'
+$hadSkipPublisherCheckDefault = $PSDefaultParameterValues.ContainsKey($skipPublisherCheckKey)
+$previousSkipPublisherCheckDefault = $PSDefaultParameterValues[$skipPublisherCheckKey]
+try {
+    $PSDefaultParameterValues[$skipPublisherCheckKey] = $true
+    $null = Install-AtlassianPSDependencyRequirement `
+        -BuildRequirementsPath $buildRequirementsPath `
+        -ManifestPath $manifestPath `
+        -ErrorAction Stop
+}
+finally {
+    if ($hadSkipPublisherCheckDefault) {
+        $PSDefaultParameterValues[$skipPublisherCheckKey] = $previousSkipPublisherCheckDefault
+    }
+    else {
+        $PSDefaultParameterValues.Remove($skipPublisherCheckKey)
+    }
+}
 
 $resolvedSettingsPath = Sync-AtlassianPSScriptAnalyzerSettings `
     -DestinationPath $psScriptAnalyzerSettingsPath `
