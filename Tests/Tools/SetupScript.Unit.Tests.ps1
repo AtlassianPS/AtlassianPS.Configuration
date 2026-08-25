@@ -56,7 +56,9 @@ Describe 'Tools/setup.ps1' -Tag Unit {
 @{
     RootModule      = 'AtlassianPS.Configuration.psm1'
     ModuleVersion   = '1.6'
-    RequiredModules = @()
+    RequiredModules = @(
+        @{ ModuleName = 'Configuration'; RequiredVersion = '1.6.0' }
+    )
 }
 '@
 
@@ -108,6 +110,9 @@ Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement, Sync-Atl
         Mock -CommandName Install-PackageProvider -MockWith {}
         Mock -CommandName Set-PSRepository -MockWith {}
         Mock -CommandName Install-Module -MockWith {}
+        Mock -CommandName Get-Module -ParameterFilter {
+            $Name -eq 'Configuration' -and $ListAvailable
+        } -MockWith { @() }
 
         $moduleSearchPath = Join-Path -Path $harnessRoot -ChildPath 'mockModules'
         $originalModulePath = $env:PSModulePath
@@ -126,6 +131,11 @@ Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement, Sync-Atl
         $capturedInstall.BuildRequirementsPath | Should -Be (Join-Path -Path $harnessRoot -ChildPath 'Tools/build.requirements.psd1')
         $capturedInstall.ManifestPath | Should -Be (Join-Path -Path $harnessRoot -ChildPath 'AtlassianPS.Configuration/AtlassianPS.Configuration.psd1')
         $capturedSyncPath | Should -Be (Join-Path -Path $harnessRoot -ChildPath 'PSScriptAnalyzerSettings.psd1')
+        Should -Invoke -CommandName Install-Module -Times 1 -Exactly -ParameterFilter {
+            $Name -eq 'Configuration' -and
+            $RequiredVersion -eq [Version]'1.6.0' -and
+            $SkipPublisherCheck
+        }
     }
 
     It 'installs the required standards version from build.requirements' {

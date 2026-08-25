@@ -73,24 +73,32 @@ Install-Module -Name 'AtlassianPS.Standards' `
 
 Import-Module -Name 'AtlassianPS.Standards' -RequiredVersion $standardsVersion -Force -ErrorAction Stop
 
-$skipPublisherCheckKey = 'Install-Module:SkipPublisherCheck'
-$hadSkipPublisherCheckDefault = $PSDefaultParameterValues.ContainsKey($skipPublisherCheckKey)
-$previousSkipPublisherCheckDefault = $PSDefaultParameterValues[$skipPublisherCheckKey]
-try {
-    $PSDefaultParameterValues[$skipPublisherCheckKey] = $true
-    $null = Install-AtlassianPSDependencyRequirement `
-        -BuildRequirementsPath $buildRequirementsPath `
-        -ManifestPath $manifestPath `
-        -ErrorAction Stop
-}
-finally {
-    if ($hadSkipPublisherCheckDefault) {
-        $PSDefaultParameterValues[$skipPublisherCheckKey] = $previousSkipPublisherCheckDefault
+$manifestData = Import-PowerShellDataFile -Path $manifestPath
+$manifestRequirements = @($manifestData.RequiredModules)
+$configurationRequirement = $manifestRequirements |
+    Where-Object { $_.ModuleName -eq 'Configuration' } |
+    Select-Object -First 1
+if ($configurationRequirement) {
+    $configurationVersion = [Version]$configurationRequirement.RequiredVersion
+    $installedConfiguration = Get-Module -Name 'Configuration' -ListAvailable |
+        Where-Object Version -EQ $configurationVersion |
+        Select-Object -First 1
+    if (-not $installedConfiguration) {
+        Install-Module -Name 'Configuration' `
+            -RequiredVersion $configurationVersion `
+            -Scope CurrentUser `
+            -Repository 'PSGallery' `
+            -SkipPublisherCheck `
+            -AllowClobber `
+            -Force `
+            -ErrorAction Stop
     }
-    else {
-        $PSDefaultParameterValues.Remove($skipPublisherCheckKey)
-    }
 }
+
+$null = Install-AtlassianPSDependencyRequirement `
+    -BuildRequirementsPath $buildRequirementsPath `
+    -ManifestPath $manifestPath `
+    -ErrorAction Stop
 
 $resolvedSettingsPath = Sync-AtlassianPSScriptAnalyzerSettings `
     -DestinationPath $psScriptAnalyzerSettingsPath `
