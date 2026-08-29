@@ -50,6 +50,8 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
 
         $setupScript | Should -Match '\$buildRequirements\s*=\s*Import-PowerShellDataFile'
         $setupScript | Should -Match '-RequiredVersion\s+\$standardsVersion'
+        $setupScript | Should -Match 'Install-AtlassianPSDependencyRequirement'
+        $setupScript | Should -Not -Match "Install-Module -Name 'Configuration'"
     }
 
     It 'loads the pinned Pester version before running the test task' {
