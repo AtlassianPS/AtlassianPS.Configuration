@@ -4,7 +4,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:projectRoot = Resolve-ProjectRoot
-        $script:standardsActionSha = 'fc574a6647971312d28383dd06e29a1a8d2e66e6'
+        $script:standardsActionSha = '8a75c583308d27526f29d7aaef1d1ba67c059103'
 
         $requirementsPath = Join-Path $script:projectRoot 'Tools/build.requirements.psd1'
         $requirements = Import-PowerShellDataFile -Path $requirementsPath
@@ -45,13 +45,17 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $buildScript | Should -Match "ModuleName\s*=\s*'AtlassianPS\.Standards';\s*ModuleVersion\s*=\s*'$escapedVersion';\s*MaximumVersion\s*=\s*'$escapedVersion'"
     }
 
-    It 'reads the Standards version from build.requirements in dependency tools' {
+    It 'reads the Standards version from build.requirements in setup' {
         $setupScript = Get-Content (Join-Path $script:projectRoot 'Tools/setup.ps1') -Raw
-        $updateScript = Get-Content (Join-Path $script:projectRoot 'Tools/update.dependencies.ps1') -Raw
 
         $setupScript | Should -Match '\$buildRequirements\s*=\s*Import-PowerShellDataFile'
         $setupScript | Should -Match '-RequiredVersion\s+\$standardsVersion'
-        $updateScript | Should -Match '\$buildRequirements\s*=\s*Import-PowerShellDataFile'
-        $updateScript | Should -Match 'AtlassianPS\.Standards\\Update-AtlassianPSDependencyReference'
+    }
+
+    It 'loads the pinned Pester version before running the test task' {
+        $buildScript = Get-Content (Join-Path $script:projectRoot 'AtlassianPS.Configuration.build.ps1') -Raw
+
+        $buildScript | Should -Match "ModuleName\\s\*=\\s\*`"Pester`""
+        $buildScript | Should -Match 'Import-Module Pester -RequiredVersion'
     }
 }

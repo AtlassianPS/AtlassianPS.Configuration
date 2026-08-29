@@ -24,7 +24,7 @@ permissions:
 
 jobs:
   release:
-    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@fc574a6647971312d28383dd06e29a1a8d2e66e6 # v0.1.18
+    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@8a75c583308d27526f29d7aaef1d1ba67c059103 # v0.3.0
     with:
       module-name: AtlassianPS.Configuration
       release-impact: ${{ inputs.release_impact }}
