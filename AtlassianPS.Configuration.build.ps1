@@ -594,7 +594,7 @@ task Test Init, {
     $pesterConfig = New-PesterConfiguration -Hashtable $pesterConfigHash
     $testResults = Invoke-Pester -Configuration $pesterConfig
 
-    Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) Pester test(s) failed."
+    Assert-True (($testResults.FailedCount + $testResults.FailedBlocksCount + $testResults.FailedContainersCount) -eq 0) "$($testResults.FailedCount) Pester test(s) failed."
 }
 
 #endregion
