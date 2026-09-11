@@ -20,6 +20,14 @@ Describe "Validation of build environment" -Tag Unit {
         }
     }
 
+    Context "Pester result gate" {
+        It "includes test, block, and container failures" {
+            $buildScript = Get-Content -LiteralPath (Join-Path $moduleRoot 'AtlassianPS.Configuration.build.ps1') -Raw
+
+            $buildScript | Should -Match '\$testResults\.FailedCount \+ \$testResults\.FailedBlocksCount \+ \$testResults\.FailedContainersCount'
+        }
+    }
+
     Context "CHANGELOG" {
         BeforeAll {
             $changelogFile = "$moduleRoot/CHANGELOG.md"
