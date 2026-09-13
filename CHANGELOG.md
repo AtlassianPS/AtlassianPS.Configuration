@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+### Changed
+
+* Migrated build and test tooling to AtlassianPS.Standards 0.4.0 and Pester 6.2.0. Test headers accept Pester 6.2.0 through the 6.x line (AtlassianPS/AtlassianPS#12, @lipkau).
+
 ## v0.2.10 - 2026-08-29
 
 ### Changed

@@ -1,5 +1,5 @@
 ﻿#requires -modules InvokeBuild
-#requires -modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.3.4'; MaximumVersion = '0.3.4' }
+#requires -modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.4.0'; MaximumVersion = '0.4.0' }
 
 [CmdletBinding()]
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
@@ -155,8 +155,8 @@ task Lint {
         $null = Invoke-AtlassianPSModuleTests `
             -TestPath "$env:BHProjectPath/Tests/Style.Tests.ps1" `
             -PesterVerbosity $PesterVerbosity `
-            -MinimumPesterVersion ([Version]'5.9.0') `
-            -MaximumPesterVersion ([Version]'5.9.999')
+            -MinimumPesterVersion ([Version]'6.2.0') `
+            -MaximumPesterVersion ([Version]'6.2.0')
     }
     catch {
         $lintFailures += $_.Exception.Message
