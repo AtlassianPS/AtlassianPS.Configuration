@@ -5,7 +5,8 @@ $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -eq 'Desktop') { Import-Module PowerShellGet -RequiredVersion 2.2.5 -Force }
 $ledger = Get-Content .tmp/alpha-artifact/alpha-ledger.json -Raw | ConvertFrom-Json
 $package = '.tmp/alpha-artifact/AtlassianPS.Configuration.zip'
-$expectedCommit = if ($env:CONSUMER -eq 'jira') { $ledger.JiraSha } else { $ledger.ConfigurationSha }
+$expectedCommit = if ($env:CONSUMER -eq 'jira') { $ledger.JiraSha }
+else { $ledger.ConfigurationSha }
 if ((Get-FileHash $package).Hash -ne $ledger.Sha256 -or $ledger.Version -cne $env:ALPHA_VERSION -or
     (git rev-parse HEAD) -ne $expectedCommit
 ) {

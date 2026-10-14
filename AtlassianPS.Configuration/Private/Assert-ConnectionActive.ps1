@@ -9,7 +9,8 @@
         [Switch]$RegisteredOnly
     )
 
-    $sourceId = if ($Connection.IsOverride) { $Connection.SourceInstanceId } else { $Connection.InstanceId }
+    $sourceId = if ($Connection.IsOverride) { $Connection.SourceInstanceId }
+    else { $Connection.InstanceId }
     $registered = $script:Connections[$sourceId]
     if ($Connection.RegistryGeneration -ne $script:RegistryGeneration -or
         ($RegisteredOnly -and $Connection.State -ne 'Active') -or
