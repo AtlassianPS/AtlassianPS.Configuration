@@ -7,6 +7,21 @@ on:
     branches: [master]
   workflow_dispatch:
     inputs:
+      release_channel:
+        description: Stable planning or protected integration alpha
+        required: true
+        type: choice
+        default: stable
+        options: [stable, alpha]
+      configuration_sha:
+        description: Full reviewed Configuration SHA for alpha
+        type: string
+      jira_sha:
+        description: Full reviewed JiraPS SHA for alpha
+        type: string
+      alpha_version:
+        description: Exact major 0 alpha version
+        type: string
       release_impact:
         description: Release impact for unreleased changes already on master
         required: true
@@ -24,8 +39,18 @@ permissions:
 
 jobs:
   release:
+    if: github.event_name != 'workflow_dispatch' || inputs.release_channel != 'alpha'
     uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@347ded1033c302cf6dbbd8c614aefe2477121ab0 # v0.4.0
     with:
       module-name: AtlassianPS.Configuration
       release-impact: ${{ inputs.release_impact }}
+    secrets: inherit
+
+  alpha:
+    if: github.event_name == 'workflow_dispatch' && inputs.release_channel == 'alpha'
+    uses: ./.github/workflows/alpha_release.yml
+    with:
+      configuration_sha: ${{ inputs.configuration_sha }}
+      jira_sha: ${{ inputs.jira_sha }}
+      version: ${{ inputs.alpha_version }}
     secrets: inherit

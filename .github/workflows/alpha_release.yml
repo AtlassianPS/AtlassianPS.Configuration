@@ -1,0 +1,245 @@
+name: Configuration Alpha
+
+on:
+  workflow_dispatch:
+    inputs:
+      configuration_sha:
+        description: Reviewed Configuration commit (full SHA)
+        type: string
+        required: true
+      jira_sha:
+        description: Reviewed JiraPS consumer commit (full SHA)
+        type: string
+        required: true
+      version:
+        description: Exact major 0 alpha version
+        type: string
+        required: true
+  workflow_call:
+    inputs:
+      configuration_sha:
+        type: string
+        required: true
+      jira_sha:
+        type: string
+        required: true
+      version:
+        type: string
+        required: true
+    secrets:
+      PSGALLERY_API_KEY:
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: configuration-alpha-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  producer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate reviewed inputs
+        shell: pwsh
+        env:
+          CONFIGURATION_SHA: ${{ inputs.configuration_sha }}
+          JIRA_SHA: ${{ inputs.jira_sha }}
+          ALPHA_VERSION: ${{ inputs.version }}
+        run: |
+          if ($env:CONFIGURATION_SHA -notmatch '^[0-9a-f]{40}$' -or $env:JIRA_SHA -notmatch '^[0-9a-f]{40}$') {
+              throw 'Supply both reviewed commit SHAs.'
+          }
+          if ($env:ALPHA_VERSION -notmatch '^0\.\d+\.\d+-alpha\d{4}$') {
+              throw 'Only Configuration major 0 alpha candidates are permitted.'
+          }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.configuration_sha }}
+          persist-credentials: false
+      - name: Build and verify once
+        shell: pwsh
+        env:
+          ALPHA_VERSION: ${{ inputs.version }}
+          CONFIGURATION_SHA: ${{ inputs.configuration_sha }}
+          JIRA_SHA: ${{ inputs.jira_sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          ./Tools/setup.ps1
+          Invoke-Build -Task Build, SetVersion, Test, VerifyReleaseArtifact -VersionToPublish $env:ALPHA_VERSION
+          @{
+              Version = $env:ALPHA_VERSION
+              ConfigurationSha = $env:CONFIGURATION_SHA
+              JiraSha = $env:JIRA_SHA
+              Sha256 = (Get-FileHash Release/AtlassianPS.Configuration.zip).Hash
+          } | ConvertTo-Json | Set-Content Release/alpha-ledger.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: configuration-alpha
+          path: |
+            Release/AtlassianPS.Configuration.zip
+            Release/alpha-ledger.json
+          if-no-files-found: error
+
+  engines:
+    needs: producer
+    strategy:
+      fail-fast: false
+      matrix:
+        consumer: [configuration, jira]
+        engine:
+          - {os: windows-latest, shell: powershell}
+          - {os: windows-latest, shell: pwsh}
+          - {os: ubuntu-latest, shell: pwsh}
+          - {os: macos-latest, shell: pwsh}
+    runs-on: ${{ matrix.engine.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ matrix.consumer == 'jira' && 'AtlassianPS/JiraPS' || 'AtlassianPS/AtlassianPS.Configuration' }}
+          ref: ${{ matrix.consumer == 'jira' && inputs.jira_sha || inputs.configuration_sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: configuration-alpha
+          path: .tmp/alpha-artifact
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: matrix.consumer == 'jira'
+        with:
+          ref: ${{ inputs.configuration_sha }}
+          path: .tmp/alpha-tools
+          persist-credentials: false
+      - name: Prepare Windows PowerShell prerelease tooling
+        if: matrix.engine.os == 'windows-latest'
+        shell: powershell
+        run: |
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+          Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Scope CurrentUser -Force
+          Install-Module -Name PowerShellGet -RequiredVersion 2.2.5 -Scope CurrentUser -Repository PSGallery -Force -AllowClobber
+      - name: Test the same extracted package on PowerShell 7
+        if: matrix.engine.shell == 'pwsh'
+        shell: pwsh
+        env:
+          ALPHA_VERSION: ${{ inputs.version }}
+          CONSUMER: ${{ matrix.consumer }}
+          CONSUMER_SCRIPT: ${{ matrix.consumer == 'jira' && '.tmp/alpha-tools/Tools/Test-AlphaConsumer.ps1' || 'Tools/Test-AlphaConsumer.ps1' }}
+        run: '& $env:CONSUMER_SCRIPT'
+      - name: Test the same extracted package on Windows PowerShell
+        if: matrix.engine.shell == 'powershell'
+        shell: powershell
+        env:
+          ALPHA_VERSION: ${{ inputs.version }}
+          CONSUMER: ${{ matrix.consumer }}
+          CONSUMER_SCRIPT: ${{ matrix.consumer == 'jira' && '.tmp/alpha-tools/Tools/Test-AlphaConsumer.ps1' || 'Tools/Test-AlphaConsumer.ps1' }}
+        run: '& $env:CONSUMER_SCRIPT'
+
+  publish:
+    needs: engines
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: configuration-alpha
+          path: alpha-artifact
+      - name: Publish tested bytes and reacquire the exact alpha
+        shell: pwsh
+        env:
+          ALPHA_VERSION: ${{ inputs.version }}
+          CONFIGURATION_SHA: ${{ inputs.configuration_sha }}
+          JIRA_SHA: ${{ inputs.jira_sha }}
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ledger = Get-Content alpha-artifact/alpha-ledger.json -Raw | ConvertFrom-Json
+          $package = 'alpha-artifact/AtlassianPS.Configuration.zip'
+          if ($ledger.Version -cne $env:ALPHA_VERSION -or $ledger.ConfigurationSha -ne $env:CONFIGURATION_SHA -or
+              $ledger.JiraSha -ne $env:JIRA_SHA -or (Get-FileHash $package).Hash -ne $ledger.Sha256) {
+              throw 'Publisher artifact identity mismatch.'
+          }
+          if (-not $env:PSGALLERY_API_KEY) { throw 'Protected Gallery credentials are unavailable.' }
+          Expand-Archive -LiteralPath $package -DestinationPath candidate
+          $modulePath = Join-Path $PWD 'candidate/AtlassianPS.Configuration'
+          $manifest = Import-PowerShellDataFile (Join-Path $modulePath 'AtlassianPS.Configuration.psd1')
+          if (($manifest.ModuleVersion + '-' + $manifest.PrivateData.PSData.Prerelease) -cne $env:ALPHA_VERSION) {
+              throw 'Publisher manifest mismatch.'
+          }
+          foreach ($requirement in $manifest.RequiredModules) {
+              Install-Module -Name $requirement.ModuleName -RequiredVersion $requirement.ModuleVersion -Scope CurrentUser -Repository PSGallery -Force -AllowClobber
+          }
+          $null = Test-ModuleManifest -Path (Join-Path $modulePath 'AtlassianPS.Configuration.psd1') -ErrorAction Stop
+          Publish-Module -Path $modulePath -Repository PSGallery -NuGetApiKey $env:PSGALLERY_API_KEY -ErrorAction Stop
+          $null = New-Item -Path reacquired -ItemType Directory
+          Save-Module -Name AtlassianPS.Configuration -RequiredVersion $env:ALPHA_VERSION -AllowPrerelease -Repository PSGallery -Path reacquired -ErrorAction Stop
+          $acquired = @(Get-ChildItem reacquired/AtlassianPS.Configuration -Recurse -Filter AtlassianPS.Configuration.psd1)
+          if ($acquired.Count -ne 1) { throw 'Exact alpha reacquisition failed.' }
+          $data = Import-PowerShellDataFile $acquired[0].FullName
+          if (($data.ModuleVersion + '-' + $data.PrivateData.PSData.Prerelease) -cne $env:ALPHA_VERSION) {
+              throw 'Reacquired alpha label mismatch.'
+          }
+          $galleryPackage = Join-Path $PWD 'alpha-artifact/AtlassianPS.Configuration.nupkg'
+          Invoke-WebRequest -Uri ("https://www.powershellgallery.com/api/v2/package/AtlassianPS.Configuration/" + $env:ALPHA_VERSION) -OutFile $galleryPackage -ErrorAction Stop
+          $ledger | Add-Member -NotePropertyName GallerySha256 -NotePropertyValue (Get-FileHash $galleryPackage).Hash
+          $acquiredRoot = $acquired[0].Directory.FullName
+          foreach ($sourceFile in Get-ChildItem $modulePath -Recurse -File) {
+              $relative = $sourceFile.FullName.Substring($modulePath.Length + 1)
+              $publishedFile = Join-Path $acquiredRoot $relative
+              if (-not (Test-Path $publishedFile) -or (Get-FileHash $sourceFile.FullName).Hash -ne (Get-FileHash $publishedFile).Hash) {
+                  throw "Gallery content differs from the tested artifact: $relative"
+              }
+          }
+          $ledger | Add-Member -NotePropertyName GalleryVersion -NotePropertyValue $env:ALPHA_VERSION
+          $ledger | ConvertTo-Json | Set-Content alpha-artifact/published-ledger.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: published-alpha-ledger
+          path: alpha-artifact/published-ledger.json
+          if-no-files-found: error
+
+
+  gallery-consumers:
+    needs: publish
+    strategy:
+      fail-fast: false
+      matrix:
+        engine:
+          - {os: windows-latest, shell: powershell}
+          - {os: windows-latest, shell: pwsh}
+          - {os: ubuntu-latest, shell: pwsh}
+          - {os: macos-latest, shell: pwsh}
+    runs-on: ${{ matrix.engine.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: AtlassianPS/JiraPS
+          ref: ${{ inputs.jira_sha }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.configuration_sha }}
+          path: .tmp/alpha-tools
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: published-alpha-ledger
+          path: .tmp/alpha-artifact
+      - name: Prepare Windows PowerShell prerelease tooling
+        if: matrix.engine.os == 'windows-latest'
+        shell: powershell
+        run: |
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+          Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Scope CurrentUser -Force
+          Install-Module -Name PowerShellGet -RequiredVersion 2.2.5 -Scope CurrentUser -Repository PSGallery -Force -AllowClobber
+      - name: Acquire and test exact Gallery alpha on PowerShell 7
+        if: matrix.engine.shell == 'pwsh'
+        shell: pwsh
+        env:
+          ALPHA_VERSION: ${{ inputs.version }}
+        run: '& ./.tmp/alpha-tools/Tools/Test-GalleryConsumer.ps1'
+      - name: Acquire and test exact Gallery alpha on Windows PowerShell
+        if: matrix.engine.shell == 'powershell'
+        shell: powershell
+        env:
+          ALPHA_VERSION: ${{ inputs.version }}
+        run: '& ./.tmp/alpha-tools/Tools/Test-GalleryConsumer.ps1'

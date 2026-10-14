@@ -7,6 +7,7 @@
     Copyright            = '(c) 2018 AtlassianPS contributors.'
     Description          = "A module for modules - AtlasianPS modules use this to handle the user's configuration"
     RequiredModules      = @(
+        @{ ModuleName = 'Metadata'; ModuleVersion = '1.5.7'; MaximumVersion = '1.*' }
         @{
             ModuleName    = 'Configuration'
             ModuleVersion = '1.6.0'

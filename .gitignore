@@ -24,3 +24,5 @@ PSScriptAnalyzerSettings.psd1
 Desktop.ini
 Thumbs.db
 ehthumbs.db
+
+.tmp/

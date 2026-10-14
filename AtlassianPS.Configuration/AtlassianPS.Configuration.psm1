@@ -1,4 +1,5 @@
 ﻿#region Dependencies
+Import-Module Metadata -MinimumVersion 1.5.7 -MaximumVersion '1.*' -Global -ErrorAction Stop
 # Load the Module's namespace from C#
 if (-not("AtlassianPS.ServerData" -as [Type])) {
     $assemblyReferences = @(
@@ -20,6 +21,16 @@ if ($PSVersionTable.PSVersion.Major -lt 5) {
 }
 
 #endregion Dependencies
+
+if ($env:ATLASSIANPS_CONFIGURATION_ROOT) {
+    $configurationRoot = $env:ATLASSIANPS_CONFIGURATION_ROOT
+    if (-not [IO.Path]::IsPathRooted($configurationRoot)) { throw 'Configuration root must be an absolute disposable path.' }
+    $null = New-Item -Path $configurationRoot -ItemType Directory -Force
+    if ((Get-Module Configuration).PrivateData.AtlassianPSTestRoot -ne $configurationRoot) {
+        Import-Module Configuration -MinimumVersion 1.6.0 -MaximumVersion '1.*' -Global -Force -ArgumentList @{}, $configurationRoot, $configurationRoot, $configurationRoot -ErrorAction Stop
+        (Get-Module Configuration).PrivateData.AtlassianPSTestRoot = $configurationRoot
+    }
+}
 
 #region ModuleConfig
 # Add our own Converters for serialization
