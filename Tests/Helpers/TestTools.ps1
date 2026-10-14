@@ -91,7 +91,11 @@ function Initialize-TestEnvironment {
         throw "Failed to load module from manifest: $manifestPath"
     }
 
-    & $loaded { param($fp) $script:__TestImportFingerprint = $fp } $fingerprint
+    & $loaded {
+        param($fp)
+
+        $script:__TestImportFingerprint = $fp
+    } $fingerprint
 
     return $manifestPath
 }
@@ -311,6 +315,7 @@ function Invoke-InitTest {
         [Parameter(Mandatory)]
         [string]$Path
     )
+
     $null = $Path
     Initialize-TestEnvironment
 }

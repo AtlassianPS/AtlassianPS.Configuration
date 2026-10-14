@@ -5,6 +5,7 @@ Describe 'Profile persistence in a fresh process' -Tag Unit {
         $script:manifest = Resolve-ModuleSource
         $script:engine = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
     }
+
     It 'round trips apostrophes through actual Configuration metadata storage' {
         $runner = Join-Path $TestDrive 'profile-roundtrip.ps1'
         Set-Content $runner @'
@@ -20,6 +21,7 @@ if (-not $profile -or $profile.Name -cne "O'Brien" -or $profile.Uri.Host -ne 'ji
 exit 0
 '@
         & $script:engine -NoLogo -NonInteractive -NoProfile -File $runner $script:manifest (Join-Path $TestDrive 'profiles')
+
         $LASTEXITCODE | Should -Be 0
     }
 }

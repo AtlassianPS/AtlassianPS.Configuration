@@ -4,16 +4,25 @@ Describe 'Disconnect-Connection' -Tag Unit {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
         function Register-TestConnection {
-            param([String]$Name, [String]$Product = 'Jira', [Switch]$Default)
+            param(
+                [String]$Name,
+
+                [String]$Product = 'Jira',
+
+                [Switch]$Default
+            )
+
             $candidate = New-AtlassianConnectionContext -Name $Name -Product $Product -BaseUri https://jira.example.com -PersonalAccessToken original
             $candidate.SetValidationResult('Server', 'test-user')
             Register-AtlassianConnection -Connection $candidate -Default:$Default
         }
     }
+
     BeforeEach {
         Get-AtlassianConnection | Disconnect-AtlassianConnection
         Mock Save-Configuration { throw 'Lifecycle must not save profiles.' } -ModuleName AtlassianPS.Configuration
     }
+
     AfterEach {
         Get-AtlassianConnection | Disconnect-AtlassianConnection
         Should -Invoke Save-Configuration -ModuleName AtlassianPS.Configuration -Times 0 -Exactly
@@ -23,17 +32,21 @@ Describe 'Disconnect-Connection' -Tag Unit {
         $first = Register-TestConnection work
         $second = Register-TestConnection admin
         $first | Disconnect-AtlassianConnection
+
         $first.State | Should -Be Disconnected
         Get-AtlassianConnection -Product Jira -Default | Should -BeNullOrEmpty
         { Resolve-AtlassianRequestContext -Product Jira -Connection $first } | Should -Throw
         $third = Register-TestConnection work
+
         $third.Id | Should -BeGreaterThan $second.Id
         $third.InstanceId | Should -Not -Be $first.InstanceId
         (Get-AtlassianConnection -Product Jira -Default).InstanceId | Should -Be $third.InstanceId
     }
+
     It 'honors WhatIf' {
         $first = Register-TestConnection work
         $first | Disconnect-AtlassianConnection -WhatIf
+
         $first.State | Should -Be Active
     }
 

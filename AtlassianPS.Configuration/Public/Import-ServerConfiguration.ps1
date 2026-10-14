@@ -1,7 +1,12 @@
 ﻿function Import-ServerConfiguration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding(SupportsShouldProcess)]
-    param([Parameter(Mandatory)][String]$Path, [Switch]$Replace)
+    param(
+        [Parameter(Mandatory)]
+        [String]$Path,
+
+        [Switch]$Replace
+    )
 
     $document = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     if ($document.SchemaVersion -ne 1 -or -not $document.PSObject.Properties['ServerList'] -or
@@ -17,7 +22,12 @@
             throw 'Invalid profile fields or duplicate profile names.'
         }
         $names[$entry.Name] = $true
-        $server = [AtlassianPS.ServerData]@{ Id = 1; Name = $entry.Name; Uri = $entry.Uri; Type = $entry.Type }
+        $server = [AtlassianPS.ServerData]@{
+            Id   = 1
+            Name = $entry.Name
+            Uri  = $entry.Uri
+            Type = $entry.Type
+        }
         $null = ConvertTo-PortableServer -Server $server
         $existing = @($newList | Where-Object Name -eq $server.Name)
         if ($existing.Count -and -not $Replace) { throw 'A profile with that name exists. Use Replace to replace it.' }

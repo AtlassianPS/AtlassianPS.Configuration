@@ -1,6 +1,13 @@
 ﻿function Assert-ConnectionActive {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][AtlassianPS.Connection]$Connection, [String]$Product, [Switch]$RegisteredOnly)
+    param(
+        [Parameter(Mandatory)]
+        [AtlassianPS.Connection]$Connection,
+
+        [String]$Product,
+
+        [Switch]$RegisteredOnly
+    )
 
     $sourceId = if ($Connection.IsOverride) { $Connection.SourceInstanceId } else { $Connection.InstanceId }
     $registered = $script:Connections[$sourceId]

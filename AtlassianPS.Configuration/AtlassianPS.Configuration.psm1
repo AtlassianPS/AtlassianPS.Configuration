@@ -27,7 +27,11 @@ if (-not("AtlassianPS.ServerData" -as [Type])) {
     Add-Type -Path (Join-Path $PSScriptRoot AtlassianPS.Configuration.Types.cs) -ReferencedAssemblies $assemblyReferences
 }
 if ($PSVersionTable.PSVersion.Major -lt 5) {
-    Add-Type -Path (Join-Path $PSScriptRoot AtlassianPS.Configuration.Attributes.cs) -ReferencedAssemblies Microsoft.CSharp, Microsoft.PowerShell.Commands.Utility, System.Management.Automation, System.Runtime.Extensions, System.Security.Cryptography.X509Certificates
+    Add-Type -Path (Join-Path $PSScriptRoot AtlassianPS.Configuration.Attributes.cs) -ReferencedAssemblies Microsoft.CSharp,
+    Microsoft.PowerShell.Commands.Utility,
+    System.Management.Automation,
+    System.Runtime.Extensions,
+    System.Security.Cryptography.X509Certificates
 }
 
 #endregion Dependencies
@@ -62,16 +66,53 @@ $ExecutionContext.SessionState.Module.OnRemove = {
 
 # Add our own Converters for serialization
 Add-MetadataConverter @{
-    [AtlassianPS.MessageStyle] = { "AtlassianPSMessageStyle -Indent {0} -TimeStamp {1} -BreadCrumbs {2} -FunctionName {3}" -f (ConvertTo-Metadata $_.Indent), (ConvertTo-Metadata $_.TimeStamp), (ConvertTo-Metadata $_.BreadCrumbs), (ConvertTo-Metadata $_.FunctionName) }
+    [AtlassianPS.MessageStyle] = {
+        "AtlassianPSMessageStyle -Indent {0} -TimeStamp {1} -BreadCrumbs {2} -FunctionName {3}" -f (ConvertTo-Metadata $_.Indent),
+        (ConvertTo-Metadata $_.TimeStamp),
+        (ConvertTo-Metadata $_.BreadCrumbs),
+        (ConvertTo-Metadata $_.FunctionName)
+    }
     AtlassianPSMessageStyle    = {
-        param($Indent, $TimeStamp, $BreadCrumbs, $FunctionName)
+        param(
+            $Indent,
+
+            $TimeStamp,
+
+            $BreadCrumbs,
+
+            $FunctionName
+        )
+
         [AtlassianPS.MessageStyle]$PSBoundParameters
     }
-    [AtlassianPS.ServerData]   = { "AtlassianPSServerData -Id {0} -Name {1} -Uri {2} -Type {3} -Headers {4}" -f $_.Id, (ConvertTo-Metadata $_.Name), (ConvertTo-Metadata $_.Uri.AbsoluteUri), (ConvertTo-Metadata $_.Type.ToString()), (ConvertTo-Metadata $_.Headers) }
+    [AtlassianPS.ServerData]   = {
+        "AtlassianPSServerData -Id {0} -Name {1} -Uri {2} -Type {3} -Headers {4}" -f $_.Id,
+        (ConvertTo-Metadata $_.Name),
+        (ConvertTo-Metadata $_.Uri.AbsoluteUri),
+        (ConvertTo-Metadata $_.Type.ToString()),
+        (ConvertTo-Metadata $_.Headers)
+    }
     AtlassianPSServerData      = {
-        param($Id, $Name, $Uri, $Type, $Headers)
+        param(
+            $Id,
+
+            $Name,
+
+            $Uri,
+
+            $Type,
+
+            $Headers
+        )
+
         if ([string]::IsNullOrEmpty($Headers)) { $Headers = $null }
-        [AtlassianPS.ServerData]@{ Id = $Id; Name = $Name; Uri = $Uri; Type = $Type; Headers = $Headers }
+        [AtlassianPS.ServerData]@{
+            Id      = $Id
+            Name    = $Name
+            Uri     = $Uri
+            Type    = $Type
+            Headers = $Headers
+        }
     }
 }
 
@@ -80,6 +121,7 @@ $PublicFunctions = @(
     Get-ChildItem -Path "$PSScriptRoot/Public" -Recurse -File -Filter "*.ps1" -ErrorAction SilentlyContinue |
         Sort-Object -Property FullName
 )
+
 $PrivateFunctions = @(
     Get-ChildItem -Path "$PSScriptRoot/Private" -Recurse -File -Filter "*.ps1" -ErrorAction SilentlyContinue |
         Sort-Object -Property FullName
@@ -97,6 +139,7 @@ foreach ($file in @($PublicFunctions + $PrivateFunctions)) {
             [System.Management.Automation.ErrorCategory]::ObjectNotFound,
             $file
         )
+
         $errorItem.ErrorDetails = "Failed to import function $($file.BaseName)"
         throw $errorItem
     }

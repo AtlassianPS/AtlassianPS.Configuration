@@ -2,7 +2,15 @@
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
     [OutputType([AtlassianPS.Connection])]
-    param([String]$Product, [String]$Name, [Int]$Id, [Switch]$Default)
+    param(
+        [String]$Product,
+
+        [String]$Name,
+
+        [Int]$Id,
+
+        [Switch]$Default
+    )
 
     $script:Connections.Values | Where-Object {
         (-not $Product -or $_.Product -eq $Product) -and

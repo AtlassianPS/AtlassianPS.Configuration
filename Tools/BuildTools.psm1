@@ -38,6 +38,7 @@ function Write-WorkflowCommand {
         [Parameter(Mandatory, Position = 0)]
         [String]$Command
     )
+
     Write-Host $Command
 }
 
@@ -311,13 +312,17 @@ function Remove-Utf8Bom {
     }
 }
 
-
 function Test-ConfigurationArtifactVersion {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)][String]$BuiltManifestPath,
-        [Parameter(Mandatory)][String]$PackagePath,
-        [Parameter(Mandatory)][String]$ExpectedVersion
+        [Parameter(Mandatory)]
+        [String]$BuiltManifestPath,
+
+        [Parameter(Mandatory)]
+        [String]$PackagePath,
+
+        [Parameter(Mandatory)]
+        [String]$ExpectedVersion
     )
 
     $parts = $ExpectedVersion.TrimStart('v') -split '-', 2
