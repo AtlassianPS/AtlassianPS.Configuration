@@ -4,7 +4,7 @@ Describe 'Exact alpha artifact verification' -Tag Unit {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $root = Resolve-ProjectRoot
         Import-Module (Join-Path $root 'Tools/BuildTools.psm1') -Force
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
     }
     It 'accepts an exact manifest in a Windows-style ZIP entry' {
         $built = Join-Path $TestDrive 'windows-built.psd1'
