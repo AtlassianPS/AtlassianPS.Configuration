@@ -1,25 +1,6 @@
 ﻿# Captured at dot-source time when $PSScriptRoot is this file's directory (Tests/Helpers/)
 $script:_TestToolsDir = $PSScriptRoot
 
-function Clear-TestConfigurationCache {
-    [CmdletBinding()]
-    param()
-
-    $configurationPaths = @(
-        Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'powershell/AtlassianPS/AtlassianPS.Configuration/Configuration.psd1'
-        Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'powershell/AtlassianPS/AtlassianPS.Configuration/Configuration.psd1'
-        Join-Path ([Environment]::GetFolderPath('CommonApplicationData')) 'powershell/AtlassianPS/AtlassianPS.Configuration/Configuration.psd1'
-        Join-Path $HOME '.config/powershell/AtlassianPS/AtlassianPS.Configuration/Configuration.psd1'
-        Join-Path $HOME '.local/share/powershell/AtlassianPS/AtlassianPS.Configuration/Configuration.psd1'
-    ) | Select-Object -Unique
-
-    foreach ($path in $configurationPaths) {
-        if ($path -and (Test-Path $path)) {
-            Remove-Item -Path $path -Force -ErrorAction SilentlyContinue
-        }
-    }
-}
-
 function Initialize-TestBuildEnvironment {
     [CmdletBinding()]
     param(
@@ -100,7 +81,7 @@ function Initialize-TestEnvironment {
         Remove-Module -Force -ErrorAction SilentlyContinue
     Remove-Module $moduleName -Force -ErrorAction SilentlyContinue
 
-    Clear-TestConfigurationCache
+    $env:ATLASSIANPS_CONFIGURATION_ROOT = Join-Path ([System.IO.Path]::GetTempPath()) ('atlassianps-tests-' + $PID)
     Import-Module $manifestPath -Force -ErrorAction Stop
 
     $loaded = Get-Module $moduleName |

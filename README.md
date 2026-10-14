@@ -102,3 +102,10 @@ Hopefully this is obvious, but:
 
 <!-- [//]: # (Sweet online markdown editor at http://dillinger.io) -->
 <!-- [//]: # ("GitHub Flavored Markdown" https://help.github.com/articles/github-flavored-markdown/) -->
+
+## Experimental alpha tooling
+
+The manual Configuration Alpha workflow accepts reviewed Configuration and JiraPS commit SHAs and a major-zero alpha version.
+It builds one package, validates that package across both consumers and supported PowerShell engines, then promotes the tested bytes through the protected release environment.
+Publication runs from master under the existing environment policy.
+Experimental runtime changes remain on their candidate branches; this tooling change does not ship the shared connection runtime.

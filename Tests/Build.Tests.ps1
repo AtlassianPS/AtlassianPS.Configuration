@@ -20,6 +20,28 @@ Describe "Validation of build environment" -Tag Unit {
         }
     }
 
+    Context "Profile safety" {
+        It "uses disposable paths after Configuration reimport and preserves profile files" {
+            $sentinel = Join-Path $TestDrive 'Configuration.psd1'
+            Set-Content -LiteralPath $sentinel -Value 'saved-profile-sentinel'
+            $before = (Get-FileHash -LiteralPath $sentinel).Hash
+            Remove-Module AtlassianPS.Configuration, Configuration -Force -ErrorAction SilentlyContinue
+            Import-Module $moduleToTest -ErrorAction Stop
+            foreach ($scope in @('User', 'Enterprise', 'Machine')) {
+                $path = Configuration\Get-ConfigurationPath -CompanyName AtlassianPS -Name AtlassianPS.Configuration -Scope $scope
+                $path | Should -BeLike ($env:ATLASSIANPS_CONFIGURATION_ROOT + '*')
+            }
+            (Get-FileHash -LiteralPath $sentinel).Hash | Should -Be $before
+        }
+
+        It "does not retain real-profile cleanup entry points" {
+            foreach ($relative in @('AtlassianPS.Configuration.build.ps1', 'Tests/Helpers/TestTools.ps1')) {
+                Get-Content -LiteralPath (Join-Path $moduleRoot $relative) -Raw |
+                    Should -Not -Match 'Clear-(Module|Test)ConfigurationCache'
+            }
+        }
+    }
+
     Context "Pester result gate" {
         It "includes test, block, and container failures" {
             $buildScript = Get-Content -LiteralPath (Join-Path $moduleRoot 'AtlassianPS.Configuration.build.ps1') -Raw
@@ -38,7 +60,7 @@ Describe "Validation of build environment" -Tag Unit {
 
             $script:changelogVersion = $null
             foreach ($line in (Get-Content $changelogFile)) {
-                if ($line -match "(?:##|\<h2.*?\>)\s*(?<Version>(\d+\.?){1,2})(\-(?<Prerelease>(?:alpha|beta|rc)\d*))?") {
+                if ($line -match "(?:##|\<h2.*?\>)\s*v?(?<Version>\d+\.\d+\.\d+)(\-(?<Prerelease>(?:alpha|beta|rc)\d*))?") {
                     $changelogVersion = $matches.Version
                     break
                 }

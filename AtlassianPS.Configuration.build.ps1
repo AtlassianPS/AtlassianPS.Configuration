@@ -42,25 +42,6 @@ if ($VersionToPublish) {
 }
 $builtManifestPath = $script:BuildInfo.BuiltManifestPath
 
-function Clear-ModuleConfigurationCache {
-    [CmdletBinding()]
-    param()
-
-    $configurationPaths = @(
-        Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'powershell/AtlassianPS/AtlassianPS.Configuration/Configuration.psd1'
-        Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'powershell/AtlassianPS/AtlassianPS.Configuration/Configuration.psd1'
-        Join-Path ([Environment]::GetFolderPath('CommonApplicationData')) 'powershell/AtlassianPS/AtlassianPS.Configuration/Configuration.psd1'
-        Join-Path $HOME '.config/powershell/AtlassianPS/AtlassianPS.Configuration/Configuration.psd1'
-        Join-Path $HOME '.local/share/powershell/AtlassianPS/AtlassianPS.Configuration/Configuration.psd1'
-    ) | Select-Object -Unique
-
-    foreach ($path in $configurationPaths) {
-        if ($path -and (Test-Path $path)) {
-            Remove-Item -Path $path -Force -ErrorAction SilentlyContinue
-        }
-    }
-}
-
 
 #region SetUp
 # Synopsis: Proxy task
@@ -443,9 +424,15 @@ Task RemoveOrphanedExternalHelp {
 
 # Synopsis: Update the manifest of the module
 task UpdateManifest {
-    Clear-ModuleConfigurationCache
-    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-    Import-Module $env:BHPSModuleManifest -Force
+    $previousConfigurationRoot = $env:ATLASSIANPS_CONFIGURATION_ROOT
+    $env:ATLASSIANPS_CONFIGURATION_ROOT = Join-Path $env:BHProjectPath '.tmp/build-configuration'
+    try {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Import-Module $env:BHPSModuleManifest -Force
+    }
+    finally {
+        $env:ATLASSIANPS_CONFIGURATION_ROOT = $previousConfigurationRoot
+    }
     $ModuleAlias = @(Get-Alias | Where-Object { $_.ModuleName -eq "$env:BHProjectName" })
 
     $moduleFunctions = [string[]](
