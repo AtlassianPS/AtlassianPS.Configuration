@@ -6,6 +6,18 @@ Describe 'Exact alpha artifact verification' -Tag Unit {
         Import-Module (Join-Path $root 'Tools/BuildTools.psm1') -Force
         Add-Type -AssemblyName System.IO.Compression.FileSystem
     }
+    It 'accepts an exact manifest in a Windows-style ZIP entry' {
+        $built = Join-Path $TestDrive 'windows-built.psd1'
+        Set-Content -LiteralPath $built -Value "@{ModuleVersion='0.3.0';PrivateData=@{PSData=@{Prerelease='alpha0001';ReleaseNotes='Experimental candidate'}}}"
+        $zip = Join-Path $TestDrive 'windows-candidate.zip'
+        $archive = [IO.Compression.ZipFile]::Open($zip, [IO.Compression.ZipArchiveMode]::Create)
+        try {
+            $null = [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $built, 'AtlassianPS.Configuration\AtlassianPS.Configuration.psd1')
+        }
+        finally { $archive.Dispose() }
+
+        { Test-ConfigurationArtifactVersion -BuiltManifestPath $built -PackagePath $zip -ExpectedVersion '0.3.0-alpha0001' } | Should -Not -Throw
+    }
     It 'rejects a packaged prerelease with the same numeric version but another label' {
         $moduleRoot = Join-Path $TestDrive 'package/AtlassianPS.Configuration'
         $null = New-Item -Path $moduleRoot -ItemType Directory -Force

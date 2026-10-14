@@ -327,7 +327,7 @@ function Test-ConfigurationArtifactVersion {
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $archive = [IO.Compression.ZipFile]::OpenRead($PackagePath)
     try {
-        $entry = @($archive.Entries | Where-Object { $_.FullName -eq 'AtlassianPS.Configuration/AtlassianPS.Configuration.psd1' })
+        $entry = @($archive.Entries | Where-Object { $_.FullName.Replace('\', '/') -eq 'AtlassianPS.Configuration/AtlassianPS.Configuration.psd1' })
         if ($entry.Count -ne 1) { throw 'Package must contain exactly one expected module manifest.' }
         $manifestCopy = Join-Path $temporaryRoot 'package.psd1'
         [IO.Compression.ZipFileExtensions]::ExtractToFile($entry[0], $manifestCopy)
