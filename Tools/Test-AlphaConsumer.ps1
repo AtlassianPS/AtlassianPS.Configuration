@@ -7,7 +7,8 @@ $ledger = Get-Content .tmp/alpha-artifact/alpha-ledger.json -Raw | ConvertFrom-J
 $package = '.tmp/alpha-artifact/AtlassianPS.Configuration.zip'
 $expectedCommit = if ($env:CONSUMER -eq 'jira') { $ledger.JiraSha } else { $ledger.ConfigurationSha }
 if ((Get-FileHash $package).Hash -ne $ledger.Sha256 -or $ledger.Version -cne $env:ALPHA_VERSION -or
-    (git rev-parse HEAD) -ne $expectedCommit) {
+    (git rev-parse HEAD) -ne $expectedCommit
+) {
     throw 'Candidate artifact, version or commit mismatch.'
 }
 if ($env:CONSUMER -eq 'jira') {

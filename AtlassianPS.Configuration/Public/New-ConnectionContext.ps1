@@ -39,7 +39,8 @@
     }
 
     if (-not $BaseUri.IsAbsoluteUri -or $BaseUri.Scheme -notin @('http', 'https') -or
-        $BaseUri.UserInfo -or $BaseUri.Query -or $BaseUri.Fragment) {
+        $BaseUri.UserInfo -or $BaseUri.Query -or $BaseUri.Fragment
+    ) {
         throw 'BaseUri must be an absolute HTTP(S) product endpoint without user information, query or fragment.'
     }
 
@@ -51,7 +52,8 @@
     if ($modes[0] -eq 'Anonymous' -and -not $Anonymous) { throw 'Anonymous must be enabled explicitly.' }
     if ($modes[0] -eq 'Credential' -and
         (-not $Credential -or $Credential -eq [PSCredential]::Empty -or
-        [string]::IsNullOrWhiteSpace($Credential.UserName) -or $Credential.Password.Length -eq 0)) {
+        [string]::IsNullOrWhiteSpace($Credential.UserName) -or $Credential.Password.Length -eq 0)
+    ) {
         throw 'Credential must contain a username and password.'
     }
     if ($modes[0] -eq 'ApiToken' -and [string]::IsNullOrWhiteSpace($EmailAddress)) {

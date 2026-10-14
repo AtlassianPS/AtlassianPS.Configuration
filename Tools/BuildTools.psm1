@@ -340,7 +340,8 @@ function Test-ConfigurationArtifactVersion {
             $data = Import-PowerShellDataFile -LiteralPath $path
             if ([Version]$data.ModuleVersion -ne [Version]$parts[0] -or
                 [String]$data.PrivateData.PSData.Prerelease -cne $expectedPrerelease -or
-                [String]::IsNullOrWhiteSpace($data.PrivateData.PSData.ReleaseNotes)) {
+                [String]::IsNullOrWhiteSpace($data.PrivateData.PSData.ReleaseNotes)
+            ) {
                 throw 'Artifact numeric version, exact prerelease label or release notes do not match the intended version.'
             }
         }

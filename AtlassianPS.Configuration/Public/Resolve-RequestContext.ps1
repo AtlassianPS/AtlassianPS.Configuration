@@ -42,7 +42,8 @@
         $hasConflict = @($conflicts | Where-Object { $PSBoundParameters.ContainsKey($_) }).Count -gt 0
         if (-not $RequestContext -or $RequestContext.Product -ne $Product -or
             $RequestContext.RegistryGeneration -ne $script:RegistryGeneration -or
-            $RequestContext.State -eq 'Disconnected' -or $hasConflict) {
+            $RequestContext.State -eq 'Disconnected' -or $hasConflict
+        ) {
             throw 'Invalid internal request context.'
         }
 

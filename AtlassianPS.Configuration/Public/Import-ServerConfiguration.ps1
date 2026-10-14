@@ -10,7 +10,8 @@
 
     $document = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     if ($document.SchemaVersion -ne 1 -or -not $document.PSObject.Properties['ServerList'] -or
-        @($document.PSObject.Properties.Name | Where-Object { $_ -notin @('SchemaVersion', 'ServerList') }).Count) {
+        @($document.PSObject.Properties.Name | Where-Object { $_ -notin @('SchemaVersion', 'ServerList') }).Count
+    ) {
         throw 'Unsupported profile document. Expected SchemaVersion 1 and ServerList.'
     }
     $newList = [System.Collections.Generic.List[AtlassianPS.ServerData]]::new()
@@ -18,7 +19,8 @@
     $names = @{}
     foreach ($entry in @($document.ServerList)) {
         if (-not $entry -or @($entry.PSObject.Properties.Name | Where-Object { $_ -notin @('Id', 'Name', 'Uri', 'Type') }).Count -or
-            [string]::IsNullOrWhiteSpace($entry.Name) -or $names.ContainsKey($entry.Name)) {
+            [string]::IsNullOrWhiteSpace($entry.Name) -or $names.ContainsKey($entry.Name)
+        ) {
             throw 'Invalid profile fields or duplicate profile names.'
         }
         $names[$entry.Name] = $true

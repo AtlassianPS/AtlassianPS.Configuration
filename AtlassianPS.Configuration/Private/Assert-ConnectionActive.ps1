@@ -15,7 +15,8 @@
         ($RegisteredOnly -and $Connection.State -ne 'Active') -or
         $Connection.State -eq 'Disconnected' -or -not $registered -or
         $registered.State -ne 'Active' -or
-        (-not $Connection.IsOverride -and -not [Object]::ReferenceEquals($registered, $Connection))) {
+        (-not $Connection.IsOverride -and -not [Object]::ReferenceEquals($registered, $Connection))
+    ) {
         throw 'Connection is not active in this runtime. Connect again in this PowerShell session.'
     }
     if ($Product -and $Connection.Product -ne $Product) { throw "Connection belongs to another product; expected $Product." }
