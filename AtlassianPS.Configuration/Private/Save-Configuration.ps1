@@ -17,19 +17,13 @@
         foreach ($server in @($export["ServerList"])) {
             if (-not $server) { continue }
 
-            $serverData = [AtlassianPS.ServerData]@{
-                Id          = $server.Id
-                Name        = $server.Name
-                Uri         = $server.Uri
-                Type        = $server.Type
-                Certificate = $server.Certificate
-                Headers     = if ($server.Headers) { $server.Headers.Clone() } else { $null }
-            }
+            $portable = ConvertTo-PortableServer -Server $server
+            $serverData = [AtlassianPS.ServerData]$portable
             $serverList.Add($serverData)
         }
         $export["ServerList"] = $serverList
 
-        ExportConfiguration -InputObject $export 3>$null
+        ExportConfiguration -InputObject $export -ErrorAction Stop 3>$null
 
         Write-Verbose "Function ended"
     }

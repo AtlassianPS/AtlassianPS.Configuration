@@ -311,4 +311,39 @@ function Remove-Utf8Bom {
     }
 }
 
+
+function Test-ConfigurationArtifactVersion {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][String]$BuiltManifestPath,
+        [Parameter(Mandatory)][String]$PackagePath,
+        [Parameter(Mandatory)][String]$ExpectedVersion
+    )
+
+    $parts = $ExpectedVersion.TrimStart('v') -split '-', 2
+    $expectedPrerelease = if ($parts.Count -eq 2) { $parts[1] } else { '' }
+    $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ([Guid]::NewGuid().ToString())
+    $null = New-Item -Path $temporaryRoot -ItemType Directory
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archive = [IO.Compression.ZipFile]::OpenRead($PackagePath)
+    try {
+        $entry = @($archive.Entries | Where-Object { $_.FullName -eq 'AtlassianPS.Configuration/AtlassianPS.Configuration.psd1' })
+        if ($entry.Count -ne 1) { throw 'Package must contain exactly one expected module manifest.' }
+        $manifestCopy = Join-Path $temporaryRoot 'package.psd1'
+        [IO.Compression.ZipFileExtensions]::ExtractToFile($entry[0], $manifestCopy)
+        foreach ($path in @($BuiltManifestPath, $manifestCopy)) {
+            $data = Import-PowerShellDataFile -LiteralPath $path
+            if ([Version]$data.ModuleVersion -ne [Version]$parts[0] -or
+                [String]$data.PrivateData.PSData.Prerelease -cne $expectedPrerelease -or
+                [String]::IsNullOrWhiteSpace($data.PrivateData.PSData.ReleaseNotes)) {
+                throw 'Artifact numeric version, exact prerelease label or release notes do not match the intended version.'
+            }
+        }
+    }
+    finally {
+        $archive.Dispose()
+        Remove-Item -LiteralPath $temporaryRoot -Recurse -Force
+    }
+}
+
 Export-ModuleMember -Function * -Alias *
