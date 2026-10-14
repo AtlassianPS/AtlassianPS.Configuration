@@ -23,7 +23,8 @@ function Initialize-TestBuildEnvironment {
     $env:BHPSModuleManifest = Join-Path $modulePath "$ModuleName.psd1"
     $env:BHBuildOutput = Join-Path $ProjectRoot 'Release'
     $env:BHManifestToTest = $ManifestPath
-    $env:BHisBuild = if ($script:_TestToolsDir -match '[\\/]{1}Release[\\/]{1}') { 'True' } else { '' }
+    $env:BHisBuild = if ($script:_TestToolsDir -match '[\\/]{1}Release[\\/]{1}') { 'True' }
+    else { '' }
 }
 
 function Initialize-TestEnvironment {
@@ -91,7 +92,11 @@ function Initialize-TestEnvironment {
         throw "Failed to load module from manifest: $manifestPath"
     }
 
-    & $loaded { param($fp) $script:__TestImportFingerprint = $fp } $fingerprint
+    & $loaded {
+        param($fp)
+
+        $script:__TestImportFingerprint = $fp
+    } $fingerprint
 
     return $manifestPath
 }
@@ -311,6 +316,7 @@ function Invoke-InitTest {
         [Parameter(Mandatory)]
         [string]$Path
     )
+
     $null = $Path
     Initialize-TestEnvironment
 }

@@ -7,9 +7,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+### Added
+
+* Named in-memory connections with product defaults and isolated per-call authentication.
+* Portable non-secret profile import and export.
+
 ### Changed
 
+* Build and tests use disposable Configuration storage and preserve user profiles.
+* Header/certificate-bearing legacy profiles require migration before saving or portable export.
+
+
 * Migrated build and test tooling to AtlassianPS.Standards 0.4.0 and Pester 6.2.0. Test headers accept Pester 6.2.0 through the 6.x line (AtlassianPS/AtlassianPS#12, @lipkau).
+
+## v0.3.0-alpha0001 - integration candidate
+
+### Added
+
+* Experimental shared connection runtime and portable profiles for JiraPS integration.
+* Candidate coverage is local; final Cloud/Data Center and Windows acceptance remains pending.
 
 ## v0.2.10 - 2026-08-29
 
