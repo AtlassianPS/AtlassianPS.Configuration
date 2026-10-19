@@ -41,7 +41,9 @@
 
     process {
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
+        if ($PSBoundParameters.ContainsKey('Session')) {
+            Write-Warning 'Profile Session is deprecated and is never used by Connect. Supply authentication to Connect instead.'
+        }
 
         $entryName = if ($PSBoundParameters.ContainsKey('Name')) { $Name } else { $Uri.Authority }
         $entryHeaders = if ($PSBoundParameters.ContainsKey('Headers')) { $Headers } else { @{} }

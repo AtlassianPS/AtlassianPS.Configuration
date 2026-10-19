@@ -10,7 +10,8 @@ Describe "Style rules" -Tag "Unit" {
         }
 
         $isReleaseContext = $PSScriptRoot -match "[\\/]Release[\\/]"
-        $filesRoot = if ($isReleaseContext) { Join-Path $moduleRoot 'Release' } else { $moduleRoot }
+        $filesRoot = if ($isReleaseContext) { Join-Path $moduleRoot 'Release' }
+        else { $moduleRoot }
 
         ${/} = [System.IO.Path]::DirectorySeparatorChar
 

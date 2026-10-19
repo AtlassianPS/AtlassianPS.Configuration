@@ -59,7 +59,9 @@
 
     process {
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "PSBoundParameters: $($PSBoundParameters | Out-String)"
+        if ($PSBoundParameters.ContainsKey('Session')) {
+            Write-Warning 'Profile Session is deprecated and is never used by Connect. Supply authentication to Connect instead.'
+        }
 
         $serverEntry = Get-ServerConfiguration | Where-Object { $_.Id -eq $Id }
         if ($serverEntry) {
