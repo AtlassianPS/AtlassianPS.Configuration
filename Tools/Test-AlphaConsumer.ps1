@@ -1,4 +1,8 @@
-﻿[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Justification = 'InvokeBuild exposes its documented Invoke-Build command as an alias.')]
+﻿[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    'PSAvoidUsingCmdletAliases',
+    '',
+    Justification = 'InvokeBuild exposes its documented Invoke-Build command as an alias.'
+)]
 [CmdletBinding()]
 param()
 $ErrorActionPreference = 'Stop'

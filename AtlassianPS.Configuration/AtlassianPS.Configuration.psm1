@@ -1,7 +1,10 @@
 ﻿#region Dependencies
 Import-Module Metadata -MinimumVersion 1.5.7 -MaximumVersion '1.*' -Global -ErrorAction Stop
 
-$incompatibleConfiguration = @(Get-Module Configuration -All | Where-Object { $_.Version -lt [Version]'1.6.0' -or $_.Version.Major -ne 1 })
+$incompatibleConfiguration = @(
+    Get-Module Configuration -All |
+        Where-Object { $_.Version -lt [Version]'1.6.0' -or $_.Version.Major -ne 1 }
+)
 if ($incompatibleConfiguration.Count) {
     throw 'An incompatible Configuration dependency is loaded. Start a fresh process with Configuration >=1.6.0 within major 1.'
 }
@@ -53,12 +56,16 @@ $script:NextGeneratedName = 0
 $script:Connections = @{}
 $script:DefaultConnections = @{}
 $script:RequestContexts = [Collections.Generic.List[WeakReference]]::new()
+
 $ExecutionContext.SessionState.Module.OnRemove = {
-    foreach ($connection in @($script:Connections.Values)) { $connection.Dispose() }
+    foreach ($connection in @($script:Connections.Values)) {
+        $connection.Dispose()
+    }
     foreach ($reference in $script:RequestContexts) {
         $context = $reference.Target
         if ($context) { $context.Dispose() }
     }
+
     $script:RequestContexts.Clear()
     $script:Connections.Clear()
     $script:DefaultConnections.Clear()

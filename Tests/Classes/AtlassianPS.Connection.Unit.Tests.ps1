@@ -1,7 +1,9 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 Describe 'AtlassianPS.Connection' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
         $script:moduleToTest = Initialize-TestEnvironment
     }
 
@@ -15,8 +17,8 @@ Describe 'AtlassianPS.Connection' -Tag Unit {
         $temporary = Resolve-AtlassianRequestContext -Product Jira -Connection $active -PersonalAccessToken temporary
         Remove-Module AtlassianPS.Configuration -Force
 
-        $active.State | Should -Be Disconnected
-        $temporary.State | Should -Be Disconnected
+        $active.State | Should -Be 'Disconnected'
+        $temporary.State | Should -Be 'Disconnected'
         Import-Module $moduleToTest
 
         { Resolve-AtlassianRequestContext -Product Jira -Connection $active } | Should -Throw

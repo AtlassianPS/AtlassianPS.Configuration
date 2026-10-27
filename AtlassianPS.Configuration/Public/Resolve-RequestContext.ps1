@@ -1,31 +1,41 @@
 ﻿function Resolve-RequestContext {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
-    [OutputType([AtlassianPS.Connection])]
+    [OutputType( [AtlassianPS.Connection] )]
     param(
-        [Parameter(Mandatory)]
-        [String]$Product,
+        [Parameter( Mandatory )]
+        [String]
+        $Product,
 
-        [Parameter(DontShow)]
-        [AtlassianPS.Connection]$RequestContext,
+        [Parameter( DontShow )]
+        [AtlassianPS.Connection]
+        $RequestContext,
 
-        [AtlassianPS.Connection]$Connection,
+        [AtlassianPS.Connection]
+        $Connection,
 
-        [String]$ConnectionName,
+        [String]
+        $ConnectionName,
 
-        [Uri]$BaseUri,
+        [Uri]
+        $BaseUri,
 
-        [PSCredential]$Credential,
+        [PSCredential]
+        $Credential,
 
         [Alias('Email')]
-        [String]$EmailAddress,
+        [String]
+        $EmailAddress,
 
-        [Object]$ApiToken,
+        [Object]
+        $ApiToken,
 
         [Alias('PAT', 'BearerToken')]
-        [Object]$PersonalAccessToken,
+        [Object]
+        $PersonalAccessToken,
 
-        [Switch]$Anonymous
+        [Switch]
+        $Anonymous
     )
 
     if ($PSBoundParameters.ContainsKey('RequestContext')) {
@@ -54,7 +64,12 @@
         return $RequestContext
     }
 
-    $selectors = @('Connection', 'ConnectionName', 'BaseUri' | Where-Object { $PSBoundParameters.ContainsKey($_) })
+    $selectors = @(
+        'Connection',
+        'ConnectionName',
+        'BaseUri' |
+            Where-Object { $PSBoundParameters.ContainsKey($_) }
+    )
     if ($selectors.Count -gt 1) { throw 'Connection, ConnectionName and BaseUri are mutually exclusive.' }
     if ($PSBoundParameters.ContainsKey('Connection') -and -not $Connection) { throw 'Connection cannot be null.' }
     if ($PSBoundParameters.ContainsKey('ConnectionName') -and [string]::IsNullOrWhiteSpace($ConnectionName)) {
@@ -87,8 +102,10 @@
         SiteUri = $Connection.SiteUri
         CloudId = $Connection.CloudId
     }
+
     $context = New-ConnectionContext @contextParameters @auth
     $context.SetValidationResult($Connection.DeploymentType, $null)
     $context.MakeStandalone($Connection.InstanceId)
+
     $context
 }

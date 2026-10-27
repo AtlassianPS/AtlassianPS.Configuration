@@ -1,12 +1,14 @@
 ﻿function Register-Connection {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
-    [OutputType([AtlassianPS.Connection])]
+    [OutputType( [AtlassianPS.Connection] )]
     param(
-        [Parameter(Mandatory)]
-        [AtlassianPS.Connection]$Connection,
+        [Parameter( Mandatory )]
+        [AtlassianPS.Connection]
+        $Connection,
 
-        [Switch]$Default
+        [Switch]
+        $Default
     )
 
     if ($Connection.RegistryGeneration -ne $script:RegistryGeneration -or $Connection.State -ne 'Candidate') {

@@ -1,12 +1,17 @@
 ﻿function ConvertTo-ConnectionToken {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'The public contract accepts CI string tokens; normalization retains an owned SecureString copy.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSAvoidUsingConvertToSecureStringWithPlainText',
+        '',
+        Justification = 'The public contract accepts CI string tokens; normalization retains an owned SecureString copy.'
+    )]
     [CmdletBinding()]
-    [OutputType([System.Security.SecureString])]
+    [OutputType( [System.Security.SecureString] )]
     param(
-        [Parameter(Mandatory)]
+        [Parameter( Mandatory )]
         [AllowNull()]
         [AllowEmptyString()]
-        [Object]$Token
+        [Object]
+        $Token
     )
 
     if ($Token -is [System.Security.SecureString]) {

@@ -1,7 +1,9 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 Describe 'Resolve-RequestContext' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
         $script:moduleToTest = Initialize-TestEnvironment
         function Register-TestConnection {
             param(
@@ -38,7 +40,7 @@ Describe 'Resolve-RequestContext' -Tag Unit {
         $connection.GetAuthorizationHeader() | Should -Be 'Bearer original'
         $override.Dispose()
 
-        $connection.State | Should -Be Active
+        $connection.State | Should -Be 'Active'
     }
 
     It 'rejects wrong products, deserialized objects and explicit empty overrides' {
@@ -61,5 +63,4 @@ Describe 'Resolve-RequestContext' -Tag Unit {
         (Get-AtlassianConnection -Default).InstanceId | Should -Be $connection.InstanceId
         $standalone.Dispose()
     }
-
 }

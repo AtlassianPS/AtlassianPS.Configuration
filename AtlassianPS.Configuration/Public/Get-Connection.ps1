@@ -1,15 +1,19 @@
 ﻿function Get-Connection {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
     [CmdletBinding()]
-    [OutputType([AtlassianPS.Connection])]
+    [OutputType( [AtlassianPS.Connection] )]
     param(
-        [String]$Product,
+        [String]
+        $Product,
 
-        [String]$Name,
+        [String]
+        $Name,
 
-        [Int]$Id,
+        [Int]
+        $Id,
 
-        [Switch]$Default
+        [Switch]
+        $Default
     )
 
     $script:Connections.Values | Where-Object {

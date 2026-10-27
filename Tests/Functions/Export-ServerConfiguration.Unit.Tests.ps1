@@ -1,7 +1,9 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 Describe 'Export-ServerConfiguration' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
         $script:moduleToTest = Initialize-TestEnvironment
     }
 

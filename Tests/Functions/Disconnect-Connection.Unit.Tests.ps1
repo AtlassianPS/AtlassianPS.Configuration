@@ -1,7 +1,9 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 Describe 'Disconnect-Connection' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
         $script:moduleToTest = Initialize-TestEnvironment
         function Register-TestConnection {
             param(
@@ -33,9 +35,10 @@ Describe 'Disconnect-Connection' -Tag Unit {
         $second = Register-TestConnection admin
         $first | Disconnect-AtlassianConnection
 
-        $first.State | Should -Be Disconnected
+        $first.State | Should -Be 'Disconnected'
         Get-AtlassianConnection -Product Jira -Default | Should -BeNullOrEmpty
         { Resolve-AtlassianRequestContext -Product Jira -Connection $first } | Should -Throw
+
         $third = Register-TestConnection work
 
         $third.Id | Should -BeGreaterThan $second.Id
@@ -47,7 +50,7 @@ Describe 'Disconnect-Connection' -Tag Unit {
         $first = Register-TestConnection work
         $first | Disconnect-AtlassianConnection -WhatIf
 
-        $first.State | Should -Be Active
+        $first.State | Should -Be 'Active'
     }
 
     It 'rejects temporary request contexts without changing the registered default' {
@@ -56,10 +59,9 @@ Describe 'Disconnect-Connection' -Tag Unit {
         try {
             { Disconnect-AtlassianConnection -Connection $temporary } | Should -Throw
             (Get-AtlassianConnection -Product Jira -Default).InstanceId | Should -Be $first.InstanceId
-            $first.State | Should -Be Active
-            $temporary.State | Should -Be Standalone
+            $first.State | Should -Be 'Active'
+            $temporary.State | Should -Be 'Standalone'
         }
         finally { $temporary.Dispose() }
     }
-
 }

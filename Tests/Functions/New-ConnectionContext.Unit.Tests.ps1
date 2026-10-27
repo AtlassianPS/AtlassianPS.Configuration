@@ -1,9 +1,12 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Nonsecret unit-test token fixture.')]
 param()
+
 Describe 'New-ConnectionContext' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
         $script:moduleToTest = Initialize-TestEnvironment
         function Register-TestConnection {
             param(
@@ -62,5 +65,4 @@ Describe 'New-ConnectionContext' -Tag Unit {
         $context.Username | Should -Be 'account-id'
         $context.Dispose()
     }
-
 }

@@ -1,18 +1,22 @@
 ﻿function Disconnect-Connection {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Object')]
+    [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'Object' )]
     param(
-        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Object')]
-        [AtlassianPS.Connection]$Connection,
+        [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'Object' )]
+        [AtlassianPS.Connection]
+        $Connection,
 
-        [Parameter(Mandatory, ParameterSetName = 'Name')]
-        [String]$Name,
+        [Parameter( Mandatory, ParameterSetName = 'Name' )]
+        [String]
+        $Name,
 
-        [Parameter(Mandatory, ParameterSetName = 'Name')]
-        [String]$Product,
+        [Parameter( Mandatory, ParameterSetName = 'Name' )]
+        [String]
+        $Product,
 
-        [Parameter(Mandatory, ParameterSetName = 'Id')]
-        [Int]$Id
+        [Parameter( Mandatory, ParameterSetName = 'Id' )]
+        [Int]
+        $Id
     )
 
     process {
@@ -21,6 +25,7 @@
             foreach ($key in @('Product', 'Name', 'Id')) {
                 if ($PSBoundParameters.ContainsKey($key)) { $filter[$key] = $PSBoundParameters[$key] }
             }
+
             $Connection = Get-Connection @filter
         }
 

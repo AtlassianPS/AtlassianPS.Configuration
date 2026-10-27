@@ -1,7 +1,9 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 Describe 'Import-ServerConfiguration' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
         $script:moduleToTest = Initialize-TestEnvironment
     }
 
@@ -17,7 +19,7 @@ Describe 'Import-ServerConfiguration' -Tag Unit {
         Set-Content -LiteralPath $path -Value '{"SchemaVersion":1,"ServerList":[{"Id":1,"Name":"work","Uri":"https://jira.example.com","Type":"Jira"}]}'
         Import-AtlassianServerConfiguration -Path $path
 
-        (Get-AtlassianServerConfiguration -Name work).Uri.Host | Should -Be jira.example.com
+        (Get-AtlassianServerConfiguration -Name work).Uri.Host | Should -Be 'jira.example.com'
         { Import-AtlassianServerConfiguration -Path $path } | Should -Throw
         @(Get-AtlassianServerConfiguration).Count | Should -Be 1
         Should -Invoke Save-Configuration -ModuleName AtlassianPS.Configuration -Times 1 -Exactly
@@ -50,7 +52,6 @@ Describe 'Import-ServerConfiguration' -Tag Unit {
 
         { Import-AtlassianServerConfiguration -Path $path } | Should -Throw '*disk write failure*'
         @(Get-AtlassianServerConfiguration).Count | Should -Be 1
-        (Get-AtlassianServerConfiguration).Name | Should -Be original
+        (Get-AtlassianServerConfiguration).Name | Should -Be 'original'
     }
-
 }

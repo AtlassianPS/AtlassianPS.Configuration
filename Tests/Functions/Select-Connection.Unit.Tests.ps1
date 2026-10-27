@@ -1,7 +1,9 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 Describe 'Select-Connection' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
         $script:moduleToTest = Initialize-TestEnvironment
         function Register-TestConnection {
             param(
@@ -45,10 +47,9 @@ Describe 'Select-Connection' -Tag Unit {
         try {
             { Select-AtlassianConnection -Connection $temporary } | Should -Throw
             (Get-AtlassianConnection -Product Jira -Default).InstanceId | Should -Be $first.InstanceId
-            $first.State | Should -Be Active
-            $temporary.State | Should -Be Standalone
+            $first.State | Should -Be 'Active'
+            $temporary.State | Should -Be 'Standalone'
         }
         finally { $temporary.Dispose() }
     }
-
 }

@@ -1,7 +1,9 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 Describe 'Register-Connection' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
         $script:moduleToTest = Initialize-TestEnvironment
         function Register-TestConnection {
             param(
@@ -33,6 +35,7 @@ Describe 'Register-Connection' -Tag Unit {
         $second = Register-TestConnection admin
 
         (Get-AtlassianConnection -Product Jira -Default).InstanceId | Should -Be $first.InstanceId
+
         $third = Register-TestConnection third -Default
 
         (Get-AtlassianConnection -Product Jira -Default).InstanceId | Should -Be $third.InstanceId
@@ -53,5 +56,4 @@ Describe 'Register-Connection' -Tag Unit {
         @(Get-AtlassianConnection).Count | Should -Be 0
         $candidate.Dispose()
     }
-
 }

@@ -1,13 +1,14 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 Describe 'Assert-ConnectionActive' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
         $script:moduleToTest = Initialize-TestEnvironment
     }
 
     InModuleScope AtlassianPS.Configuration {
         It 'enforces the shared contract at its boundary' {
-
             $candidate = New-AtlassianConnectionContext -Name test -Product Jira -BaseUri https://jira.example.com -Anonymous
 
             { Assert-ConnectionActive -Connection $candidate } | Should -Throw
@@ -18,7 +19,6 @@ Describe 'Assert-ConnectionActive' -Tag Unit {
             Disconnect-Connection -Connection $active
 
             { Assert-ConnectionActive -Connection $active } | Should -Throw
-
         }
     }
 }

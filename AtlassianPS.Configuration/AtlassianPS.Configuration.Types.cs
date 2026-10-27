@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Management.Automation;
@@ -115,36 +115,36 @@ namespace AtlassianPS
     public sealed class Connection : IDisposable
     {
         private PSCredential credential;
-        private string authenticationUsername;
+        private String authenticationUsername;
         private System.Security.SecureString token;
         private WebRequestSession webSession;
 
         public Guid InstanceId { get; private set; }
         public Guid RegistryGeneration { get; private set; }
         public Guid SourceInstanceId { get; private set; }
-        public int Id { get; private set; }
-        public string Name { get; private set; }
-        public string Product { get; private set; }
+        public Int32 Id { get; private set; }
+        public String Name { get; private set; }
+        public String Product { get; private set; }
         public Uri BaseUri { get; private set; }
         public Uri SiteUri { get; private set; }
-        public string CloudId { get; private set; }
-        public string DeploymentType { get; private set; }
-        public string Username { get; private set; }
-        public string AuthenticationMode { get; private set; }
-        public string State { get; private set; }
-        public bool IsOverride
+        public String CloudId { get; private set; }
+        public String DeploymentType { get; private set; }
+        public String Username { get; private set; }
+        public String AuthenticationMode { get; private set; }
+        public String State { get; private set; }
+        public Boolean IsOverride
         {
             get { return SourceInstanceId != Guid.Empty; }
         }
 
         public Connection(
-            string name,
-            string product,
+            String name,
+            String product,
             Uri baseUri,
             Uri siteUri,
-            string cloudId,
-            string mode,
-            string email,
+            String cloudId,
+            String mode,
+            String email,
             PSCredential credential,
             System.Security.SecureString token,
             Guid generation)
@@ -166,7 +166,7 @@ namespace AtlassianPS
             State = "Candidate";
         }
 
-        public void SetValidationResult(string deploymentType, string username)
+        public void SetValidationResult(String deploymentType, String username)
         {
             if (State != "Candidate")
             {
@@ -180,7 +180,7 @@ namespace AtlassianPS
             }
         }
 
-        public void Register(int id)
+        public void Register(Int32 id)
         {
             if (State != "Candidate")
             {
@@ -202,18 +202,19 @@ namespace AtlassianPS
             State = "Standalone";
         }
 
-        public string GetAuthorizationHeader()
+        public String GetAuthorizationHeader()
         {
             if (State == "Disconnected")
             {
                 throw new InvalidOperationException("Connection is disconnected.");
             }
+
             if (AuthenticationMode == "Anonymous")
             {
                 return null;
             }
 
-            string secret = null;
+            String secret = null;
             IntPtr pointer = IntPtr.Zero;
             try
             {
@@ -234,6 +235,7 @@ namespace AtlassianPS
                 {
                     System.Runtime.InteropServices.Marshal.ZeroFreeBSTR(pointer);
                 }
+
                 secret = null;
             }
         }
@@ -244,6 +246,7 @@ namespace AtlassianPS
             {
                 throw new InvalidOperationException("Connection is disconnected.");
             }
+
             if (webSession == null)
             {
                 webSession = new WebRequestSession();
@@ -258,6 +261,7 @@ namespace AtlassianPS
             {
                 credential.Password.Dispose();
             }
+
             if (token != null)
             {
                 token.Dispose();
@@ -276,7 +280,7 @@ namespace AtlassianPS
             State = "Disconnected";
         }
 
-        public override string ToString()
+        public override String ToString()
         {
             return Product + ":" + Name + " (" + (SiteUri ?? BaseUri) + ")";
         }

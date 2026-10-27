@@ -1,11 +1,13 @@
 ﻿function Export-ServerConfiguration {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [CmdletBinding(SupportsShouldProcess)]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
-        [Parameter(Mandatory)]
-        [String]$Path,
+        [Parameter( Mandatory )]
+        [String]
+        $Path,
 
-        [String[]]$Name
+        [String[]]
+        $Name
     )
 
     $profiles = @(

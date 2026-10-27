@@ -1,8 +1,9 @@
 ﻿function ConvertTo-PortableServer {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)]
-        [AtlassianPS.ServerData]$Server
+        [Parameter( Mandatory )]
+        [AtlassianPS.ServerData]
+        $Server
     )
 
     if ($Server.Certificate -or ($Server.Headers -and $Server.Headers.Count -gt 0)) {
