@@ -75,12 +75,11 @@ Remove conflicting global request defaults and use the supported product paramet
 
 Saved profiles contain only approved non-secret endpoint settings.
 Loading a profile does not sign in.
-Connect copies endpoint settings rather than adopting a legacy Session property.
+Connect uses the profile's endpoint and the authentication supplied by the caller.
 Live defaults and credentials are never persisted.
 Portable JSON export has SchemaVersion 1 and allowlisted Id, Name, Uri and Type fields.
-Legacy headers and certificates need explicit migration before saving or export.
+Saved and exported profiles cannot contain headers or certificates.
 Import validates the complete document before changing profiles.
-The deprecated profile Session value is ignored by Connect.
 
 ### Supported flows
 

@@ -106,5 +106,5 @@ Hopefully this is obvious, but:
 ## Experimental shared connections
 
 The 0.3 candidate adds named connections for JiraPS adoption.
-See [shared authentication](docs/en-US/about_AtlassianPS_Authentication.md) for selection, secret handling and profile migration.
+See [shared authentication](docs/en-US/about_AtlassianPS_Authentication.md) for connection selection, secret handling and saved profiles.
 ConfluencePS and JiraAgilePS adoption remains separate.

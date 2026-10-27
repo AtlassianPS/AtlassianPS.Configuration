@@ -7,7 +7,7 @@ Describe 'Export-ServerConfiguration' -Tag Unit {
         $script:moduleToTest = Initialize-TestEnvironment
     }
 
-    It 'writes only approved profile fields and omits a legacy session' {
+    It 'writes only approved profile fields and omits session state' {
         Mock Get-ServerConfiguration -ModuleName AtlassianPS.Configuration {
             [AtlassianPS.ServerData]@{
                 Id      = 1
@@ -25,7 +25,7 @@ Describe 'Export-ServerConfiguration' -Tag Unit {
         ($source | ConvertFrom-Json).SchemaVersion | Should -Be 1
     }
 
-    It 'rejects arbitrary legacy headers before creating a file' {
+    It 'rejects headers before creating a file' {
         Mock Get-ServerConfiguration -ModuleName AtlassianPS.Configuration {
             [AtlassianPS.ServerData]@{
                 Id      = 1
