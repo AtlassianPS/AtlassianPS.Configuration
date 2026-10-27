@@ -86,7 +86,6 @@ The deprecated profile Session value is ignored by Connect.
 
 This delivery does not implement browser OAuth, SSO, refresh-token management or automatic token renewal.
 Check the adopting product's help for endpoint discovery, scopes and deployment-specific support.
-Intermediate candidates require their recorded live integration evidence before support is considered verified.
 
 ## SEE ALSO
 

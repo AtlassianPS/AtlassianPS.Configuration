@@ -25,7 +25,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 * Experimental shared connection runtime and portable profiles for JiraPS integration.
-* Candidate coverage is local; final Cloud/Data Center and Windows acceptance remains pending.
 
 ## v0.2.10 - 2026-08-29
 
