@@ -17,7 +17,19 @@
         foreach ($server in @($export["ServerList"])) {
             if (-not $server) { continue }
 
-            $portable = ConvertTo-PortableServer -Server $server
+            $profileUri = [UriBuilder]::new($server.Uri)
+            $profileUri.UserName = ''
+            $profileUri.Password = ''
+            $profileUri.Query = ''
+            $profileUri.Fragment = ''
+
+            $profile = [AtlassianPS.ServerData]@{
+                Id   = $server.Id
+                Name = $server.Name
+                Uri  = $profileUri.Uri
+                Type = $server.Type
+            }
+            $portable = ConvertTo-PortableServer -Server $profile
             $serverData = [AtlassianPS.ServerData]$portable
             $serverList.Add($serverData)
         }

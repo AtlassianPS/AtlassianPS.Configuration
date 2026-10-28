@@ -11,7 +11,7 @@
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [Alias('Url', 'Address')]
-        [ValidateScript( { $_.IsAbsoluteUri } )]
+        [ValidateScript( { $_.IsAbsoluteUri -and -not ($_.UserInfo -or $_.Query -or $_.Fragment) } )]
         [Uri]
         $Uri,
 
@@ -62,6 +62,9 @@
         Write-DebugMessage -BoundParameters $PSBoundParameters
         if ($PSBoundParameters.ContainsKey('Session')) {
             Write-Warning 'Profile Session is deprecated and is never used by Connect. Supply authentication to Connect instead.'
+        }
+        if ($Headers.Count) {
+            Write-Warning 'Profile headers are retained only in memory and are ignored by Connect. Supply authentication when connecting.'
         }
 
         $serverEntry = Get-ServerConfiguration | Where-Object { $_.Id -eq $Id }

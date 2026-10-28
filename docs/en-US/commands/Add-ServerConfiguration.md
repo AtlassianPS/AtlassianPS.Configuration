@@ -53,7 +53,7 @@ commands to identify the server by the name "Server Prod"
 
 ### -Uri
 
-Address of the Server.
+Absolute server endpoint without user information, a query string or a fragment.
 
 ```yaml
 Type: Uri
@@ -77,7 +77,7 @@ This value must be unique.
 In case the ServerName was already saved, an error is written and the existing entry is not changed.
 
 Example for "Authority":
-  `https://**www.google.com**/maps?hl=en` --> `www.google.com`
+  `https://**www.google.com**/maps` --> `www.google.com`
 
 Is not case sensitive
 
@@ -118,7 +118,9 @@ Accept wildcard characters: False
 
 ### -Session
 
-Stores a WebSession to the server object.
+Compatibility WebRequestSession retained on the in-memory server object.
+It is excluded from saved and portable profiles and is ignored by Connect.
+Supply authentication when creating a connection.
 
 ```yaml
 Type: WebRequestSession
@@ -134,7 +136,9 @@ Accept wildcard characters: False
 
 ### -Headers
 
-Stores the Headers that should be used for this server
+Compatibility headers retained on the in-memory server object.
+Headers are omitted when saving profiles, and portable exports reject profiles with nonempty headers.
+Connect uses the profile endpoint and requires explicit authentication.
 
 ```yaml
 Type: Hashtable

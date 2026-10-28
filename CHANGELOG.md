@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Build and tests use disposable Configuration storage and preserve user profiles.
 * Saved and exported profiles support non-secret endpoint settings.
+  Saving excludes legacy authentication fields without changing their in-memory values; new profile endpoints reject user information, query strings and fragments.
 * Debug parameter traces redact authentication and request payloads; breadcrumbs follow calls across modules.
 
 
