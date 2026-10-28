@@ -5,7 +5,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:projectRoot = Resolve-ProjectRoot
         $script:standardsActionSha = 'fa0c5f72ddb2b96712ffb8f8f0623fa7220d9dd8'
-        $script:releaseActionSha = '8053d48b6b5ee1b40196f4463fb3eaf2cfab026f'
+        $script:releaseActionSha = 'df1de3e48d5ee30401ecfcbfa7a11118c8d842ac'
 
         $requirementsPath = Join-Path $script:projectRoot 'Tools/build.requirements.psd1'
         $requirements = Import-PowerShellDataFile -Path $requirementsPath
@@ -38,6 +38,8 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $workflow = Get-Content (Join-Path $script:projectRoot '.github/workflows/continuous_release.yml') -Raw
 
         $workflow | Should -Match 'issues:\s+read'
+        $workflow | Should -Match 'prerelease_branch:'
+        $workflow | Should -Match 'prerelease-branch: \$\{\{ inputs.prerelease_branch \}\}'
         $workflow | Should -Match 'workflows/module_release\.yml@[0-9a-f]{40}'
     }
 
