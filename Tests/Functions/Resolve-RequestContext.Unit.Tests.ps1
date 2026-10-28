@@ -30,6 +30,15 @@ Describe 'Resolve-RequestContext' -Tag Unit {
         Should -Invoke Save-Configuration -ModuleName AtlassianPS.Configuration -Times 0 -Exactly
     }
 
+    It 'keeps diagnostic and context parameters available in completion' {
+        $inputScript = 'Resolve-AtlassianRequestContext -'
+        $completion = TabExpansion2 -InputScript $inputScript -CursorColumn $inputScript.Length
+
+        foreach ($parameter in @('-Verbose', '-Debug', '-RequestContext')) {
+            $completion.CompletionMatches.CompletionText | Should -Contain $parameter
+        }
+    }
+
     It 'isolates overrides and preserves the stored identity' {
         $connection = Register-TestConnection work
         $override = Resolve-AtlassianRequestContext -Product Jira -Connection $connection -PersonalAccessToken alternate

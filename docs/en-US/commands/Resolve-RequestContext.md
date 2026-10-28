@@ -18,7 +18,7 @@ Resolve a connection or standalone request with isolated authentication.
 ### __AllParameterSets
 
 ```powershell
-Resolve-AtlassianRequestContext [-Product] <string> [[-Connection] <AtlassianPS.Connection>] [[-ConnectionName] <string>] [[-BaseUri] <uri>] [[-Credential] <pscredential>] [[-EmailAddress] <string>] [[-ApiToken] <Object>] [[-PersonalAccessToken] <Object>] [-Anonymous] [<CommonParameters>]
+Resolve-AtlassianRequestContext [-Product] <string> [[-RequestContext] <AtlassianPS.Connection>] [[-Connection] <AtlassianPS.Connection>] [[-ConnectionName] <string>] [[-BaseUri] <uri>] [[-Credential] <pscredential>] [[-EmailAddress] <string>] [[-ApiToken] <Object>] [[-PersonalAccessToken] <Object>] [-Anonymous] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -52,6 +52,24 @@ Aliases: None
 
 Required: True
 Position: 0
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -RequestContext
+
+Previously resolved context to reuse for the requested product.
+Cannot be combined with connection selectors or authentication parameters.
+Invalid, disconnected, or foreign contexts are rejected.
+
+```yaml
+Type: Connection
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

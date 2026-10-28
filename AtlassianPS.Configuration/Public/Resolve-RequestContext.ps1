@@ -7,7 +7,6 @@
         [String]
         $Product,
 
-        [Parameter( DontShow )]
         [AtlassianPS.Connection]
         $RequestContext,
 
