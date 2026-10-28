@@ -67,25 +67,27 @@
             Where-Object { $PSBoundParameters.ContainsKey($_) }
     )
     if ($modes.Count -ne 1) { throw 'Supply exactly one authentication mode.' }
-    if ($PSBoundParameters.ContainsKey('EmailAddress') -and $modes[0] -ne 'ApiToken') {
+    $authenticationMode = $modes[0]
+    if ($PSBoundParameters.ContainsKey('EmailAddress') -and $authenticationMode -ne 'ApiToken') {
         throw 'EmailAddress requires ApiToken.'
     }
-    if ($modes[0] -eq 'Anonymous' -and -not $Anonymous) { throw 'Anonymous must be enabled explicitly.' }
-    if ($modes[0] -eq 'Credential' -and
+    if ($authenticationMode -eq 'Anonymous' -and -not $Anonymous) { throw 'Anonymous must be enabled explicitly.' }
+    if ($authenticationMode -eq 'Credential' -and
         (-not $Credential -or $Credential -eq [PSCredential]::Empty -or
         [string]::IsNullOrWhiteSpace($Credential.UserName) -or $Credential.Password.Length -eq 0
         )
     ) {
         throw 'Credential must contain a username and password.'
     }
-    if ($modes[0] -eq 'ApiToken' -and [string]::IsNullOrWhiteSpace($EmailAddress)) {
+    if ($authenticationMode -eq 'ApiToken' -and [string]::IsNullOrWhiteSpace($EmailAddress)) {
         throw 'ApiToken requires EmailAddress.'
     }
 
     $token = $null
     try {
-        if ($modes[0] -eq 'ApiToken') { $token = ConvertTo-ConnectionToken -Token $ApiToken }
-        if ($modes[0] -eq 'PersonalAccessToken') { $token = ConvertTo-ConnectionToken -Token $PersonalAccessToken }
+        if ($authenticationMode -in @('ApiToken', 'PersonalAccessToken')) {
+            $token = ConvertTo-ConnectionToken -Token $PSBoundParameters[$authenticationMode]
+        }
 
         $context = [AtlassianPS.Connection]::new(
             $Name,
@@ -93,7 +95,7 @@
             [Uri]$BaseUri.AbsoluteUri.TrimEnd('/'),
             $SiteUri,
             $CloudId,
-            $modes[0],
+            $authenticationMode,
             $EmailAddress,
             $Credential,
             $token,

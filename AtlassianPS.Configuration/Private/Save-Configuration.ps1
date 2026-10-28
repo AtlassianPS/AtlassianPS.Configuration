@@ -47,9 +47,7 @@
                 Uri  = $profileUri.Uri
                 Type = $server.Type
             }
-            $portable = ConvertTo-PortableServer -Server $profile
-            $serverData = [AtlassianPS.ServerData]$portable
-            $serverList.Add($serverData)
+            $serverList.Add($profile)
         }
         $export["ServerList"] = $serverList
 
