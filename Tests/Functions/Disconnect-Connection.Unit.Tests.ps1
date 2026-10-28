@@ -53,6 +53,17 @@ Describe 'Disconnect-Connection' -Tag Unit {
         $first.State | Should -Be 'Active'
     }
 
+    It 'removes a registered connection that the caller already disposed' {
+        $first = Register-TestConnection work
+        $first.Dispose()
+
+        { $first | Disconnect-AtlassianConnection } | Should -Not -Throw
+
+        Get-AtlassianConnection -Product Jira | Should -BeNullOrEmpty
+        Get-AtlassianConnection -Product Jira -Default | Should -BeNullOrEmpty
+        { Resolve-AtlassianRequestContext -Product Jira -Connection $first } | Should -Throw
+    }
+
     It 'rejects temporary request contexts without changing the registered default' {
         $first = Register-TestConnection work
         $temporary = Resolve-AtlassianRequestContext -Product Jira -Connection $first -PersonalAccessToken other

@@ -44,4 +44,14 @@ Describe 'Get-Connection' -Tag Unit {
         Get-Command -Name Get-AtlassianConnection -ErrorAction Stop | Should -Not -BeNullOrEmpty
         Get-Command -Name Get-AtlassianAtlassianConnection -ErrorAction Ignore | Should -BeNullOrEmpty
     }
+
+    It 'excludes disposed connections without clearing another product default' {
+        $jira = Register-TestConnection work
+        $other = Register-TestConnection work -Product TestProduct
+        $jira.Dispose()
+
+        @(Get-AtlassianConnection).Count | Should -Be 1
+        Get-AtlassianConnection -Product Jira -Default | Should -BeNullOrEmpty
+        (Get-AtlassianConnection -Product TestProduct -Default).InstanceId | Should -Be $other.InstanceId
+    }
 }

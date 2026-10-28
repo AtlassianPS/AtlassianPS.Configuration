@@ -32,7 +32,13 @@
         }
 
         if (-not $Connection) { throw 'Connection not found.' }
-        Assert-ConnectionActive -Connection $Connection -RegisteredOnly
+        if ($Connection.State -ne 'Disconnected' -or
+            $Connection.RegistryGeneration -ne $script:RegistryGeneration -or
+            $Connection.IsOverride -or
+            -not [Object]::ReferenceEquals($script:Connections[$Connection.InstanceId], $Connection)
+        ) {
+            Assert-ConnectionActive -Connection $Connection -RegisteredOnly
+        }
 
         if ($PSCmdlet.ShouldProcess($Connection.ToString(), 'Disconnect')) {
             $script:Connections.Remove($Connection.InstanceId)

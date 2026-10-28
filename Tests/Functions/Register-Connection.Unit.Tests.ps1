@@ -56,4 +56,17 @@ Describe 'Register-Connection' -Tag Unit {
         @(Get-AtlassianConnection).Count | Should -Be 0
         $candidate.Dispose()
     }
+
+    It 'reuses a disposed connection name and selects a new default' {
+        $first = Register-TestConnection work
+        $second = Register-TestConnection admin
+        $first.Dispose()
+
+        $replacement = Register-TestConnection WORK
+
+        @(Get-AtlassianConnection -Product Jira).Count | Should -Be 2
+        (Get-AtlassianConnection -Product Jira -Default).InstanceId | Should -Be $replacement.InstanceId
+        $replacement.InstanceId | Should -Not -Be $first.InstanceId
+        $second.State | Should -Be 'Active'
+    }
 }

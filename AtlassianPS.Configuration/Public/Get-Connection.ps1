@@ -18,6 +18,16 @@
 
     Write-DebugMessage -BoundParameters $PSBoundParameters
 
+    # Callers can dispose a connection directly without removing its registry entry.
+    foreach ($connection in @($script:Connections.Values)) {
+        if ($connection.State -ne 'Disconnected') { continue }
+
+        $script:Connections.Remove($connection.InstanceId)
+        if ($script:DefaultConnections[$connection.Product] -eq $connection.InstanceId) {
+            $script:DefaultConnections.Remove($connection.Product)
+        }
+    }
+
     $script:Connections.Values | Where-Object {
         (-not $Product -or $_.Product -eq $Product) -and
         (-not $Name -or $_.Name -eq $Name) -and
