@@ -1,4 +1,25 @@
 ﻿function ConvertTo-ConnectionToken {
+    <#
+    .SYNOPSIS
+        Normalizes a token into an owned SecureString.
+
+    .DESCRIPTION
+        Copies a nonempty SecureString or converts a nonblank string into a SecureString.
+        Rejects null, empty tokens and unsupported types.
+        The caller owns the returned value and must dispose it when it is no longer needed.
+        The supplied SecureString remains unchanged.
+
+    .PARAMETER Token
+        Authentication token supplied as a string or SecureString.
+
+    .EXAMPLE
+        $ownedToken = ConvertTo-ConnectionToken -Token $apiToken
+
+        Creates a token value that the connection can own independently of the caller.
+
+    .OUTPUTS
+        System.Security.SecureString
+    #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSAvoidUsingConvertToSecureStringWithPlainText',
         '',

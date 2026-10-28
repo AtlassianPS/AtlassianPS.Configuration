@@ -1,4 +1,30 @@
 ﻿function Assert-ConnectionActive {
+    <#
+    .SYNOPSIS
+        Validates a connection against the current runtime registry.
+
+    .DESCRIPTION
+        Requires an active registration from the current runtime generation.
+        Temporary authentication overrides are checked against their source connection.
+        Throws when the connection is disconnected, unregistered or belongs to another requested product.
+
+    .PARAMETER Connection
+        Registered connection or temporary override to validate.
+
+    .PARAMETER Product
+        Expected product name when product matching is required.
+
+    .PARAMETER RegisteredOnly
+        Requires the supplied connection itself to be active, excluding temporary overrides.
+
+    .EXAMPLE
+        Assert-ConnectionActive -Connection $connection -Product Jira -RegisteredOnly
+
+        Validates an active Jira registration before changing its default selection.
+
+    .OUTPUTS
+        None.
+    #>
     [CmdletBinding()]
     param(
         [Parameter( Mandatory )]

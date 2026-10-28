@@ -1,4 +1,22 @@
 ﻿function Save-Configuration {
+    <#
+    .SYNOPSIS
+        Saves configuration with nonsecret copies of server profiles.
+
+    .DESCRIPTION
+        Exports the current configuration through the Configuration module.
+        Rebuilds ServerList entries with only Id, Name, Uri and Type, removing URI user information, queries and fragments.
+        Live server objects retain their sessions, headers, certificates and original URIs.
+        Export failures terminate the operation.
+
+    .EXAMPLE
+        Save-Configuration
+
+        Persists the current settings without exporting server authentication fields.
+
+    .OUTPUTS
+        None.
+    #>
     [CmdletBinding()]
     param()
 

@@ -1,4 +1,24 @@
 ﻿function ConvertTo-PortableServer {
+    <#
+    .SYNOPSIS
+        Projects a server profile into a portable dictionary.
+
+    .DESCRIPTION
+        Returns only Id, Name, Uri and Type without changing the supplied server.
+        Rejects headers, certificates and URIs that are relative or contain user information, queries or fragments.
+        Session and other authentication fields are omitted from the returned dictionary.
+
+    .PARAMETER Server
+        Server profile to validate and project for portable export.
+
+    .EXAMPLE
+        $profile = ConvertTo-PortableServer -Server $server
+
+        Creates the approved profile fields for JSON serialization.
+
+    .OUTPUTS
+        System.Collections.Specialized.OrderedDictionary
+    #>
     [CmdletBinding()]
     param(
         [Parameter( Mandatory )]
