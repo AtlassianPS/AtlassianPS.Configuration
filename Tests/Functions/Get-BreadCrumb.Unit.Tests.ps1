@@ -29,13 +29,16 @@ Describe "Get-BreadCrumb" -Tag Unit {
                     function1
                 }
                 $breadCrumb | Should -Not -BeNullOrEmpty
-                $breadCrumb | Should -Match '^function2 > function1 > ( > )*AtlassianPS\.Configuration\.psm1 > '
+                $breadCrumb | Should -Match '^function2 > function1 > '
+                $breadCrumb | Should -Not -Match 'Get-BreadCrumb|<ScriptBlock>'
             }
 
             It "allows for customizing of the delimiter" {
-                $breadCrumb = Get-BreadCrumb -Delimiter "--> "
+                function Invoke-CustomDelimiter { Get-BreadCrumb -Delimiter "--> " }
+                $breadCrumb = Invoke-CustomDelimiter
                 $breadCrumb | Should -Not -BeNullOrEmpty
-                $breadCrumb | Should -Match '^--> (-->\s*)*AtlassianPS\.Configuration\.psm1-->\s*'
+                $breadCrumb | Should -Match '^Invoke-CustomDelimiter--> '
+                $breadCrumb | Should -Not -Match ' > '
             }
         }
     }

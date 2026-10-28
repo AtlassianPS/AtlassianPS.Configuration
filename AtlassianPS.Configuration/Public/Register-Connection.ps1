@@ -11,6 +11,8 @@
         $Default
     )
 
+    Write-DebugMessage -BoundParameters $PSBoundParameters
+
     if ($Connection.RegistryGeneration -ne $script:RegistryGeneration -or $Connection.State -ne 'Candidate') {
         throw 'Only a candidate from this runtime can be registered.'
     }

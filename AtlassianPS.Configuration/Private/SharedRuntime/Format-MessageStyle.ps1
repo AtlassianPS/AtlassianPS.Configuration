@@ -26,7 +26,8 @@
         $indent, $functionName, $timeStamp = ""
 
         if ($MessageSettings.BreadCrumbs) {
-            "[$((Get-BreadCrumb) -replace '^Format-MessageStyle > ', '')]:"
+            $breadCrumb = (Get-BreadCrumb) -replace '^(?:(?:Format-MessageStyle|Write-DebugMessage|Write-VerboseMessage) > )+', ''
+            "[$breadCrumb]:"
             if ($MessageSettings.Indent) {
                 $indent = " " * $MessageSettings.Indent
             }

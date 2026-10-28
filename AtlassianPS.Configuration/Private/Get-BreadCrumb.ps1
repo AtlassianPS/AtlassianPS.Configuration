@@ -3,19 +3,8 @@
         [String]$Delimiter = " > "
     )
 
-    $depth = 1
-    $path = New-Object -TypeName System.Collections.ArrayList
-
-    while ($depth) {
-        try {
-            $null = $path.Add((Get-Variable MyInvocation -Scope $depth -ValueOnly).MyCommand.Name)
-            $depth++
-        }
-        catch {
-            $depth = 0
-        }
-    }
-
-    $path.Remove("")
+    $path = Get-PSCallStack | Select-Object -Skip 1 |
+        ForEach-Object { $_.FunctionName -replace '<(Begin|Process|End)>$', '' } |
+        Where-Object { $_ -ne '<ScriptBlock>' }
     $path -join $Delimiter
 }

@@ -16,6 +16,8 @@
         $Default
     )
 
+    Write-DebugMessage -BoundParameters $PSBoundParameters
+
     $script:Connections.Values | Where-Object {
         (-not $Product -or $_.Product -eq $Product) -and
         (-not $Name -or $_.Name -eq $Name) -and

@@ -41,6 +41,7 @@
 
     process {
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
         if ($PSBoundParameters.ContainsKey('Session')) {
             Write-Warning 'Profile Session is deprecated and is never used by Connect. Supply authentication to Connect instead.'
         }

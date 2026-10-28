@@ -20,6 +20,8 @@
     )
 
     process {
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
         if ($PSCmdlet.ParameterSetName -ne 'Object') {
             $filter = @{}
             foreach ($key in @('Product', 'Name', 'Id')) {

@@ -45,6 +45,8 @@
         $Anonymous
     )
 
+    Write-DebugMessage -BoundParameters $PSBoundParameters
+
     if (-not $PSBoundParameters.ContainsKey('Name')) {
         do {
             $script:NextGeneratedName++

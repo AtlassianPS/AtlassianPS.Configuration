@@ -15,8 +15,16 @@ Writes a debug message while preserving the current debug preference.
 
 ## SYNTAX
 
+### Message (Default)
+
 ```powershell
 Write-AtlassianDebugMessage [[-Message] <String>] [-BreakPoint] [[-Cmdlet] <PSCmdlet>] [<CommonParameters>]
+```
+
+### BoundParameters
+
+```powershell
+Write-AtlassianDebugMessage -BoundParameters <IDictionary> [-BreakPoint] [-Cmdlet <PSCmdlet>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -26,6 +34,11 @@ processing.
 
 Message formatting follows the configured message style settings (`Breadcrumbs`,
 `Indent`, `FunctionName`, and `TimeStamp`).
+
+Use `-BoundParameters` to trace command inputs before converting them to text.
+Authentication values, headers and request bodies are redacted.
+URI values omit user information, queries and fragments.
+Complex objects are represented by their type name.
 
 ## EXAMPLES
 
@@ -50,13 +63,30 @@ message style.
 
 ## PARAMETERS
 
+### -BoundParameters
+
+Bound command parameters to format as a `PSBoundParameters` debug message.
+In a command, use `Write-AtlassianDebugMessage -BoundParameters $PSBoundParameters -Cmdlet $PSCmdlet`.
+
+```yaml
+Type: IDictionary
+Parameter Sets: BoundParameters
+Aliases:
+
+Required: True
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -Message
 
 Message to write to the debug stream.
 
 ```yaml
 Type: String
-Parameter Sets: (All)
+Parameter Sets: Message
 Aliases:
 
 Required: False

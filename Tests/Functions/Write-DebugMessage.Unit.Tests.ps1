@@ -36,6 +36,46 @@ Describe "Write-DebugMessage" -Tag Unit {
         }
 
         Context "Behavior checking" {
+            It "honors an explicit false Debug switch inside a debug-enabled caller" {
+                function Invoke-QuietDebugMessage {
+                    [CmdletBinding()]
+                    param()
+
+                    Write-DebugMessage -Message 'suppressed-message' -Debug:$false
+                }
+
+                Invoke-QuietDebugMessage -Debug 5>&1 | Should -BeNullOrEmpty
+            }
+
+            It "retains parameter values without exposing authentication or request payloads" {
+                $password = [SecureString]::new()
+                foreach ($character in 'sentinel-credential'.ToCharArray()) { $password.AppendChar($character) }
+                $parameters = @{
+                    Key                 = 'TEST-1'
+                    ApiToken            = 'sentinel-token'
+                    PersonalAccessToken = 'sentinel-pat'
+                    Password            = 'sentinel-password'
+                    Credential          = [PSCredential]::new('sentinel-user', $password)
+                    SecretValue         = 'sentinel-secret'
+                    Headers             = @{ Authorization = 'sentinel-header' }
+                    Body                = 'sentinel-body'
+                    GetParameter        = @{ token = 'sentinel-query' }
+                    Uri                 = [Uri]'https://sentinel-user:sentinel-password@example.com/path?token=sentinel-uri'
+                    RelativeUri         = [Uri]'/rest/api/2/issue?token=sentinel-relative'
+                }
+
+                $output = Write-DebugMessage -BoundParameters $parameters -Debug 5>&1 | Out-String
+
+                $output | Should -Match 'PSBoundParameters:'
+                $output | Should -Match 'TEST-1'
+                $output | Should -Match 'https://example.com/path'
+                $output | Should -Match '/rest/api/2/issue'
+                $output | Should -Match '\[REDACTED\]'
+                $output | Should -Not -Match 'sentinel-'
+                $parameters.ApiToken | Should -Be 'sentinel-token'
+                $parameters.Uri.UserInfo | Should -Be 'sentinel-user:sentinel-password'
+            }
+
             It "writes debug output and preserves debug preference" {
                 $originalPreference = $DebugPreference
                 $DebugPreference = 'Continue'

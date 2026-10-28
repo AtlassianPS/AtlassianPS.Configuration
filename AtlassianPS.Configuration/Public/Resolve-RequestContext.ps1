@@ -38,6 +38,8 @@
         $Anonymous
     )
 
+    Write-DebugMessage -BoundParameters $PSBoundParameters
+
     if ($PSBoundParameters.ContainsKey('RequestContext')) {
         $conflicts = @(
             'Connection',
