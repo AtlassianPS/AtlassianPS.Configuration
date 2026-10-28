@@ -8,11 +8,11 @@ on:
   workflow_dispatch:
     inputs:
       release_channel:
-        description: Stable planning or protected integration alpha
+        description: Shared stable/alpha/beta route or temporary legacy alpha
         required: true
         type: choice
         default: stable
-        options: [stable, alpha]
+        options: [stable, alpha, beta, legacy-alpha]
       configuration_sha:
         description: Full reviewed Configuration SHA for alpha
         type: string
@@ -31,6 +31,11 @@ on:
           - minor
           - major
 
+      major_authorization:
+        description: Fresh major authorization as owner/repository vMAJOR
+        required: false
+        type: string
+
 permissions:
   actions: read
   contents: read
@@ -39,15 +44,17 @@ permissions:
 
 jobs:
   release:
-    if: github.event_name != 'workflow_dispatch' || inputs.release_channel != 'alpha'
-    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@fa0c5f72ddb2b96712ffb8f8f0623fa7220d9dd8 # v0.4.1
+    if: github.event_name != 'workflow_dispatch' || inputs.release_channel != 'legacy-alpha'
+    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@1a5a3ef64525d55c4c2e01492867d832a87627a6 # v0.4.1 + #73
     with:
       module-name: AtlassianPS.Configuration
       release-impact: ${{ inputs.release_impact }}
+      release-channel: ${{ inputs.release_channel || 'stable' }}
+      major-authorization: ${{ inputs.major_authorization }}
     secrets: inherit
 
   alpha:
-    if: github.event_name == 'workflow_dispatch' && inputs.release_channel == 'alpha'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master' && inputs.release_channel == 'legacy-alpha'
     uses: ./.github/workflows/alpha_release.yml
     with:
       configuration_sha: ${{ inputs.configuration_sha }}

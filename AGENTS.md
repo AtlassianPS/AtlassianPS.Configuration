@@ -1,5 +1,11 @@
 # AI Instructions for AtlassianPS.Configuration
 
+Release operators may select stable, alpha, or beta in the pinned shared workflow.
+Follow the Standards ReleaseBlueprint for exact candidate provisioning and recovery.
+Major-base candidates require fresh human confirmation naming this repository and major version.
+Keep stable acquisition as the default; retain temporary shared-session tooling until
+replacement integration tests and a compatible stable Configuration prerequisite pass.
+
 > **Canonical AI guidance for this repository.**
 > `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md`, and `.cursor/rules/*.mdc` must stay aligned with this file.
 
