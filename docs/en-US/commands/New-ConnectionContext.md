@@ -94,6 +94,8 @@ Accept wildcard characters: False
 
 Optional browser site URI.
 It can differ from the resolved API endpoint.
+When supplied, it must be an absolute HTTP(S) URI without user information, a query or a fragment.
+Context paths are supported.
 
 ```yaml
 Type: Uri

@@ -56,6 +56,27 @@ Describe 'New-ConnectionContext' -Tag Unit {
         } | Should -Throw
     }
 
+    It 'rejects unsafe SiteUri values: <SiteUri>' -ForEach @(
+        @{ SiteUri = [Uri]::new('/jira', [UriKind]::Relative) }
+        @{ SiteUri = [Uri]'ftp://jira.example.com' }
+        @{ SiteUri = [Uri]'https://fixture-user:fixture-password@jira.example.com' }
+        @{ SiteUri = [Uri]'https://jira.example.com?token=fixture-token' }
+        @{ SiteUri = [Uri]'https://jira.example.com#fixture-fragment' }
+    ) {
+        {
+            New-AtlassianConnectionContext -Product Jira -BaseUri https://jira.example.com -SiteUri $SiteUri -Anonymous
+        } | Should -Throw 'SiteUri must be an absolute HTTP(S) product endpoint without user information, query or fragment.'
+    }
+
+    It 'preserves an accepted SiteUri context path and permits an absent site' {
+        foreach ($siteUri in @([Uri]'https://jira.example.com/jira', $null)) {
+            $context = New-AtlassianConnectionContext -Product Jira -BaseUri https://jira.example.com/jira -SiteUri $siteUri -Anonymous
+
+            $context.SiteUri | Should -Be $siteUri
+            $context.Dispose()
+        }
+    }
+
     It 'keeps the authentication email independent of the validated account ID' {
         $context = New-AtlassianConnectionContext -Name cloud -Product Jira -BaseUri https://jira.example.com -EmailAddress me@example.com -ApiToken sentinel
         $context.SetValidationResult('Cloud', 'account-id')

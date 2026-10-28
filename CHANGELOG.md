@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Saving excludes legacy authentication fields without changing their in-memory values; new profile endpoints reject user information, query strings and fragments.
 * Debug parameter traces redact authentication and request payloads; breadcrumbs follow calls across modules.
 * Explicit `-Verbose:$false` suppresses output in verbose-enabled callers and skips parameter formatting.
+* Connection site URIs reject user information, queries, fragments and non-HTTP(S) endpoints before retaining display metadata.
 
 
 * Migrated build and test tooling to AtlassianPS.Standards 0.4.0 and Pester 6.2.0.

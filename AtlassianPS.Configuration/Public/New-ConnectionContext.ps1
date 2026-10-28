@@ -53,10 +53,19 @@
         } while (Get-Connection -Product $Product -Name $Name)
     }
 
-    if (-not $BaseUri.IsAbsoluteUri -or $BaseUri.Scheme -notin @('http', 'https') -or
-        $BaseUri.UserInfo -or $BaseUri.Query -or $BaseUri.Fragment
-    ) {
-        throw 'BaseUri must be an absolute HTTP(S) product endpoint without user information, query or fragment.'
+    $endpointUris = [ordered]@{
+        BaseUri = $BaseUri
+        SiteUri = $SiteUri
+    }
+    foreach ($parameterName in $endpointUris.Keys) {
+        $endpointUri = $endpointUris[$parameterName]
+        if ($null -eq $endpointUri) { continue }
+
+        if (-not $endpointUri.IsAbsoluteUri -or $endpointUri.Scheme -notin @('http', 'https') -or
+            $endpointUri.UserInfo -or $endpointUri.Query -or $endpointUri.Fragment
+        ) {
+            throw "$parameterName must be an absolute HTTP(S) product endpoint without user information, query or fragment."
+        }
     }
 
     $modes = @(
