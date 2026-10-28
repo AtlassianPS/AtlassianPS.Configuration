@@ -73,16 +73,19 @@ Describe "Protect-BoundParameter" -Tag Unit {
 
         It "removes URI user information, queries and fragments without changing inputs" {
             $parameters = @{
-                Absolute = [Uri]'https://sentinel-user:sentinel-password@example.com:8443/path%20name?token=sentinel-query#sentinel-fragment'
-                Relative = [Uri]::new('/rest/api/2/issue?token=sentinel-relative#sentinel-fragment', [UriKind]::Relative)
+                Absolute        = [Uri]'https://sentinel-user:sentinel-password@example.com:8443/path%20name?token=sentinel-query#sentinel-fragment'
+                Relative        = [Uri]::new('/rest/api/2/issue?token=sentinel-relative#sentinel-fragment', [UriKind]::Relative)
+                NetworkRelative = [Uri]::new('//sentinel-user:sentinel-password@example.com/path?token=sentinel-query', [UriKind]::Relative)
             }
 
             $sanitized = Protect-BoundParameter -BoundParameters $parameters
 
             $sanitized.Absolute | Should -Be 'https://example.com:8443/path%20name'
             $sanitized.Relative | Should -Be '/rest/api/2/issue'
+            $sanitized.NetworkRelative | Should -Be '[REDACTED]'
             $parameters.Absolute.UserInfo | Should -Be 'sentinel-user:sentinel-password'
             $parameters.Relative.OriginalString | Should -Match 'sentinel-relative'
+            $parameters.NetworkRelative.OriginalString | Should -Match 'sentinel-user:sentinel-password'
         }
 
         It "does not serialize complex objects or invoke their string conversion" {

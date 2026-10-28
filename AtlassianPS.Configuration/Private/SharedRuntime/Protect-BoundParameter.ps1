@@ -7,6 +7,7 @@
         Redacts values whose parameter names contain Credential, Password, Token, Secret, Cookie, Authorization, Headers or Body.
         PSCredential and SecureString values are redacted regardless of their parameter names.
         Values typed as Uri omit user information, queries and fragments.
+        Network-relative URIs are redacted entirely.
         Other strings, primitive values, switches and nulls are preserved; complex objects become type names.
         The input dictionary remains unchanged, and the calling writer formats the returned copy.
 
@@ -42,6 +43,7 @@
             if ($value.IsAbsoluteUri) {
                 $parameters[$key] = $value.GetComponents([UriComponents]'SchemeAndServer, Path', [UriFormat]::UriEscaped)
             }
+            elseif ($value.OriginalString.StartsWith('//')) { $parameters[$key] = '[REDACTED]' }
             else { $parameters[$key] = ($value.OriginalString -split '[?#]', 2)[0] }
         }
         elseif ($value -is [String] -or $value.GetType().IsPrimitive -or $value -is [Switch]) {
