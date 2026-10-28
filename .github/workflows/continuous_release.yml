@@ -8,11 +8,11 @@ on:
   workflow_dispatch:
     inputs:
       release_channel:
-        description: Stable planning or protected integration alpha
+        description: Shared stable/alpha/beta route or temporary legacy alpha
         required: true
         type: choice
         default: stable
-        options: [stable, alpha]
+        options: [stable, alpha, beta, legacy-alpha]
       configuration_sha:
         description: Full reviewed Configuration SHA for alpha
         type: string
@@ -23,13 +23,22 @@ on:
         description: Exact major 0 alpha version
         type: string
       release_impact:
-        description: Release impact for unreleased changes already on master
+        description: Release impact for the changes being packaged
         required: true
         type: choice
         options:
           - patch
           - minor
           - major
+
+      major_authorization:
+        description: Fresh major authorization as owner/repository vMAJOR
+        required: false
+        type: string
+      prerelease_branch:
+        description: Optional source branch for alpha/beta (empty uses master)
+        required: false
+        type: string
 
 permissions:
   actions: read
@@ -39,15 +48,18 @@ permissions:
 
 jobs:
   release:
-    if: github.event_name != 'workflow_dispatch' || inputs.release_channel != 'alpha'
-    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@fa0c5f72ddb2b96712ffb8f8f0623fa7220d9dd8 # v0.4.1
+    if: github.event_name != 'workflow_dispatch' || inputs.release_channel != 'legacy-alpha'
+    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@160631f20740a10152d4560d698b5e16806d0edb # v0.4.1 + #73
     with:
       module-name: AtlassianPS.Configuration
       release-impact: ${{ inputs.release_impact }}
+      release-channel: ${{ inputs.release_channel || 'stable' }}
+      prerelease-branch: ${{ inputs.prerelease_branch }}
+      major-authorization: ${{ inputs.major_authorization }}
     secrets: inherit
 
   alpha:
-    if: github.event_name == 'workflow_dispatch' && inputs.release_channel == 'alpha'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master' && inputs.release_channel == 'legacy-alpha'
     uses: ./.github/workflows/alpha_release.yml
     with:
       configuration_sha: ${{ inputs.configuration_sha }}
