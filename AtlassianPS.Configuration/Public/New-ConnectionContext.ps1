@@ -30,7 +30,6 @@
         [PSCredential]
         $Credential,
 
-        [Alias('Email')]
         [String]
         $EmailAddress,
 

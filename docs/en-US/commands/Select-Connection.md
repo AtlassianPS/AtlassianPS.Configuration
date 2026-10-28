@@ -18,19 +18,19 @@ Select an existing connection as its product's default.
 ### Object
 
 ```powershell
-Select-AtlassianConnection -Connection <Connection> [<CommonParameters>]
+Select-AtlassianConnection -Connection <AtlassianPS.Connection> [<CommonParameters>]
 ```
 
 ### Name
 
 ```powershell
-Select-AtlassianConnection -Name <String> -Product <String> [<CommonParameters>]
+Select-AtlassianConnection -Name <string> -Product <string> [<CommonParameters>]
 ```
 
 ### Id
 
 ```powershell
-Select-AtlassianConnection -Id <Int32> [<CommonParameters>]
+Select-AtlassianConnection -Id <int> [<CommonParameters>]
 ```
 
 ## DESCRIPTION

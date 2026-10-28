@@ -18,7 +18,7 @@ Export portable non-secret server profiles.
 ### __AllParameterSets
 
 ```powershell
-Export-AtlassianServerConfiguration -Path <String> [-Name <String[]>] [<CommonParameters>]
+Export-AtlassianServerConfiguration [-Path] <string> [[-Name] <string[]>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -48,7 +48,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: True
-Position: Named
+Position: 0
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -56,7 +56,9 @@ Accept wildcard characters: False
 
 ### -Name
 
-Friendly name, compared without case sensitivity within a product.
+Saved profile names to include in the export.
+Profile names are compared without case sensitivity across all products.
+When omitted, exports all saved profiles.
 
 ```yaml
 Type: String[]
@@ -64,7 +66,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

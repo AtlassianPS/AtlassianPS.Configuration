@@ -18,7 +18,7 @@ List live connections without HTTP or configuration IO.
 ### __AllParameterSets
 
 ```powershell
-Get-AtlassianConnection [-Product <String>] [-Name <String>] [-Id <Int32>] [-Default] [<CommonParameters>]
+Get-AtlassianConnection [[-Product] <string>] [[-Name] <string>] [[-Id] <int>] [-Default] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -47,7 +47,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 0
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -63,7 +63,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -79,7 +79,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -87,7 +87,7 @@ Accept wildcard characters: False
 
 ### -Default
 
-Use or replace the current product default. The first successful registration selects itself automatically.
+Return only the selected default connection for each requested product.
 
 ```yaml
 Type: SwitchParameter

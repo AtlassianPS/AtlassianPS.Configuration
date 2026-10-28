@@ -18,7 +18,7 @@ Create an unregistered context for product-adapter validation.
 ### __AllParameterSets
 
 ```powershell
-New-AtlassianConnectionContext [-Name <String>] -Product <String> -BaseUri <Uri> [-SiteUri <Uri>] [-CloudId <String>] [-Credential <PSCredential>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [<CommonParameters>]
+New-AtlassianConnectionContext [[-Name] <string>] [-Product] <string> [-BaseUri] <uri> [[-SiteUri] <uri>] [[-CloudId] <string>] [[-Credential] <pscredential>] [[-EmailAddress] <string>] [[-ApiToken] <Object>] [[-PersonalAccessToken] <Object>] [-Anonymous] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -52,7 +52,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 0
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -68,7 +68,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: True
-Position: Named
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -84,7 +84,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: True
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -101,7 +101,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -117,7 +117,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 4
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -134,7 +134,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 5
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -148,10 +148,10 @@ Each API-token input must supply its own email.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: Email
+Aliases: None
 
 Required: False
-Position: Named
+Position: 6
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -168,7 +168,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 7
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -184,7 +184,7 @@ Parameter Sets: (All)
 Aliases: PAT, BearerToken
 
 Required: False
-Position: Named
+Position: 8
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

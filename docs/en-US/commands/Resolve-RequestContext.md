@@ -18,7 +18,7 @@ Resolve a connection or standalone request with isolated authentication.
 ### __AllParameterSets
 
 ```powershell
-Resolve-AtlassianRequestContext -Product <String> [-Connection <Connection>] [-ConnectionName <String>] [-BaseUri <Uri>] [-Credential <PSCredential>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [<CommonParameters>]
+Resolve-AtlassianRequestContext [-Product] <string> [[-Connection] <AtlassianPS.Connection>] [[-ConnectionName] <string>] [[-BaseUri] <uri>] [[-Credential] <pscredential>] [[-EmailAddress] <string>] [[-ApiToken] <Object>] [[-PersonalAccessToken] <Object>] [-Anonymous] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -51,7 +51,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: True
-Position: Named
+Position: 0
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -68,7 +68,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -85,7 +85,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -93,7 +93,7 @@ Accept wildcard characters: False
 
 ### -BaseUri
 
-Absolute HTTPS API product endpoint, without query, fragment or user information.
+Absolute HTTP(S) API product endpoint, without query, fragment or user information.
 
 ```yaml
 Type: Uri
@@ -101,7 +101,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 4
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -118,7 +118,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 5
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -132,10 +132,10 @@ Each API-token input must supply its own email.
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: Email
+Aliases: None
 
 Required: False
-Position: Named
+Position: 6
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -152,7 +152,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 7
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -168,7 +168,7 @@ Parameter Sets: (All)
 Aliases: PAT, BearerToken
 
 Required: False
-Position: Named
+Position: 8
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

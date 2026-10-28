@@ -18,7 +18,7 @@ Validate and import portable non-secret server profiles.
 ### __AllParameterSets
 
 ```powershell
-Import-AtlassianServerConfiguration -Path <String> [-Replace] [<CommonParameters>]
+Import-AtlassianServerConfiguration [-Path] <string> [-Replace] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -50,7 +50,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: True
-Position: Named
+Position: 0
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

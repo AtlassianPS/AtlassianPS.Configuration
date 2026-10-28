@@ -18,7 +18,7 @@ Register a product-validated candidate in the shared runtime.
 ### __AllParameterSets
 
 ```powershell
-Register-AtlassianConnection -Connection <Connection> [-Default] [<CommonParameters>]
+Register-AtlassianConnection [-Connection] <AtlassianPS.Connection> [-Default] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -55,7 +55,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: True
-Position: Named
+Position: 0
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

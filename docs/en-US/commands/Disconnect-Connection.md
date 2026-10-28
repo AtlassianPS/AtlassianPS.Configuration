@@ -18,19 +18,19 @@ Disconnect locally and invalidate a retained connection handle.
 ### Object
 
 ```powershell
-Disconnect-AtlassianConnection -Connection <Connection> [<CommonParameters>]
+Disconnect-AtlassianConnection -Connection <AtlassianPS.Connection> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Name
 
 ```powershell
-Disconnect-AtlassianConnection -Name <String> -Product <String> [<CommonParameters>]
+Disconnect-AtlassianConnection -Name <string> -Product <string> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Id
 
 ```powershell
-Disconnect-AtlassianConnection -Id <Int32> [<CommonParameters>]
+Disconnect-AtlassianConnection -Id <int> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

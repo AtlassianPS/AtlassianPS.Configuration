@@ -18,7 +18,7 @@ Writes a debug message while preserving the current debug preference.
 ### Message (Default)
 
 ```powershell
-Write-AtlassianDebugMessage [[-Message] <String>] [-BreakPoint] [[-Cmdlet] <PSCmdlet>] [<CommonParameters>]
+Write-AtlassianDebugMessage [[-Message] <string>] [-BreakPoint] [-Cmdlet <PSCmdlet>] [<CommonParameters>]
 ```
 
 ### BoundParameters
@@ -90,7 +90,7 @@ Parameter Sets: Message
 Aliases:
 
 Required: False
-Position: 1
+Position: 0
 Default value: None
 Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
