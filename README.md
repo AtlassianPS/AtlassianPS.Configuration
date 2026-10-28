@@ -11,7 +11,8 @@ permalink: /module/AtlassianPS.Configuration/
 
 AtlassianPS.Configuration is a module that offers a common set of tools to the [AtlassianPS] products to handle user-specific configuration.
 
-It also provides a shared runtime helper surface for dependent modules. Runtime helpers are intentionally separated from configuration cmdlets under `AtlassianPS.Configuration/Public/SharedRuntime/` (with shared internals under `Private/SharedRuntime/`) so helper evolution stays isolated from core configuration behavior.
+It also provides a shared runtime helper surface for dependent modules.
+Runtime helpers are intentionally separated from configuration cmdlets under `AtlassianPS.Configuration/Public/SharedRuntime/` (with shared internals under `Private/SharedRuntime/`) so helper evolution stays isolated from core configuration behavior.
 
 Join the conversation on [![SlackLogo][] AtlassianPS.Slack.com](https://atlassianps.org/slack)
 
@@ -59,7 +60,8 @@ Get-Help Get-AtlassianServerConfiguration -Full # or any other command
 
 ### Contribute
 
-Want to contribute to AtlassianPS? Great!
+Want to contribute to AtlassianPS?
+Great!
 We appreciate [everyone](https://atlassianps.org/#people) who invests their time to make our modules the best they can be.
 
 Check out our guidelines on [Contributing] to our modules and documentation.
@@ -89,7 +91,9 @@ Check out our guidelines on [Contributing] to our modules and documentation.
 
 Hopefully this is obvious, but:
 
-> This is an open source project (under the [MIT license]), and all contributors are volunteers. All commands are executed at your own risk. Please have good backups before you start, because you can delete a lot of stuff if you're not careful.
+> This is an open source project (under the [MIT license]), and all contributors are volunteers.
+> All commands are executed at your own risk.
+> Please have good backups before you start, because you can delete a lot of stuff if you're not careful.
 
 <!-- reference-style links -->
   [AtlassianPS]: https://atlassianps.org/
@@ -102,10 +106,3 @@ Hopefully this is obvious, but:
 
 <!-- [//]: # (Sweet online markdown editor at http://dillinger.io) -->
 <!-- [//]: # ("GitHub Flavored Markdown" https://help.github.com/articles/github-flavored-markdown/) -->
-
-## Experimental alpha tooling
-
-The manual Configuration Alpha workflow accepts reviewed Configuration and JiraPS commit SHAs and a major-zero alpha version.
-It builds one package, validates that package across both consumers and supported PowerShell engines, then promotes the tested bytes through the protected release environment.
-Publication runs from master under the existing environment policy.
-Experimental runtime changes remain on their candidate branches; this tooling change does not ship the shared connection runtime.

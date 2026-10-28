@@ -42,7 +42,6 @@ if ($VersionToPublish) {
 }
 $builtManifestPath = $script:BuildInfo.BuiltManifestPath
 
-
 #region SetUp
 # Synopsis: Proxy task
 task Init { }
@@ -506,8 +505,9 @@ task VerifyReleaseArtifact Package, {
         -BuildOutputPath $env:BHBuildOutput `
         -ModuleName $env:BHProjectName `
         -PackagePath $script:PackagePath `
-        -ExpectedVersion $expectedVersion `
+        -ExpectedVersion ($expectedVersion -split '-', 2)[0] `
         -RequireReleaseNotes
+    Test-ConfigurationArtifactVersion -BuiltManifestPath $builtManifestPath -PackagePath $script:PackagePath -ExpectedVersion $expectedVersion
 }
 
 task TestPublish Build, Package, {

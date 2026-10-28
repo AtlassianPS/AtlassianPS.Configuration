@@ -76,7 +76,7 @@ Accept wildcard characters: False
 
 ### -Uri
 
-Address of the Server.
+Absolute server endpoint without user information, a query string or a fragment.
 
 ```yaml
 Type: Uri
@@ -94,13 +94,13 @@ Accept wildcard characters: False
 
 Name with which this server will be stored.
 
-If no name is provided, the "Authority" of the address will be used.
+When omitted, the existing server name is kept.
 This value must be unique.
 
 In case the ServerName was already saved for another entry, an error is written and the existing entries are not changed.
 
 Example for "Authority":
-  https://**www.google.com**/maps?hl=en --> "www.google.com"
+  https://**www.google.com**/maps --> "www.google.com"
 
 Is not case sensitive
 
@@ -141,7 +141,9 @@ Accept wildcard characters: False
 
 ### -Session
 
-Stores a WebSession to the server object.
+Compatibility WebRequestSession retained on the in-memory server object.
+It is excluded from saved and portable profiles and is ignored by Connect.
+Supply authentication when creating a connection.
 
 ```yaml
 Type: WebRequestSession
@@ -157,7 +159,9 @@ Accept wildcard characters: False
 
 ### -Headers
 
-Stores the Headers that should be used for this server
+Compatibility headers retained on the in-memory server object.
+Headers are omitted when saving profiles, and portable exports reject profiles with nonempty headers.
+Connect uses the profile endpoint and requires explicit authentication.
 
 ```yaml
 Type: Hashtable

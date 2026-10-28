@@ -7,9 +7,39 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+### Added
+
+* Named in-memory connections with product defaults and isolated per-call authentication.
+* Portable non-secret profile import and export.
+* Verbose parameter traces use the same private redaction helper as debug traces.
+
 ### Changed
 
-* Migrated build and test tooling to AtlassianPS.Standards 0.4.0 and Pester 6.2.0. Test headers accept Pester 6.2.0 through the 6.x line (AtlassianPS/AtlassianPS#12, @lipkau).
+* Build and tests use disposable Configuration storage and preserve user profiles.
+* Saved and exported profiles support non-secret endpoint settings.
+  Saving excludes legacy authentication fields without changing their in-memory values; new profile endpoints reject user information, query strings and fragments.
+* Debug parameter traces redact authentication and request payloads; breadcrumbs follow calls across modules.
+* Explicit `-Verbose:$false` suppresses output in verbose-enabled callers and skips parameter formatting.
+* Connection site URIs reject user information, queries, fragments and non-HTTP(S) endpoints before retaining display metadata.
+* Debug and verbose parameter traces redact network-relative URI inputs.
+* Request-context resolution exposes `-RequestContext` and standard diagnostic parameters in command completion.
+
+
+* Migrated build and test tooling to AtlassianPS.Standards 0.4.0 and Pester 6.2.0.
+  Test headers accept Pester 6.2.0 through the 6.x line (AtlassianPS/AtlassianPS#12, @lipkau).
+
+## v0.3.0-alpha0002 - integration candidate
+
+### Changed
+
+* Debug parameter traces redact authentication and request payloads; breadcrumbs follow calls across modules.
+* Saved and exported profiles support non-secret endpoint settings.
+
+## v0.3.0-alpha0001 - integration candidate
+
+### Added
+
+* Experimental shared connection runtime and portable profiles for JiraPS integration.
 
 ## v0.2.10 - 2026-08-29
 

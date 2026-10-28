@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <!--<Configuration xmlns="http://schemas.microsoft.com/PowerShell/FormatData/2007/09">-->
 <Configuration>
     <ViewDefinitions>
@@ -56,6 +56,58 @@
                                 <ScriptBlock>
                                     if ($_.Certificate) { $true } else { $false }
                                 </ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        <View>
+            <Name>AtlassianPS.Connection</Name>
+            <ViewSelectedBy>
+                <TypeName>AtlassianPS.Connection</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Label>Id</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Product</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Name</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Site</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Authentication</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>State</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Id</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Product</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Name</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>if ($_.SiteUri) { $_.SiteUri } else { $_.BaseUri }</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>AuthenticationMode</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>State</PropertyName>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>

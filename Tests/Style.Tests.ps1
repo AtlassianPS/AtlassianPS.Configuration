@@ -10,7 +10,8 @@ Describe "Style rules" -Tag "Unit" {
         }
 
         $isReleaseContext = $PSScriptRoot -match "[\\/]Release[\\/]"
-        $filesRoot = if ($isReleaseContext) { Join-Path $moduleRoot 'Release' } else { $moduleRoot }
+        $filesRoot = if ($isReleaseContext) { Join-Path $moduleRoot 'Release' }
+        else { $moduleRoot }
 
         ${/} = [System.IO.Path]::DirectorySeparatorChar
 
@@ -22,8 +23,8 @@ Describe "Style rules" -Tag "Unit" {
         $script:docFiles = Get-ChildItem $filesRoot -Include *.md -Recurse -Force
 
         if (-not $isReleaseContext) {
-            $script:codeFiles = $script:codeFiles | Where-Object { $_.FullName -notlike "*${/}Release${/}*" -and $_.FullName -notmatch '[\\/]\.tmp[\\/]' }
-            $script:docFiles = $script:docFiles | Where-Object { $_.FullName -notlike "*${/}Release${/}*" -and $_.FullName -notmatch '[\\/]\.tmp[\\/]' }
+            $script:codeFiles = $script:codeFiles | Where-Object { $_.FullName -notlike "*${/}Release${/}*" }
+            $script:docFiles = $script:docFiles | Where-Object { $_.FullName -notlike "*${/}Release${/}*" }
         }
     }
 

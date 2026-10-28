@@ -83,3 +83,5 @@ $resolvedSettingsPath = Sync-AtlassianPSScriptAnalyzerSettings `
     -ErrorAction Stop
 
 Write-Output "Shared PSScriptAnalyzer settings synchronized to '$resolvedSettingsPath'."
+
+& (Join-Path $PSScriptRoot 'Assert-RuntimeDependency.ps1') -ManifestPath $manifestPath

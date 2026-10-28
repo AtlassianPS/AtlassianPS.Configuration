@@ -15,17 +15,31 @@ Writes a debug message while preserving the current debug preference.
 
 ## SYNTAX
 
+### Message (Default)
+
 ```powershell
-Write-AtlassianDebugMessage [[-Message] <String>] [-BreakPoint] [[-Cmdlet] <PSCmdlet>] [<CommonParameters>]
+Write-AtlassianDebugMessage [[-Message] <string>] [-BreakPoint] [-Cmdlet <PSCmdlet>] [<CommonParameters>]
+```
+
+### BoundParameters
+
+```powershell
+Write-AtlassianDebugMessage -BoundParameters <IDictionary> [-BreakPoint] [-Cmdlet <PSCmdlet>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-Writes debug output and restores the original `$DebugPreference` value after
-processing.
+Writes debug output and restores the original `$DebugPreference` value after processing.
 
-Message formatting follows the configured message style settings (`Breadcrumbs`,
-`Indent`, `FunctionName`, and `TimeStamp`).
+Message formatting follows the configured message style settings (`Breadcrumbs`, `Indent`, `FunctionName`, and `TimeStamp`).
+
+Use `-BoundParameters` to trace command inputs before converting them to text.
+Authentication values, headers and request bodies are redacted.
+URI values omit user information, queries and fragments.
+Complex objects are represented by their type name.
+The input dictionary is unchanged.
+An explicit `-Debug:$false` suppresses output even when the caller enables debug.
+Arbitrary `-Message` text is written as supplied; callers must omit secrets.
 
 ## EXAMPLES
 
@@ -45,10 +59,41 @@ Set-AtlassianConfiguration -Name Message -Value ([AtlassianPS.MessageStyle]::new
 Write-AtlassianDebugMessage -Message 'Shared runtime diagnostic message.'
 ```
 
-Writes a breadcrumb line and an indented debug message based on the configured
-message style.
+Writes a breadcrumb line and an indented debug message based on the configured message style.
+
+### EXAMPLE 3
+
+```powershell
+function Invoke-Example {
+    [CmdletBinding()]
+    param([String] $Key, [SecureString] $ApiToken)
+
+    Write-AtlassianDebugMessage -BoundParameters $PSBoundParameters -Cmdlet $PSCmdlet
+}
+
+Invoke-Example -Key 'TEST-1' -ApiToken ([SecureString]::new()) -Debug
+```
+
+Writes the command inputs with the token redacted.
 
 ## PARAMETERS
+
+### -BoundParameters
+
+Bound command parameters to format as a `PSBoundParameters` debug message.
+In a command, use `Write-AtlassianDebugMessage -BoundParameters $PSBoundParameters -Cmdlet $PSCmdlet`.
+
+```yaml
+Type: IDictionary
+Parameter Sets: BoundParameters
+Aliases:
+
+Required: True
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
 
 ### -Message
 
@@ -56,11 +101,11 @@ Message to write to the debug stream.
 
 ```yaml
 Type: String
-Parameter Sets: (All)
+Parameter Sets: Message
 Aliases:
 
 Required: False
-Position: 1
+Position: 0
 Default value: None
 Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
@@ -68,8 +113,7 @@ Accept wildcard characters: False
 
 ### -BreakPoint
 
-When set, preserves the current debug preference behavior instead of forcing
-`Continue`.
+When set, preserves the current debug preference behavior instead of forcing `Continue`.
 
 ```yaml
 Type: SwitchParameter
@@ -120,3 +164,5 @@ None
 ## RELATED LINKS
 
 [Write-NonTerminatingError](../Write-NonTerminatingError/)
+
+[Write-VerboseMessage](../Write-VerboseMessage/)

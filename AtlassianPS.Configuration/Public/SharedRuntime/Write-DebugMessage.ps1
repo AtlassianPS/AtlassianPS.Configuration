@@ -1,10 +1,14 @@
 ﻿function Write-DebugMessage {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [CmdletBinding()]
+    [CmdletBinding( DefaultParameterSetName = 'Message' )]
     param(
-        [Parameter(ValueFromPipeline)]
+        [Parameter( Position = 0, ValueFromPipeline, ParameterSetName = 'Message' )]
         [String]
         $Message,
+
+        [Parameter( Mandatory, ParameterSetName = 'BoundParameters' )]
+        [System.Collections.IDictionary]
+        $BoundParameters,
 
         [Parameter()]
         [Switch]
@@ -32,9 +36,15 @@
     }
 
     process {
-        $caller = Get-PSCallStack | Select-Object -Last 1 -Skip 1 | Select-Object -First 1
-        if ($caller -and $caller.Arguments -and $caller.Arguments.Contains("Debug")) {
+        if (-not $PSBoundParameters.ContainsKey('Debug') -and -not $BreakPoint -and $Cmdlet.MyInvocation.BoundParameters['Debug']) {
             $DebugPreference = 'Continue'
+        }
+
+        if ($DebugPreference -eq 'SilentlyContinue') { return }
+
+        if ($PSCmdlet.ParameterSetName -eq 'BoundParameters') {
+            $parameters = Protect-BoundParameter -BoundParameters $BoundParameters
+            $Message = "PSBoundParameters: $($parameters | Out-String)"
         }
 
         Format-MessageStyle -Message $Message -Cmdlet $Cmdlet | ForEach-Object { WriteDebug $_ }

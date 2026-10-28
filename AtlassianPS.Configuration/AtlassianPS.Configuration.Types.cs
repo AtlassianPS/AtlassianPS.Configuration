@@ -111,4 +111,178 @@ namespace AtlassianPS
             return String.Format("{0} ({1})", Name, Uri);
         }
     }
+
+    public sealed class Connection : IDisposable
+    {
+        private PSCredential credential;
+        private String authenticationUsername;
+        private System.Security.SecureString token;
+        private WebRequestSession webSession;
+
+        public Guid InstanceId { get; private set; }
+        public Guid RegistryGeneration { get; private set; }
+        public Guid SourceInstanceId { get; private set; }
+        public Int32 Id { get; private set; }
+        public String Name { get; private set; }
+        public String Product { get; private set; }
+        public Uri BaseUri { get; private set; }
+        public Uri SiteUri { get; private set; }
+        public String CloudId { get; private set; }
+        public String DeploymentType { get; private set; }
+        public String Username { get; private set; }
+        public String AuthenticationMode { get; private set; }
+        public String State { get; private set; }
+        public Boolean IsOverride
+        {
+            get { return SourceInstanceId != Guid.Empty; }
+        }
+
+        public Connection(
+            String name,
+            String product,
+            Uri baseUri,
+            Uri siteUri,
+            String cloudId,
+            String mode,
+            String email,
+            PSCredential credential,
+            System.Security.SecureString token,
+            Guid generation)
+        {
+            InstanceId = Guid.NewGuid();
+            RegistryGeneration = generation;
+            Name = name;
+            Product = product;
+            BaseUri = baseUri;
+            SiteUri = siteUri;
+            CloudId = cloudId;
+            AuthenticationMode = mode;
+            Username = credential == null ? email : credential.UserName;
+            authenticationUsername = Username;
+            this.credential = credential == null
+                ? null
+                : new PSCredential(credential.UserName, credential.Password.Copy());
+            this.token = token == null ? null : token.Copy();
+            State = "Candidate";
+        }
+
+        public void SetValidationResult(String deploymentType, String username)
+        {
+            if (State != "Candidate")
+            {
+                throw new InvalidOperationException("Connection metadata is frozen.");
+            }
+
+            DeploymentType = deploymentType;
+            if (!String.IsNullOrEmpty(username))
+            {
+                Username = username;
+            }
+        }
+
+        public void Register(Int32 id)
+        {
+            if (State != "Candidate")
+            {
+                throw new InvalidOperationException("Only a candidate can be registered.");
+            }
+
+            Id = id;
+            State = "Active";
+        }
+
+        public void MakeStandalone(Guid sourceInstanceId)
+        {
+            if (State != "Candidate")
+            {
+                throw new InvalidOperationException("Only a candidate can become a request context.");
+            }
+
+            SourceInstanceId = sourceInstanceId;
+            State = "Standalone";
+        }
+
+        public String GetAuthorizationHeader()
+        {
+            if (State == "Disconnected")
+            {
+                throw new InvalidOperationException("Connection is disconnected.");
+            }
+
+            if (AuthenticationMode == "Anonymous")
+            {
+                return null;
+            }
+
+            String secret = null;
+            IntPtr pointer = IntPtr.Zero;
+            try
+            {
+                var secure = credential == null ? token : credential.Password;
+                pointer = System.Runtime.InteropServices.Marshal.SecureStringToBSTR(secure);
+                secret = System.Runtime.InteropServices.Marshal.PtrToStringBSTR(pointer);
+                if (AuthenticationMode == "PersonalAccessToken")
+                {
+                    return "Bearer " + secret;
+                }
+
+                return "Basic " + Convert.ToBase64String(
+                    System.Text.Encoding.UTF8.GetBytes(authenticationUsername + ":" + secret));
+            }
+            finally
+            {
+                if (pointer != IntPtr.Zero)
+                {
+                    System.Runtime.InteropServices.Marshal.ZeroFreeBSTR(pointer);
+                }
+
+                secret = null;
+            }
+        }
+
+        public WebRequestSession GetWebSession()
+        {
+            if (State == "Disconnected")
+            {
+                throw new InvalidOperationException("Connection is disconnected.");
+            }
+
+            if (webSession == null)
+            {
+                webSession = new WebRequestSession();
+            }
+
+            return webSession;
+        }
+
+        public void Dispose()
+        {
+            if (credential != null)
+            {
+                credential.Password.Dispose();
+            }
+
+            if (token != null)
+            {
+                token.Dispose();
+            }
+
+            credential = null;
+            token = null;
+
+            var disposableSession = (webSession as object) as IDisposable;
+            if (disposableSession != null)
+            {
+                disposableSession.Dispose();
+            }
+
+            webSession = null;
+            State = "Disconnected";
+        }
+
+        public override String ToString()
+        {
+            return Product + ":" + Name + " (" + (SiteUri ?? BaseUri) + ")";
+        }
+    }
 }

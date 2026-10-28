@@ -1,6 +1,6 @@
 ﻿@{
     RootModule           = 'AtlassianPS.Configuration.psm1'
-    ModuleVersion        = '0.2.10'
+    ModuleVersion        = '0.3.0'
     GUID                 = 'f946e1f7-ed4f-43da-aa24-6d57a25117cb'
     Author               = 'Lipkau'
     CompanyName          = 'AtlassianPS'
@@ -9,8 +9,9 @@
     RequiredModules      = @(
         @{ ModuleName = 'Metadata'; ModuleVersion = '1.5.7'; MaximumVersion = '1.*' }
         @{
-            ModuleName    = 'Configuration'
-            ModuleVersion = '1.6.0'
+            ModuleName     = 'Configuration'
+            ModuleVersion  = '1.6.0'
+            MaximumVersion = '1.*'
         }
     )
     FormatsToProcess     = @('AtlassianPS.Configuration.format.ps1xml')
