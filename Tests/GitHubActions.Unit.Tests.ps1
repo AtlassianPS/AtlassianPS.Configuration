@@ -58,6 +58,7 @@ Describe 'GitHub Actions release contract' -Tag Unit {
 
     It 'serializes legacy and shared candidate publication from master' {
         $legacy = Get-Content (Join-Path $script:projectRoot '.github/workflows/alpha_release.yml') -Raw
+
         $script:continuousRelease | Should -Match 'options: \[stable, alpha, beta, legacy-alpha\]'
         $script:continuousRelease | Should -Match "github.ref == 'refs/heads/master' && inputs.release_channel == 'legacy-alpha'"
         $legacy | Should -Match 'group: continuous-release'
