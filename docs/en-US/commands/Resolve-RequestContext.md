@@ -59,7 +59,8 @@ Accept wildcard characters: False
 
 ### -Connection
 
-Live connection object from this shared runtime. Removed and deserialized handles are rejected.
+Live connection object from this shared runtime.
+Removed and deserialized handles are rejected.
 
 ```yaml
 Type: Connection
@@ -75,7 +76,8 @@ Accept wildcard characters: False
 
 ### -ConnectionName
 
-Friendly name of an active connection for the requested product. It is not a URL or profile name.
+Friendly name of an active connection for the requested product.
+It is not a URL or profile name.
 
 ```yaml
 Type: String
@@ -107,7 +109,8 @@ Accept wildcard characters: False
 
 ### -Credential
 
-Username and password as PSCredential. An explicit empty credential is invalid.
+Username and password as PSCredential.
+An explicit empty credential is invalid.
 
 ```yaml
 Type: PSCredential
@@ -123,7 +126,8 @@ Accept wildcard characters: False
 
 ### -EmailAddress
 
-Cloud account email. Each API-token input must supply its own email.
+Cloud account email.
+Each API-token input must supply its own email.
 
 ```yaml
 Type: String
@@ -139,7 +143,8 @@ Accept wildcard characters: False
 
 ### -ApiToken
 
-Cloud API token as a nonempty string or SecureString. Requires EmailAddress.
+Cloud API token as a nonempty string or SecureString.
+Requires EmailAddress.
 
 ```yaml
 Type: Object

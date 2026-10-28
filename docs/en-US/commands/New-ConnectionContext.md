@@ -37,7 +37,8 @@ $candidate = New-AtlassianConnectionContext -Name example -Product Jira -BaseUri
 $candidate.Dispose()
 ```
 
-Create and discard an unregistered candidate. Product adapters validate before registration.
+Create and discard an unregistered candidate.
+Product adapters validate before registration.
 
 ## PARAMETERS
 
@@ -91,7 +92,8 @@ Accept wildcard characters: False
 
 ### -SiteUri
 
-Optional browser site URI. It can differ from the resolved API endpoint.
+Optional browser site URI.
+It can differ from the resolved API endpoint.
 
 ```yaml
 Type: Uri
@@ -123,7 +125,8 @@ Accept wildcard characters: False
 
 ### -Credential
 
-Username and password as PSCredential. An explicit empty credential is invalid.
+Username and password as PSCredential.
+An explicit empty credential is invalid.
 
 ```yaml
 Type: PSCredential
@@ -139,7 +142,8 @@ Accept wildcard characters: False
 
 ### -EmailAddress
 
-Cloud account email. Each API-token input must supply its own email.
+Cloud account email.
+Each API-token input must supply its own email.
 
 ```yaml
 Type: String
@@ -155,7 +159,8 @@ Accept wildcard characters: False
 
 ### -ApiToken
 
-Cloud API token as a nonempty string or SecureString. Requires EmailAddress.
+Cloud API token as a nonempty string or SecureString.
+Requires EmailAddress.
 
 ```yaml
 Type: Object

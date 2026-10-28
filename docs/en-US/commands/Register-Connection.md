@@ -39,13 +39,15 @@ $connection = Register-AtlassianConnection -Connection $candidate
 $connection | Disconnect-AtlassianConnection
 ```
 
-Register after product validation and disconnect when finished. SetValidationResult records validation; it does not perform HTTP itself.
+Register after product validation and disconnect when finished.
+SetValidationResult records validation; it does not perform HTTP itself.
 
 ## PARAMETERS
 
 ### -Connection
 
-Live connection object from this shared runtime. Removed and deserialized handles are rejected.
+Live connection object from this shared runtime.
+Removed and deserialized handles are rejected.
 
 ```yaml
 Type: Connection
@@ -61,7 +63,8 @@ Accept wildcard characters: False
 
 ### -Default
 
-Use or replace the current product default. The first successful registration selects itself automatically.
+Use or replace the current product default.
+The first successful registration selects itself automatically.
 
 ```yaml
 Type: SwitchParameter

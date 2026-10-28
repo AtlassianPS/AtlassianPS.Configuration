@@ -79,7 +79,8 @@ Select by registry-wide ID.
 
 ### -Connection
 
-Live connection object from this shared runtime. Removed and deserialized handles are rejected.
+Live connection object from this shared runtime.
+Removed and deserialized handles are rejected.
 
 ```yaml
 Type: Connection
