@@ -106,9 +106,3 @@ Hopefully this is obvious, but:
 
 <!-- [//]: # (Sweet online markdown editor at http://dillinger.io) -->
 <!-- [//]: # ("GitHub Flavored Markdown" https://help.github.com/articles/github-flavored-markdown/) -->
-
-## Experimental shared connections
-
-The 0.3 candidate adds named connections for JiraPS adoption.
-See [shared authentication](docs/en-US/about_AtlassianPS_Authentication.md) for connection selection, secret handling and saved profiles.
-ConfluencePS and JiraAgilePS adoption remains separate.
