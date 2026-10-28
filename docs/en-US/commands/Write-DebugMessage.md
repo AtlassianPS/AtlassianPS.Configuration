@@ -29,16 +29,17 @@ Write-AtlassianDebugMessage -BoundParameters <IDictionary> [-BreakPoint] [-Cmdle
 
 ## DESCRIPTION
 
-Writes debug output and restores the original `$DebugPreference` value after
-processing.
+Writes debug output and restores the original `$DebugPreference` value after processing.
 
-Message formatting follows the configured message style settings (`Breadcrumbs`,
-`Indent`, `FunctionName`, and `TimeStamp`).
+Message formatting follows the configured message style settings (`Breadcrumbs`, `Indent`, `FunctionName`, and `TimeStamp`).
 
 Use `-BoundParameters` to trace command inputs before converting them to text.
 Authentication values, headers and request bodies are redacted.
 URI values omit user information, queries and fragments.
 Complex objects are represented by their type name.
+The input dictionary is unchanged.
+An explicit `-Debug:$false` suppresses output even when the caller enables debug.
+Arbitrary `-Message` text is written as supplied; callers must omit secrets.
 
 ## EXAMPLES
 
@@ -58,8 +59,22 @@ Set-AtlassianConfiguration -Name Message -Value ([AtlassianPS.MessageStyle]::new
 Write-AtlassianDebugMessage -Message 'Shared runtime diagnostic message.'
 ```
 
-Writes a breadcrumb line and an indented debug message based on the configured
-message style.
+Writes a breadcrumb line and an indented debug message based on the configured message style.
+
+### EXAMPLE 3
+
+```powershell
+function Invoke-Example {
+    [CmdletBinding()]
+    param([String] $Key, [SecureString] $ApiToken)
+
+    Write-AtlassianDebugMessage -BoundParameters $PSBoundParameters -Cmdlet $PSCmdlet
+}
+
+Invoke-Example -Key 'TEST-1' -ApiToken ([SecureString]::new()) -Debug
+```
+
+Writes the command inputs with the token redacted.
 
 ## PARAMETERS
 
@@ -98,8 +113,7 @@ Accept wildcard characters: False
 
 ### -BreakPoint
 
-When set, preserves the current debug preference behavior instead of forcing
-`Continue`.
+When set, preserves the current debug preference behavior instead of forcing `Continue`.
 
 ```yaml
 Type: SwitchParameter
@@ -150,3 +164,5 @@ None
 ## RELATED LINKS
 
 [Write-NonTerminatingError](../Write-NonTerminatingError/)
+
+[Write-VerboseMessage](../Write-VerboseMessage/)

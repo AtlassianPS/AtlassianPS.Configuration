@@ -1,12 +1,17 @@
 ﻿function Write-VerboseMessage {
     # .ExternalHelp ..\AtlassianPS.Configuration-help.xml
-    [CmdletBinding()]
+    [CmdletBinding( DefaultParameterSetName = 'Message' )]
     param(
-        [Parameter(Mandatory, ValueFromPipeline)]
+        [Parameter( Mandatory, Position = 0, ValueFromPipeline, ParameterSetName = 'Message' )]
         [String]
         $Message,
 
-        [Parameter()]
+        [Parameter( Mandatory, ParameterSetName = 'BoundParameters' )]
+        [System.Collections.IDictionary]
+        $BoundParameters,
+
+        [Parameter( Position = 1, ParameterSetName = 'Message' )]
+        [Parameter( ParameterSetName = 'BoundParameters' )]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
         $Cmdlet = $(
@@ -24,9 +29,15 @@
     }
 
     process {
-        $caller = Get-PSCallStack | Select-Object -Last 1 -Skip 1 | Select-Object -First 1
-        if ($caller -and $caller.Arguments -and $caller.Arguments.Contains("Verbose")) {
+        if (-not $PSBoundParameters.ContainsKey('Verbose') -and $Cmdlet.MyInvocation.BoundParameters['Verbose']) {
             $VerbosePreference = 'Continue'
+        }
+
+        if ($VerbosePreference -in 'SilentlyContinue', 'Ignore') { return }
+
+        if ($PSCmdlet.ParameterSetName -eq 'BoundParameters') {
+            $parameters = Protect-BoundParameter -BoundParameters $BoundParameters
+            $Message = "PSBoundParameters: $($parameters | Out-String)"
         }
 
         Format-MessageStyle -Message $Message -Cmdlet $Cmdlet | ForEach-Object { WriteVerbose $_ }

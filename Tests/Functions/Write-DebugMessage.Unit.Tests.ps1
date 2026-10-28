@@ -7,6 +7,23 @@ Describe "Write-DebugMessage" -Tag Unit {
         Import-Module $script:moduleToTest
     }
 
+    It "honors a caller's debug switch across the module boundary" {
+        function Invoke-ExternalDebugMessage {
+            [CmdletBinding()]
+            param([Switch] $Suppress)
+
+            if ($Suppress) {
+                Write-AtlassianDebugMessage -BoundParameters $PSBoundParameters -Cmdlet $PSCmdlet -Debug:$false
+            }
+            else {
+                Write-AtlassianDebugMessage -BoundParameters $PSBoundParameters -Cmdlet $PSCmdlet
+            }
+        }
+
+        (Invoke-ExternalDebugMessage -Debug 5>&1 | Out-String) | Should -Match 'PSBoundParameters:'
+        Invoke-ExternalDebugMessage -Debug -Suppress 5>&1 | Should -BeNullOrEmpty
+    }
+
     InModuleScope "AtlassianPS.Configuration" {
         #region Mocking
         #endregion Mocking
@@ -36,6 +53,24 @@ Describe "Write-DebugMessage" -Tag Unit {
         }
 
         Context "Behavior checking" {
+            It "skips redaction and formatting when explicitly suppressed" {
+                Mock Protect-BoundParameter { throw 'Unexpected redaction' }
+                Mock Format-MessageStyle { throw 'Unexpected formatting' }
+
+                Write-DebugMessage -BoundParameters @{ ApiToken = 'sentinel-token' } -Debug:$false 5>&1 | Should -BeNullOrEmpty
+
+                Should -Invoke Protect-BoundParameter -Times 0 -Exactly
+                Should -Invoke Format-MessageStyle -Times 0 -Exactly
+            }
+
+            It "accepts pipeline messages without sanitizing arbitrary text" {
+                $output = 'sentinel-message', 'second-message' | Write-DebugMessage -Debug 5>&1
+
+                @($output).Count | Should -Be 2
+                ($output | Out-String) | Should -Match 'sentinel-message'
+                ($output | Out-String) | Should -Match 'second-message'
+            }
+
             It "honors an explicit false Debug switch inside a debug-enabled caller" {
                 function Invoke-QuietDebugMessage {
                     [CmdletBinding()]

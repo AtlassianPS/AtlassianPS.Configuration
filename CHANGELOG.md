@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 * Named in-memory connections with product defaults and isolated per-call authentication.
 * Portable non-secret profile import and export.
+* Verbose parameter traces use the same private redaction helper as debug traces.
 
 ### Changed
 
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Saved and exported profiles support non-secret endpoint settings.
   Saving excludes legacy authentication fields without changing their in-memory values; new profile endpoints reject user information, query strings and fragments.
 * Debug parameter traces redact authentication and request payloads; breadcrumbs follow calls across modules.
+* Explicit `-Verbose:$false` suppresses output in verbose-enabled callers and skips parameter formatting.
 
 
 * Migrated build and test tooling to AtlassianPS.Standards 0.4.0 and Pester 6.2.0.
