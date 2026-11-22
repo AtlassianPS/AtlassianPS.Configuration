@@ -4,8 +4,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $script:projectRoot = Resolve-ProjectRoot
-        $script:standardsActionSha = 'fa0c5f72ddb2b96712ffb8f8f0623fa7220d9dd8'
-        $script:releaseActionSha = '160631f20740a10152d4560d698b5e16806d0edb'
+        $script:standardsActionSha = '7efc986344a4e8c4ffb108d5e3b69f45ef3857c4'
 
         $requirementsPath = Join-Path $script:projectRoot 'Tools/build.requirements.psd1'
         $requirements = Import-PowerShellDataFile -Path $requirementsPath
@@ -15,7 +14,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $script:standardsVersion = [string]$standardsRequirement.RequiredVersion
     }
 
-    It 'pins build workflows to the released dependency and release to the reviewed implementation' {
+    It 'pins every Standards workflow dependency to the released build dependency' {
         $workflowRoot = Join-Path $script:projectRoot '.github/workflows'
         $matches = foreach ($workflow in Get-ChildItem $workflowRoot -Filter '*.yml') {
             $content = Get-Content -LiteralPath $workflow.FullName -Raw
@@ -25,23 +24,9 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             )
         }
 
-        $buildShas = @(
-            $matches |
-                Where-Object { -not $_.Value.Contains('workflows/module_release') } |
-                ForEach-Object { $_.Groups['sha'].Value } |
-                Select-Object -Unique
-        )
-        $releaseShas = @(
-            $matches |
-                Where-Object { $_.Value.Contains('workflows/module_release') } |
-                ForEach-Object { $_.Groups['sha'].Value } |
-                Select-Object -Unique
-        )
-
         @($matches).Count | Should -BeGreaterThan 0
-        $buildShas | Should -Be @($script:standardsActionSha)
-        $releaseShas | Should -Be @($script:releaseActionSha)
-
+        @($matches | ForEach-Object { $_.Groups['sha'].Value } | Select-Object -Unique) |
+            Should -Be @($script:standardsActionSha)
         @($matches | ForEach-Object { $_.Groups['version'].Value } | Select-Object -Unique) |
             Should -Be @($script:standardsVersion)
     }
