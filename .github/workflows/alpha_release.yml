@@ -34,11 +34,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: configuration-alpha-${{ inputs.version }}
+  group: continuous-release
   cancel-in-progress: false
 
 jobs:
   producer:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - name: Validate reviewed inputs

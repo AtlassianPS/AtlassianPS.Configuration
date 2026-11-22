@@ -56,6 +56,15 @@ Describe 'GitHub Actions release contract' -Tag Unit {
         $script:continuousRelease | Should -Not -Match '(?m)^\s+tags:'
     }
 
+    It 'serializes legacy and shared candidate publication from master' {
+        $legacy = Get-Content (Join-Path $script:projectRoot '.github/workflows/alpha_release.yml') -Raw
+
+        $script:continuousRelease | Should -Match 'options: \[stable, alpha, beta, legacy-alpha\]'
+        $script:continuousRelease | Should -Match "github.ref == 'refs/heads/master' && inputs.release_channel == 'legacy-alpha'"
+        $legacy | Should -Match 'group: continuous-release'
+        $legacy | Should -Match "(?ms)producer:.*?if: github.ref == 'refs/heads/master'"
+    }
+
     It 'keeps source release notes empty and release build responsibilities focused' {
         $manifest = Get-Content (Join-Path $script:projectRoot 'AtlassianPS.Configuration/AtlassianPS.Configuration.psd1') -Raw
         $buildScript = Get-Content (Join-Path $script:projectRoot 'AtlassianPS.Configuration.build.ps1') -Raw
